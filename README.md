@@ -1,7 +1,13 @@
-# Epistemic Tribunal
+# Sovereign Epistemic Agent
 
-> A metacognitive reasoning architecture for ARC-like tasks.  
-> The system adjudicates between competing internal accounts of a task rather than blindly accepting the first plausible answer.
+## Epistemic Tribunal
+
+> This repository is the home of the **Sovereign Epistemic Agent** project.
+> **Epistemic Tribunal** is its first concrete experimental subsystem — a metacognitive adjudication stack for structured reasoning tasks.
+>
+> The system does not treat the first plausible answer as sovereign.
+> It adjudicates between competing internal accounts of a task.
+> The central object is not "the answer" — it is the **governed conflict between candidate hypotheses**.
 
 ---
 
@@ -16,30 +22,34 @@
    - [Uncertainty analyzer](#4-uncertainty-analyzer)
    - [Tribunal aggregator](#5-tribunal-aggregator)
    - [Failure ledger](#6-failure-ledger)
-4. [Project structure](#project-structure)
-5. [Installation](#installation)
-6. [Running a sample task](#running-a-sample-task)
-7. [Running the benchmark](#running-the-benchmark)
-8. [Ledger inspection](#ledger-inspection)
-9. [Running tests](#running-tests)
-10. [Configuration reference](#configuration-reference)
-11. [Extending with real model backends](#extending-with-real-model-backends)
-12. [Design philosophy](#design-philosophy)
+4. [Ledger Memory and Strange Loop Memory](#ledger-memory-and-strange-loop-memory)
+5. [Project structure](#project-structure)
+6. [Installation](#installation)
+7. [Running a sample task](#running-a-sample-task)
+8. [Running the benchmark](#running-the-benchmark)
+9. [Ledger inspection](#ledger-inspection)
+10. [Running tests](#running-tests)
+11. [Configuration reference](#configuration-reference)
+12. [Extending with real model backends](#extending-with-real-model-backends)
+13. [Design philosophy](#design-philosophy)
+14. [Project Status](#project-status)
 
 ---
 
 ## What is the Epistemic Tribunal?
 
-The **Epistemic Tribunal** is a modular Python framework that treats answer generation as a *competition between hypotheses* rather than a linear inference chain.  Given a structured reasoning task (here: ARC-like grid transformation puzzles), the tribunal:
+The **Epistemic Tribunal** is a metacognitive adjudication stack and the first experimental module of the broader Sovereign Epistemic Agent project. It is a modular Python framework for testing epistemic sovereignty, co-agency, and structured failure reuse on ARC-like reasoning tasks.
 
-1. Generates **multiple independent candidate reasoning traces** using different generator strategies.
+Rather than treating answer generation as a linear inference chain, the Tribunal frames it as a *competition between competing generator strategies*. Given a structured reasoning task (here: ARC-like grid transformation puzzles), the system:
+
+1. Generates **multiple candidate reasoning traces** using different competing generator strategies.
 2. Infers **task-level invariants** — structural constraints that any valid answer must satisfy.
 3. **Critiques each trace** for internal consistency, rule coherence, morphological quality, and similarity to known failure patterns stored in the ledger.
 4. Computes **uncertainty signals** across the generator pool — entropy, margin, coalition mass, and pairwise disagreement rate.
 5. **Aggregates all signals** through a weighted scoring function to elect the winning trace, request a resample, or abstain.
 6. Writes **structured failure records** to a persistent SQLite ledger for post-hoc analysis and future penalisation.
 
-The architecture is domain-agnostic.  ARC-like grid tasks are the reference domain, but every module is pluggable and can be replaced with real LLM backends, custom invariant checkers, or alternative critics.
+The architecture is domain-agnostic. ARC-like grid tasks are the reference domain, but every module is pluggable and can be replaced with real LLM backends, custom invariant checkers, or alternative critics.
 
 ---
 
@@ -47,7 +57,7 @@ The architecture is domain-agnostic.  ARC-like grid tasks are the reference doma
 
 | Aspect | Greedy / single-pass | Epistemic Tribunal |
 |---|---|---|
-| **Candidate generation** | One answer | Five (or more) independent strategies |
+| **Candidate generation** | One answer | Multiple competing generator strategies |
 | **Invariant awareness** | None | Extracted from training pairs; used to penalise violations |
 | **Self-critique** | None | TraceCritic scores every candidate before selection |
 | **Uncertainty** | Ignored | Entropy, margin, and coalition mass shape the final decision |
@@ -55,55 +65,45 @@ The architecture is domain-agnostic.  ARC-like grid tasks are the reference doma
 | **Abstention** | Never | Tribunal abstains or requests resample when confidence is low |
 | **Auditability** | Black-box | Full structured decision record in SQLite |
 
-The central object in this system is **not** "the answer" — it is **the competition between internal accounts of the task**.  The tribunal adjudicates that competition.
+The central object in this system is **not** "the answer" — it is **the competition between internal accounts of the task**. The tribunal adjudicates that competition.
 
 ---
 
 ## Architecture overview
 
-```
-Task JSON
-   │
-   ▼
-┌─────────────────────────────────────────────────┐
-│               Orchestrator                       │
-│                                                  │
-│  ┌──────────────┐   ┌───────────────────────┐   │
-│  │ Generator    │   │ Invariant Extractor    │   │
-│  │ Bank (×5)    │   │ (7 structural checks)  │   │
-│  └──────┬───────┘   └──────────┬────────────┘   │
-│         │ CandidateTraces       │ InvariantSet    │
-│         ▼                      ▼                 │
-│  ┌─────────────────────────────────────────┐     │
-│  │            TraceCritic                  │     │
-│  │  consistency · rule_coherence ·         │     │
-│  │  morphology · failure_similarity ·      │     │
-│  │  invariant_compliance                   │     │
-│  └──────────────────┬──────────────────────┘     │
-│                     │ CritiqueResults             │
-│  ┌──────────────────▼──────────────────────┐     │
-│  │         UncertaintyAnalyzer             │     │
-│  │   entropy · margin · coalition_mass ·   │     │
-│  │   disagreement_rate · per_trace_quality │     │
-│  └──────────────────┬──────────────────────┘     │
-│                     │ UncertaintyReport           │
-│  ┌──────────────────▼──────────────────────┐     │
-│  │          Tribunal Aggregator            │     │
-│  │  S(Tᵢ) = α·Uᵢ + β·Cᵢ + γ·Mᵢ + δ·Vᵢ  │     │
-│  │  → SELECT | RESAMPLE | ABSTAIN          │     │
-│  └──────────────────┬──────────────────────┘     │
-│                     │ TribunalDecision            │
-│  ┌──────────────────▼──────────────────────┐     │
-│  │           Failure Ledger                │     │
-│  │  SQLite: tasks · traces · decisions ·   │     │
-│  │          failures · violations · runs   │     │
-│  └─────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Task([Task JSON]) --> Orch
+
+    subgraph Orch[Orchestrator]
+        direction TB
+        GB["Generator Bank ×5\ngreedy · diverse · adversarial\nrule_first · minimal_description"]
+        IE["Invariant Extractor\n7 structural checks"]
+        TC["TraceCritic\nconsistency · rule_coherence\nmorphology · failure_similarity\ninvariant_compliance"]
+        UA["UncertaintyAnalyzer\nentropy · margin · coalition_mass\ndisagreement_rate · per_trace_quality"]
+        TA["Tribunal Aggregator\nS(Tᵢ) = α·Uᵢ + β·Cᵢ + γ·Mᵢ + δ·Vᵢ"]
+        FL[("Failure Ledger\nSQLite")]
+
+        GB -->|CandidateTraces| TC
+        IE -->|InvariantSet| TC
+        TC -->|CritiqueResults| UA
+        UA -->|UncertaintyReport| TA
+        TA -->|TribunalDecision| FL
+    end
+
+    TA --> Dec{Decision}
+    Dec -->|score ≥ selection_threshold| SELECT([SELECT])
+    Dec -->|score ≥ resample_threshold| RESAMPLE([RESAMPLE])
+    Dec -->|score below threshold| ABSTAIN([ABSTAIN])
+
+    FL -->|failure_similarity_penalty\nnext run| TC
 ```
 
 ### 1. Generator bank
 
-Five independent generator strategies, each producing a `CandidateTrace`:
+> **Clarification:** The current generator bank is a heuristic scaffold whose purpose is to test adjudication dynamics. It is **not** the final sovereign epistemic agent. It is the minimal experimental environment in which tribunal logic — critique, uncertainty measurement, and weighted selection — can be exercised. When real LLM backends are substituted for these heuristics, the tribunal layer remains unchanged.
+
+Five competing generator strategies, each producing a `CandidateTrace`:
 
 | Generator | Strategy |
 |---|---|
@@ -134,7 +134,7 @@ Observes training input/output pairs and infers lightweight structural constrain
 | `bounding_box_consistent` | Bounding-box coverage ratio is consistent |
 | `grid_dimensions_consistent` | Output shape matches the test input shape |
 
-Each invariant carries a **confidence score** (0–1).  Only invariants above the configured `confidence_threshold` are enforced during candidate scoring.
+Each invariant carries a **confidence score** (0–1). Only invariants above the configured `confidence_threshold` are enforced during candidate scoring.
 
 ### 3. Trace critic
 
@@ -182,10 +182,13 @@ Default weights: `α=0.25, β=0.35, γ=0.15, δ=0.25` (all configurable).
 
 Decision logic:
 
-```
-if best_score ≥ selection_threshold  → SELECT best candidate
-elif best_score ≥ resample_threshold → RESAMPLE
-else                                 → ABSTAIN
+```mermaid
+flowchart TD
+    Score([best_score]) --> A{score ≥ selection_threshold?}
+    A -->|yes| SELECT([SELECT best candidate])
+    A -->|no| B{score ≥ resample_threshold?}
+    B -->|yes| RESAMPLE([RESAMPLE])
+    B -->|no| ABSTAIN([ABSTAIN])
 ```
 
 ### 6. Failure ledger
@@ -201,14 +204,92 @@ A persistent SQLite database with six tables:
 | `invariant_violations` | Per-trace invariant violations |
 | `experiment_runs` | One row per end-to-end run with timing and config snapshot |
 
-Failure records are written when the tribunal abstains, resamples, or the selected answer does not match the ground truth.  Past failures feed back into the `failure_similarity_penalty` during subsequent evaluations on the same task.
+Failure records are written when the tribunal abstains, resamples, or the selected answer does not match the ground truth. Past failures feed back into the `failure_similarity_penalty` during subsequent evaluations on the same task.
+
+```mermaid
+erDiagram
+    experiment_runs {
+        string run_id PK
+        string config_snapshot
+        float duration_seconds
+    }
+    tasks {
+        string task_id PK
+        string description
+    }
+    traces {
+        string trace_id PK
+        string task_id FK
+        string generator_name
+        float confidence_score
+    }
+    decisions {
+        string decision_id PK
+        string run_id FK
+        string task_id FK
+        string outcome
+        float best_score
+    }
+    failures {
+        string failure_id PK
+        string task_id FK
+        string decision_id FK
+        string diagnosis
+        string disagreement_pattern
+    }
+    invariant_violations {
+        string violation_id PK
+        string trace_id FK
+        string invariant_name
+    }
+
+    tasks ||--o{ traces : has
+    tasks ||--o{ decisions : has
+    tasks ||--o{ failures : has
+    decisions ||--o{ failures : triggers
+    traces ||--o{ invariant_violations : has
+    experiment_runs ||--o{ decisions : records
+```
+
+---
+
+## Ledger Memory and Strange Loop Memory
+
+The current SQLite failure ledger is primarily **diagnostic and post-hoc**. It stores structured failure records — violated invariants, disagreement patterns, trace identifiers — for analysis and future penalisation runs. It is not a live writable epistemic memory coupled directly into the generation process. At generation time, the ledger influences scoring through the `failure_similarity_penalty`, but it is not queryable mid-reasoning in the way an active memory organ would be.
+
+A future **Strange Loop memory** would operate differently: it would be queryable *during* reasoning, not merely consulted as a penalty signal after candidates are formed. Such a memory would act more like an internal corrective organ — the system's hypotheses would be shaped by its prior failures before they fully form, not penalised after the fact. This is a substantively different epistemic architecture.
+
+The current ledger should be understood as a **bridge toward that stronger architecture**, not its final form. It establishes the data structures, the failure taxonomy, and the feedback loop that a Strange Loop memory would deepen. The distance between them is the distance between post-hoc audit and live self-correction.
+
+```mermaid
+flowchart LR
+    subgraph Now["Current — post-hoc ledger"]
+        direction LR
+        G1[Generator] -->|produces| T1[Candidate Trace]
+        T1 --> S1[Critic + Scorer]
+        S1 --> D1[Decision]
+        D1 -->|failure recorded| L1[("SQLite\nLedger")]
+        L1 -->|penalty signal\nnext run| S1
+    end
+
+    subgraph Future["Future — Strange Loop memory"]
+        direction LR
+        M[("Writable\nMemory")] -->|queried during\ngeneration| G2[Generator]
+        G2 -->|produces| T2[Candidate Trace]
+        T2 --> S2[Critic + Scorer]
+        S2 --> D2[Decision]
+        D2 -->|failure written\nimmediately| M
+    end
+
+    Now -.->|evolves into| Future
+```
 
 ---
 
 ## Project structure
 
 ```
-epistemic_tribunal/
+Sovereign-Epistemic-Agent/
 ├── README.md
 ├── pyproject.toml
 ├── .env.example
@@ -221,6 +302,8 @@ epistemic_tribunal/
 │       ├── copy_identity_003.json
 │       ├── horizontal_flip_004.json
 │       └── vertical_flip_005.json
+├── docs/
+│   └── roadmap.md
 ├── src/
 │   └── epistemic_tribunal/
 │       ├── __init__.py
@@ -334,7 +417,7 @@ tribunal run data/examples/colour_swap_001.json --ledger data/my_ledger.db
 tribunal run data/examples/colour_swap_001.json --json
 ```
 
-Example output:
+Example output (illustrative):
 
 ```
 INFO  Starting tribunal run abc12345 for task colour_swap_001
@@ -394,7 +477,7 @@ tribunal benchmark data/examples/ --ledger data/benchmark_ledger.db
 tribunal benchmark data/examples/ --json
 ```
 
-Example output:
+Example output (illustrative; actual values depend on task set and configuration):
 
 ```
          Benchmark Metrics
@@ -431,7 +514,7 @@ tribunal ledger inspect --task-id colour_swap_001 --json
 ## Running tests
 
 ```bash
-# Run the full test suite (92 tests)
+# Run the full test suite
 pytest
 
 # Run with verbose output
@@ -442,12 +525,6 @@ pytest tests/test_orchestrator.py
 
 # Run with coverage report
 pytest --cov=epistemic_tribunal --cov-report=term-missing
-```
-
-Expected output:
-
-```
-92 passed in 0.34s
 ```
 
 ---
@@ -517,7 +594,7 @@ export LOG_LEVEL=DEBUG
 
 ## Extending with real model backends
 
-The system is designed for easy extension.  All components use pluggable abstract base classes.
+The system is designed for easy extension. All components use pluggable abstract base classes.
 
 ### Replacing a generator with an LLM backend
 
@@ -610,7 +687,7 @@ orch._uncertainty = TokenProbAnalyzer()
 
 ### Swapping the failure ledger backend
 
-`LedgerStore` wraps raw `sqlite3`.  To use DuckDB, implement the same public interface:
+`LedgerStore` wraps raw `sqlite3`. To use DuckDB, implement the same public interface:
 
 ```python
 class DuckDBLedgerStore:
@@ -630,14 +707,49 @@ The Epistemic Tribunal is built around a single principle: **metacognitive adjud
 
 Key ideas:
 
-1. **Multiple hypotheses are cheap; mistakes are expensive.**  Running five lightweight generators in parallel costs almost nothing.  Selecting the wrong answer and propagating that error costs everything.
+1. **Multiple hypotheses are cheap; mistakes are expensive.** Running several lightweight competing generator strategies in parallel costs almost nothing. Selecting the wrong answer and propagating that error costs everything.
 
-2. **Invariants are free constraints.**  Training pairs reveal structural regularities that valid answers must respect.  Enforcing them filters out large classes of wrong hypotheses before any scoring takes place.
+2. **Invariants are free constraints.** Training pairs reveal structural regularities that valid answers must respect. Enforcing them filters out large classes of wrong hypotheses before any scoring takes place.
 
-3. **Uncertainty is a first-class signal.**  When the generators strongly disagree, the system should be less confident.  Coalition mass, entropy, and margin make that disagreement explicit and actionable.
+3. **Uncertainty is a first-class signal.** When the competing generator strategies strongly disagree, the system should be less confident. Coalition mass, entropy, and margin make that disagreement explicit and actionable.
 
-4. **Failure memory improves over time.**  The ledger records not just whether the system was wrong, but *how* it was wrong — which generators were involved, which invariants were violated, what the disagreement pattern looked like.  This information feeds back into the `failure_similarity_penalty` on future runs.
+4. **Failure memory improves over time.** The ledger records not just whether the system was wrong, but *how* it was wrong — which generator strategies were involved, which invariants were violated, what the disagreement pattern looked like. This information feeds back into the `failure_similarity_penalty` on future runs.
 
-5. **Abstention is a valid answer.**  A system that knows when it does not know is safer than one that always guesses.  The tribunal can abstain or request resampling rather than committing to a low-confidence selection.
+5. **Abstention is a valid answer.** A system that knows when it does not know is safer than one that always guesses. The tribunal can abstain or request resampling rather than committing to a low-confidence selection.
 
-6. **Every module is replaceable.**  The mock generators, heuristic critic, and proxy uncertainty analyzer are designed to be swapped out for real LLM backends without changing the surrounding architecture.
+6. **Every module is replaceable.** The mock generators, heuristic critic, and proxy uncertainty analyzer are designed to be swapped out for real LLM backends without changing the surrounding architecture.
+
+---
+
+This system is an experiment in epistemic sovereignty. Its purpose is not merely to improve accuracy on ARC-like puzzles, but to test whether a reasoning system can learn to distrust brittle internal consensus, adjudicate between competing stances, and treat failure as reusable knowledge rather than terminal embarrassment. The heuristic generator bank is a stand-in for the real question: what happens when genuine reasoning agents — with divergent internal states, different priors, different failure modes — are subjected to structured adjudication rather than naive ensemble averaging? That question cannot be answered without first building the adjudication layer. This is that layer.
+
+---
+
+## Project Status
+
+### Implemented now
+
+- Full adjudication pipeline: generator bank → invariant extraction → trace critique → uncertainty analysis → tribunal aggregation
+- Five heuristic competing generator strategies (greedy, diverse, adversarial, rule-first, minimal-description)
+- Seven structural invariant checkers
+- Weighted multi-signal scoring with configurable parameters
+- SELECT / RESAMPLE / ABSTAIN decision logic
+- Persistent SQLite failure ledger with six-table schema
+- Post-hoc failure penalisation via `failure_similarity_penalty`
+- Pluggable abstract interfaces for all major components
+- CLI (`tribunal run`, `tribunal benchmark`, `tribunal ledger`)
+- Five synthetic ARC-like benchmark tasks
+
+### Near-term extensions
+
+- LLM-backed generator strategies (replacing heuristic generators with real model calls)
+- Token log-probability uncertainty signals
+- Expanded benchmark task set
+- Richer failure taxonomy and ledger query API
+
+### Long-range research direction
+
+- **Strange Loop writable memory**: a live epistemic memory queryable during generation, acting as an internal corrective organ rather than a post-hoc audit trail
+- **Co-agency and operator-mind architecture**: multiple semi-autonomous reasoning agents with distinct epistemic stances, coordinated by the tribunal
+- **Gödelian self-reference handling**: mechanisms for the system to reason about the limits of its own adjudication logic, including structured acknowledgment of undecidable cases
+- **Generalisation beyond ARC**: applying the adjudication stack to open-ended natural language reasoning and multi-step planning tasks
