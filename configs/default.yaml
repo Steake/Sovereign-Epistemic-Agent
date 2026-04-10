@@ -14,6 +14,10 @@ tribunal:
   resample_threshold: 0.20
   # Maximum resampling attempts before abstaining
   max_resample_attempts: 2
+  # If a single generator type dominates above this coalition mass, force RESAMPLE.
+  diversity_floor: 0.90
+  # Disable memory weighting until this many prior tasks have completed.
+  ledger_warmup_tasks: 150
 
 # Generator settings
 generators:
@@ -25,6 +29,12 @@ generators:
     - minimal_description
   # Shared seed for deterministic mock logic
   seed: 42
+  llm:
+    model_name: "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
+    max_new_tokens: 1024
+    temperature: 0.1
+    top_p: 0.95
+    trust_remote_code: false
 
 # Invariant extractor
 invariants:
@@ -55,6 +65,11 @@ ledger:
   path: "data/tribunal_ledger.db"
   # Whether to write failure records even when tribunal selects a candidate
   always_record: false
+
+# Benchmarking / resumability
+benchmark:
+  # Write SQLite + run_progress checkpoints every N tasks (0 disables intermediate checkpoints).
+  checkpoint_every_n_tasks: 0
 
 # Logging
 logging:

@@ -136,6 +136,7 @@ def test_orchestrator_with_single_generator() -> None:
     config.generators.enabled = ["greedy"]
     config.tribunal.selection_threshold = 0.0
     config.tribunal.resample_threshold = 0.0
+    config.tribunal.diversity_floor = 1.0
     store = LedgerStore(":memory:")
     orch = Orchestrator(config=config, ledger_store=store)
 

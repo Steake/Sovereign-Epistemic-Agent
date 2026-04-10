@@ -8,6 +8,7 @@ from epistemic_tribunal.generators.adversarial import AdversarialGenerator
 from epistemic_tribunal.generators.base import build_generators
 from epistemic_tribunal.generators.diverse import DiverseGenerator
 from epistemic_tribunal.generators.greedy import GreedyGenerator
+from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.generators.minimal import MinimalDescriptionGenerator
 from epistemic_tribunal.generators.rule_first import RuleFirstGenerator
 from epistemic_tribunal.tasks.base import grid_shape
@@ -91,6 +92,18 @@ def test_build_generators_all() -> None:
     assert len(gens) == 5
 
 
+def test_build_generators_with_llm_config() -> None:
+    gens = build_generators(
+        ["llm"],
+        seed=7,
+        generator_configs={"llm": {"model_name": "test-model", "max_new_tokens": 128}},
+    )
+    assert len(gens) == 1
+    assert gens[0].name == "llm"
+    assert isinstance(gens[0], LLMGenerator)
+    assert gens[0].model_name == "test-model"
+
+
 def test_build_generators_subset() -> None:
     gens = build_generators(["greedy", "diverse"], seed=1)
     names = [g.name for g in gens]
@@ -134,3 +147,37 @@ def test_no_training_data(simple_task: Task) -> None:
         trace = gen.generate(task)
         assert trace.answer is not None
         assert len(trace.answer) == len(task.test_input)
+
+
+def test_llm_parse_response_ignores_trailing_prose(simple_task: Task) -> None:
+    gen = LLMGenerator(model_name="test-model")
+    response = (
+        '<think>\nspot the swap\n</think>\n'
+        '{"answer": [["2", "0", "1"], ["1", "2", "0"], ["0", "1", "2"]], '
+        '"reasoning_steps": ["swap 1 and 2"], "confidence": 0.82}'
+        "\nExtra prose after the closing brace."
+    )
+    answer, steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
+    assert answer == simple_task.ground_truth
+    assert "swap 1 and 2" in steps
+    assert confidence == pytest.approx(0.82)
+
+
+def test_llm_parse_response_rejects_wrong_shape(simple_task: Task) -> None:
+    gen = LLMGenerator(model_name="test-model")
+    response = '{"answer": [[1, 2], [3, 4]], "reasoning_steps": ["short"], "confidence": 0.7}'
+    answer, steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
+    assert answer is None
+    assert steps == ["short"]
+    assert confidence == 0.0
+
+
+def test_llm_parse_response_rejects_reasoning_bleed(simple_task: Task) -> None:
+    gen = LLMGenerator(model_name="test-model")
+    response = (
+        '{"answer": [["2 because swap 1 and 2", 0, 1], [1, 2, 0], [0, 1, 2]], '
+        '"reasoning_steps": ["because swap 1 and 2"], "confidence": 0.7}'
+    )
+    answer, _steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
+    assert answer is None
+    assert confidence == 0.0

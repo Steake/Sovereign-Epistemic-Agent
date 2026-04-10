@@ -135,3 +135,59 @@ def test_adjudicate_reasoning_nonempty(simple_task) -> None:
 def test_adjudicate_task_id_preserved(simple_task) -> None:
     decision = _run_tribunal(simple_task)
     assert decision.task_id == simple_task.task_id
+
+
+def test_adjudicate_resamples_when_single_generator_type_dominates(simple_task) -> None:
+    tribunal = TribunalAggregator(
+        config=TribunalConfig(
+            selection_threshold=0.4,
+            resample_threshold=0.2,
+            diversity_floor=0.9,
+        )
+    )
+    shared_answer = [[1, 1], [1, 1]]
+    traces = [
+        CandidateTrace(
+            trace_id="t1",
+            generator_name="llm",
+            answer=shared_answer,
+            reasoning_steps=["a"],
+            confidence_score=0.9,
+        ),
+        CandidateTrace(
+            trace_id="t2",
+            generator_name="greedy",
+            answer=[[0, 0], [0, 0]],
+            reasoning_steps=["b"],
+            confidence_score=0.2,
+        ),
+    ]
+    critiques = [
+        CritiqueResult(
+            trace_id="t1",
+            consistency_score=0.9,
+            rule_coherence_score=0.9,
+            morphology_score=0.9,
+            failure_similarity_penalty=0.0,
+            invariant_compliance_score=1.0,
+            aggregate_score=0.95,
+        ),
+        CritiqueResult(
+            trace_id="t2",
+            consistency_score=0.2,
+            rule_coherence_score=0.2,
+            morphology_score=0.2,
+            failure_similarity_penalty=0.0,
+            invariant_compliance_score=1.0,
+            aggregate_score=0.2,
+        ),
+    ]
+    uncertainty = UncertaintyReport(
+        entropy=0.0,
+        margin=1.0,
+        coalition_mass=0.95,
+        disagreement_rate=1.0,
+        per_trace_quality={"t1": 0.9, "t2": 0.1},
+    )
+    decision = tribunal.adjudicate(simple_task, traces, critiques, uncertainty)
+    assert decision.decision == DecisionKind.RESAMPLE

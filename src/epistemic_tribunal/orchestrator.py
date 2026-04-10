@@ -66,9 +66,13 @@ class Orchestrator:
         self._writer = LedgerWriter(self._store)
 
         # Build components
+        generator_configs: dict[str, dict[str, object]] = {}
+        if "llm" in self._config.generators.enabled:
+            generator_configs["llm"] = self._config.generators.llm.model_dump()
         self._generators = build_generators(
             self._config.generators.enabled,
             seed=self._config.generators.seed,
+            generator_configs=generator_configs,
         )
         self._extractor = InvariantExtractor(
             enabled_checks=self._config.invariants.enabled_checks,
@@ -99,6 +103,8 @@ class Orchestrator:
         """
         start_time = time.monotonic()
         run_id = str(uuid.uuid4())
+        completed_runs_before = self._store.get_stats()["experiment_runs"]
+        warmup_threshold = self._config.tribunal.ledger_warmup_tasks
         log.info("Starting tribunal run %s for task %s", run_id[:8], task.task_id)
 
         # Persist task record
@@ -126,7 +132,18 @@ class Orchestrator:
         log.info("Uncertainty: %s", uncertainty_report.notes)
 
         # 6. Adjudicate
-        decision = self._tribunal.adjudicate(
+        tribunal = self._tribunal
+        if warmup_threshold > 0 and completed_runs_before < warmup_threshold:
+            warmup_config = self._config.tribunal.model_copy(deep=True)
+            warmup_config.weights.memory = 0.0
+            tribunal = TribunalAggregator(config=warmup_config)
+            log.info(
+                "Failure-ledger warmup active (%d/%d completed); setting memory weight gamma to 0.0.",
+                completed_runs_before,
+                warmup_threshold,
+            )
+
+        decision = tribunal.adjudicate(
             task, traces, critiques, uncertainty_report, invariant_set
         )
         log.info("Decision: %s (confidence=%.3f)", decision.decision.value, decision.confidence)
@@ -160,6 +177,16 @@ class Orchestrator:
             },
         )
         self._writer.write_run(run)
+
+        completed_runs_after = completed_runs_before + 1
+        if (
+            warmup_threshold > 0
+            and completed_runs_before < warmup_threshold <= completed_runs_after
+        ):
+            log.info(
+                "Failure-ledger warmup complete after %d task(s); memory weighting is now active.",
+                warmup_threshold,
+            )
         return run
 
     def run_and_format(self, task: Task) -> dict:
