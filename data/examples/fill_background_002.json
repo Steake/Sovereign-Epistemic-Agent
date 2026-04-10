@@ -1,0 +1,21 @@
+{
+  "task_id": "fill_background_002",
+  "description": "Fill background (0) cells with the dominant foreground colour.",
+  "train": [
+    {
+      "input": [[3, 0, 3], [0, 3, 0], [3, 0, 3]],
+      "output": [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+    },
+    {
+      "input": [[5, 0, 0], [5, 5, 0], [0, 5, 5]],
+      "output": [[5, 5, 5], [5, 5, 5], [5, 5, 5]]
+    }
+  ],
+  "test": [
+    {
+      "input": [[4, 0, 4], [0, 4, 0], [4, 4, 0]],
+      "output": [[4, 4, 4], [4, 4, 4], [4, 4, 4]]
+    }
+  ],
+  "ground_truth": [[4, 4, 4], [4, 4, 4], [4, 4, 4]]
+}

@@ -1,0 +1,62 @@
+# Default configuration for Epistemic Tribunal
+
+# Tribunal scoring weights (must sum to 1.0 or be normalised internally)
+tribunal:
+  weights:
+    uncertainty: 0.25    # alpha — U_i: uncertainty-derived quality
+    critic: 0.35         # beta  — C_i: critic consistency score
+    memory: 0.15         # gamma — M_i: memory / failure-similarity penalty
+    invariant: 0.25      # delta — V_i: invariant compliance score
+
+  # Minimum score to select a candidate (else resample or abstain)
+  selection_threshold: 0.40
+  # Minimum score to resample (below this → abstain)
+  resample_threshold: 0.20
+  # Maximum resampling attempts before abstaining
+  max_resample_attempts: 2
+
+# Generator settings
+generators:
+  enabled:
+    - greedy
+    - diverse
+    - adversarial
+    - rule_first
+    - minimal_description
+  # Shared seed for deterministic mock logic
+  seed: 42
+
+# Invariant extractor
+invariants:
+  confidence_threshold: 0.5
+  enabled_checks:
+    - object_count_preserved
+    - colour_count_preserved
+    - symmetry_expected
+    - shape_transform_expected
+    - size_relation_preserved
+    - bounding_box_consistent
+    - grid_dimensions_consistent
+
+# Critic settings
+critic:
+  failure_similarity_weight: 0.20
+  consistency_weight: 0.30
+  rule_coherence_weight: 0.25
+  morphology_weight: 0.25
+
+# Uncertainty analyzer
+uncertainty:
+  entropy_bins: 10
+  min_coalition_mass: 0.6
+
+# Ledger
+ledger:
+  path: "data/tribunal_ledger.db"
+  # Whether to write failure records even when tribunal selects a candidate
+  always_record: false
+
+# Logging
+logging:
+  level: "INFO"
+  format: "rich"   # "rich" | "plain"

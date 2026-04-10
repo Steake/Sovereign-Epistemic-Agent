@@ -1,0 +1,21 @@
+{
+  "task_id": "vertical_flip_005",
+  "description": "Flip the grid vertically (mirror top-to-bottom).",
+  "train": [
+    {
+      "input": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+      "output": [[7, 8, 9], [4, 5, 6], [1, 2, 3]]
+    },
+    {
+      "input": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      "output": [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+    }
+  ],
+  "test": [
+    {
+      "input": [[2, 3, 0], [0, 3, 2], [3, 0, 2]],
+      "output": [[3, 0, 2], [0, 3, 2], [2, 3, 0]]
+    }
+  ],
+  "ground_truth": [[3, 0, 2], [0, 3, 2], [2, 3, 0]]
+}

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+.uv/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Environment files (keep .env.example, ignore .env)
+.env
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ledger databases (generated at runtime)
+data/tribunal_ledger.db
+data/benchmark_ledger.db
+data/*.db
+
+# macOS
+.DS_Store
