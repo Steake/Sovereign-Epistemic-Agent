@@ -76,7 +76,7 @@ The current generator bank differs by heuristic strategy, not by durable epistem
 
 ### Gödelian self-reference and undecidable-case handling
 
-The current stack can select, resample, or abstain. It does not yet model the stronger question of whether some cases are undecidable for the current generator pool or under-specified by the task itself. The longer-range Gödelian direction is about handling those limits honestly: distinguishing low confidence from structural irresolution, and building mechanisms that can acknowledge when adjudication itself has reached a boundary.
+The current stack can select, resample, or abstain. It does not yet model the stronger question of whether some cases are undecidable for the current generator pool or under-specified by the task itself. The longer-range Gödelian direction is about handling those limits honestly: distinguishing low confidence from structural irresolvability, and building mechanisms that can acknowledge when adjudication itself has reached a boundary.
 
 ---
 
