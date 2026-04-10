@@ -14,6 +14,12 @@ tribunal:
   resample_threshold: 0.20
   # Maximum resampling attempts before abstaining
   max_resample_attempts: 2
+  # If coalition mass exceeds this and only one generator type contributes,
+  # trigger RESAMPLE instead of SELECT (prevents rubber-stamping).
+  diversity_floor: 0.9
+  # Number of tasks before memory weight gamma is activated.
+  # During warmup gamma=0.0 so failure-similarity penalty doesn't add noise.
+  ledger_warmup_tasks: 150
 
 # Generator settings
 generators:
@@ -55,6 +61,8 @@ ledger:
   path: "data/tribunal_ledger.db"
   # Whether to write failure records even when tribunal selects a candidate
   always_record: false
+  # Write checkpoint every N tasks during benchmark (0 = disabled)
+  checkpoint_every_n_tasks: 50
 
 # Logging
 logging:

@@ -67,6 +67,7 @@ def build_generators(enabled: list[str], seed: int = 42) -> list[BaseGenerator]:
     from epistemic_tribunal.generators.adversarial import AdversarialGenerator
     from epistemic_tribunal.generators.rule_first import RuleFirstGenerator
     from epistemic_tribunal.generators.minimal import MinimalDescriptionGenerator
+    from epistemic_tribunal.generators.llm import LLMGenerator
 
     REGISTRY: dict[str, type[BaseGenerator]] = {
         "greedy": GreedyGenerator,
@@ -74,6 +75,7 @@ def build_generators(enabled: list[str], seed: int = 42) -> list[BaseGenerator]:
         "adversarial": AdversarialGenerator,
         "rule_first": RuleFirstGenerator,
         "minimal_description": MinimalDescriptionGenerator,
+        "llm": LLMGenerator,
     }
 
     generators: list[BaseGenerator] = []

@@ -99,13 +99,16 @@ def run_benchmark(
         None, "--ledger", "-l", help="Override ledger DB path."
     ),
     json_output: bool = typer.Option(False, "--json", help="Output metrics as JSON."),
+    resume: bool = typer.Option(
+        False, "--resume", help="Resume from run_progress.json, skipping completed tasks."
+    ),
 ) -> None:
     """Run the tribunal over a directory of task JSON files."""
     config = load_config(config_path)
     if ledger_path:
         config.ledger.path = ledger_path
 
-    runner = BenchmarkRunner(config=config, ledger_path=ledger_path)
+    runner = BenchmarkRunner(config=config, ledger_path=ledger_path, resume=resume)
 
     if not dataset_path.is_dir():
         console.print(f"[red]Not a directory:[/red] {dataset_path}")

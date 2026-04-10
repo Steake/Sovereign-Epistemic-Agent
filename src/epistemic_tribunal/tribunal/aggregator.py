@@ -53,6 +53,8 @@ class TribunalAggregator:
         critiques: list[CritiqueResult],
         uncertainty: UncertaintyReport,
         invariant_set: Optional[InvariantSet] = None,
+        *,
+        completed_task_count: int = 0,
     ) -> TribunalDecision:
         """Run the tribunal and return a :class:`TribunalDecision`.
 
@@ -77,10 +79,20 @@ class TribunalAggregator:
                 reasoning="No candidate traces available.",
             )
 
-        # Normalise weights
+        # Normalise weights — zero out gamma during ledger warmup
         w = self._config.weights
+        warmup_threshold = self._config.ledger_warmup_tasks
+        effective_memory = w.memory
+        if completed_task_count < warmup_threshold:
+            effective_memory = 0.0
+            log.debug(
+                "Ledger warmup active (%d/%d tasks) — gamma set to 0.0.",
+                completed_task_count,
+                warmup_threshold,
+            )
+
         alpha, beta, gamma, delta = normalise_weights(
-            w.uncertainty, w.critic, w.memory, w.invariant
+            w.uncertainty, w.critic, effective_memory, w.invariant
         )
 
         # Build critique lookup
@@ -128,12 +140,33 @@ class TribunalAggregator:
         ]
 
         if best.total >= self._config.selection_threshold:
-            decision = DecisionKind.SELECT
-            selected_id = best.trace_id
-            selected_answer = best_trace.answer if best_trace else None
-            reasoning_parts.append(
-                f"Selected {best.generator_name!r} (score={best.total:.4f})."
-            )
+            # Diversity floor: if coalition mass exceeds the threshold AND
+            # only one generator type contributes to the top answer, force
+            # RESAMPLE so the tribunal actually adjudicates.
+            diversity_floor = self._config.diversity_floor
+            if (
+                uncertainty.coalition_mass > diversity_floor
+                and self._single_generator_type_dominates(
+                    best, trace_scores, traces, uncertainty
+                )
+            ):
+                decision = DecisionKind.RESAMPLE
+                reasoning_parts.append(
+                    f"Diversity floor triggered: coalition_mass="
+                    f"{uncertainty.coalition_mass:.3f} > {diversity_floor:.2f} "
+                    f"with single generator type dominant — forcing RESAMPLE."
+                )
+                log.info(
+                    "Diversity floor triggered for task %s — forcing RESAMPLE.",
+                    task.task_id,
+                )
+            else:
+                decision = DecisionKind.SELECT
+                selected_id = best.trace_id
+                selected_answer = best_trace.answer if best_trace else None
+                reasoning_parts.append(
+                    f"Selected {best.generator_name!r} (score={best.total:.4f})."
+                )
         elif best.total >= self._config.resample_threshold:
             decision = DecisionKind.RESAMPLE
             reasoning_parts.append(
@@ -157,3 +190,42 @@ class TribunalAggregator:
             reasoning="\n".join(reasoning_parts),
             confidence=round(confidence, 4),
         )
+
+    @staticmethod
+    def _single_generator_type_dominates(
+        best: TraceScore,
+        all_scores: list[TraceScore],
+        traces: list[CandidateTrace],
+        uncertainty: UncertaintyReport,
+    ) -> bool:
+        """Return True if the coalition supporting the top answer comes from
+        only one generator type (e.g. only ``"llm"``).
+
+        We identify the top answer by finding all traces that share the same
+        answer grid as the best-scoring trace, then check if they all have
+        the same ``generator_name``.
+        """
+        # If there is only one generator type in the pool, there is nothing
+        # to diversify against — skip the check.
+        all_gen_names = {t.generator_name for t in traces}
+        if len(all_gen_names) <= 1:
+            return False
+
+        trace_by_id = {t.trace_id: t for t in traces}
+        best_trace = trace_by_id.get(best.trace_id)
+        if best_trace is None:
+            return False
+
+        def to_key(grid: list[list[int]]) -> tuple:
+            return tuple(tuple(row) for row in grid)
+
+        best_key = to_key(best_trace.answer)
+
+        # Collect generator names of all traces whose answer matches the best
+        coalition_gen_names = {
+            t.generator_name
+            for t in traces
+            if to_key(t.answer) == best_key
+        }
+
+        return len(coalition_gen_names) == 1

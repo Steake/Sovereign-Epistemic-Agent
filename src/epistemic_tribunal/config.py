@@ -40,6 +40,25 @@ class TribunalConfig(BaseModel):
     selection_threshold: float = Field(default=0.40, ge=0.0, le=1.0)
     resample_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
     max_resample_attempts: int = Field(default=2, ge=0)
+    diversity_floor: float = Field(
+        default=0.9,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "If coalition mass for the top candidate exceeds this threshold "
+            "and only one generator type contributes, trigger RESAMPLE instead "
+            "of SELECT to force genuine adjudication."
+        ),
+    )
+    ledger_warmup_tasks: int = Field(
+        default=150,
+        ge=0,
+        description=(
+            "Number of tasks to run before the failure-similarity penalty "
+            "(memory weight gamma) is activated.  During warmup gamma is "
+            "set to 0.0 so the penalty term does not add noise."
+        ),
+    )
 
 
 class GeneratorsConfig(BaseModel):
@@ -85,6 +104,14 @@ class UncertaintyConfig(BaseModel):
 class LedgerConfig(BaseModel):
     path: str = Field(default="data/tribunal_ledger.db")
     always_record: bool = False
+    checkpoint_every_n_tasks: int = Field(
+        default=0,
+        ge=0,
+        description=(
+            "Write a checkpoint (run_progress.json + ledger state) every N "
+            "tasks during a benchmark run.  0 disables checkpointing."
+        ),
+    )
 
 
 class LoggingConfig(BaseModel):

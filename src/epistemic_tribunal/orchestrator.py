@@ -84,6 +84,8 @@ class Orchestrator:
             min_coalition_mass=self._config.uncertainty.min_coalition_mass
         )
         self._tribunal = TribunalAggregator(config=self._config.tribunal)
+        self._completed_task_count = 0
+        self._warmup_logged = False
 
     # ------------------------------------------------------------------
     # Public API
@@ -125,9 +127,10 @@ class Orchestrator:
         uncertainty_report = self._uncertainty.analyze(task, traces)
         log.info("Uncertainty: %s", uncertainty_report.notes)
 
-        # 6. Adjudicate
+        # 6. Adjudicate (pass task count for ledger warmup logic)
         decision = self._tribunal.adjudicate(
-            task, traces, critiques, uncertainty_report, invariant_set
+            task, traces, critiques, uncertainty_report, invariant_set,
+            completed_task_count=self._completed_task_count,
         )
         log.info("Decision: %s (confidence=%.3f)", decision.decision.value, decision.confidence)
         self._writer.write_decision(decision)
@@ -160,6 +163,22 @@ class Orchestrator:
             },
         )
         self._writer.write_run(run)
+
+        # Track completed tasks for ledger warmup
+        self._completed_task_count += 1
+        warmup = self._config.tribunal.ledger_warmup_tasks
+        if (
+            not self._warmup_logged
+            and warmup > 0
+            and self._completed_task_count >= warmup
+        ):
+            self._warmup_logged = True
+            log.info(
+                "Ledger warmup complete after %d tasks — "
+                "memory weight gamma is now active.",
+                self._completed_task_count,
+            )
+
         return run
 
     def run_and_format(self, task: Task) -> dict:
