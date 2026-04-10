@@ -53,6 +53,12 @@ class LLMGeneratorConfig(BaseModel):
     top_p: float = Field(default=0.95, ge=0.0, le=1.0)
     trust_remote_code: bool = Field(default=False)
     device: Optional[str] = Field(default=None)
+    # BF16 is natively accelerated on H200/B100 Tensor Cores (halves memory vs FP32,
+    # same numerical range).  Use "float16" for older Volta/Turing, "float32" to disable.
+    torch_dtype: str = Field(default="bfloat16")
+    # "auto" detects flash_attention_2 at runtime and falls back to "sdpa".
+    # Set explicitly to "flash_attention_2", "sdpa", or "eager" to override.
+    attn_implementation: str = Field(default="auto")
 
 
 class GeneratorsConfig(BaseModel):

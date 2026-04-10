@@ -37,6 +37,7 @@ dev = [
 ]
 llm = [
     "accelerate>=0.20",
+    "flash-attn>=2.0",
 ]
 
 [project.scripts]

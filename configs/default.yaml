@@ -35,6 +35,12 @@ generators:
     temperature: 0.1
     top_p: 0.95
     trust_remote_code: false
+    # BF16 is natively accelerated on H200/B100 Tensor Cores.
+    # Use "float16" for older Volta/Turing GPUs, "float32" to disable.
+    torch_dtype: "bfloat16"
+    # "auto" selects flash_attention_2 when flash-attn is installed, else sdpa.
+    # Override with "flash_attention_2", "sdpa", or "eager".
+    attn_implementation: "auto"
 
 # Invariant extractor
 invariants:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import json
 import re
 from typing import Any, Optional
@@ -29,6 +30,8 @@ class LLMGenerator(BaseGenerator):
         top_p: float = 0.95,
         trust_remote_code: bool = False,
         device: Optional[str] = None,
+        torch_dtype: str = "bfloat16",
+        attn_implementation: str = "auto",
         **kwargs: Any,
     ) -> None:
         super().__init__(seed=seed, **kwargs)
@@ -38,6 +41,8 @@ class LLMGenerator(BaseGenerator):
         self.top_p = top_p
         self.trust_remote_code = trust_remote_code
         self.device = device
+        self.torch_dtype = torch_dtype
+        self.attn_implementation = attn_implementation
         self._pipeline: Any = None
 
     def generate(self, task: Task) -> CandidateTrace:
@@ -111,23 +116,70 @@ class LLMGenerator(BaseGenerator):
                 "transformers>=4.30 is required to use the llm generator."
             ) from exc
 
+        try:
+            import torch  # type: ignore[import]
+            _dtype_map: dict[str, Any] = {
+                "bfloat16": torch.bfloat16,
+                "float16": torch.float16,
+                "float32": torch.float32,
+            }
+            resolved_dtype: Any = _dtype_map.get(self.torch_dtype, self.torch_dtype)
+        except ImportError:
+            resolved_dtype = self.torch_dtype
+
+        resolved_attn = self._resolve_attn_implementation()
+
+        has_accelerate = importlib.util.find_spec("accelerate") is not None
+        if self.device is not None:
+            device_label = self.device
+        elif has_accelerate:
+            device_label = "auto"
+        else:
+            device_label = "cpu"
+
         pipe_kwargs: dict[str, Any] = {
             "model": self.model_name,
             "tokenizer": self.model_name,
             "trust_remote_code": self.trust_remote_code,
+            "torch_dtype": resolved_dtype,
+            "model_kwargs": {"attn_implementation": resolved_attn},
         }
         if self.device is not None:
             pipe_kwargs["device"] = self.device
+        elif has_accelerate:
+            pipe_kwargs["device_map"] = "auto"
         else:
-            import importlib.util
-            if importlib.util.find_spec("accelerate") is not None:
-                pipe_kwargs["device_map"] = "auto"
-            else:
-                log.warning(
-                    "accelerate is not installed; LLM pipeline will run on CPU. "
-                    "Install accelerate>=0.20 for automatic device placement."
-                )
+            log.warning(
+                "accelerate is not installed; LLM pipeline will run on CPU. "
+                "Install accelerate>=0.20 for automatic device placement."
+            )
+
+        log.info(
+            "Loading LLM pipeline: model=%s dtype=%s attn=%s device=%s",
+            self.model_name,
+            self.torch_dtype,
+            resolved_attn,
+            device_label,
+        )
         return pipeline("text-generation", **pipe_kwargs)
+
+    def _resolve_attn_implementation(self) -> str:
+        """Resolve the attention implementation to use.
+
+        ``"auto"`` selects ``"flash_attention_2"`` when the ``flash-attn``
+        package is installed (fastest on H200/B100), otherwise falls back to
+        ``"sdpa"`` (PyTorch 2.0+ native scaled dot-product attention).
+        """
+        if self.attn_implementation != "auto":
+            return self.attn_implementation
+        if importlib.util.find_spec("flash_attn") is not None:
+            log.info("flash-attn detected; using flash_attention_2 for maximum throughput.")
+            return "flash_attention_2"
+        log.info(
+            "flash-attn not found; using 'sdpa' (PyTorch scaled dot-product attention). "
+            "Install flash-attn>=2.0 for maximum throughput on H200/B100."
+        )
+        return "sdpa"
 
     def _parse_response(
         self,

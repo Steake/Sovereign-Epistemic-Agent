@@ -193,3 +193,51 @@ def test_llm_parse_response_rejects_reasoning_bleed(simple_task: Task) -> None:
     answer, _steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
     assert answer is None
     assert confidence == 0.0
+
+
+def test_llm_generator_defaults_bfloat16() -> None:
+    gen = LLMGenerator(model_name="test-model")
+    assert gen.torch_dtype == "bfloat16"
+
+
+def test_llm_generator_custom_dtype() -> None:
+    gen = LLMGenerator(model_name="test-model", torch_dtype="float16")
+    assert gen.torch_dtype == "float16"
+
+
+def test_llm_generator_default_attn_auto() -> None:
+    gen = LLMGenerator(model_name="test-model")
+    assert gen.attn_implementation == "auto"
+
+
+def test_llm_resolve_attn_explicit() -> None:
+    gen = LLMGenerator(model_name="test-model", attn_implementation="sdpa")
+    assert gen._resolve_attn_implementation() == "sdpa"
+
+
+def test_llm_resolve_attn_explicit_eager() -> None:
+    gen = LLMGenerator(model_name="test-model", attn_implementation="eager")
+    assert gen._resolve_attn_implementation() == "eager"
+
+
+def test_llm_resolve_attn_auto_no_flash(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without flash-attn installed, auto should fall back to sdpa."""
+    import importlib.util
+
+    gen = LLMGenerator(model_name="test-model", attn_implementation="auto")
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)
+    assert gen._resolve_attn_implementation() == "sdpa"
+
+
+def test_llm_resolve_attn_auto_with_flash(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With flash-attn installed, auto should select flash_attention_2."""
+    import importlib.util
+
+    gen = LLMGenerator(model_name="test-model", attn_implementation="auto")
+    fake_spec = importlib.util.spec_from_loader("flash_attn", loader=None)
+    monkeypatch.setattr(
+        importlib.util,
+        "find_spec",
+        lambda name: fake_spec if name == "flash_attn" else None,
+    )
+    assert gen._resolve_attn_implementation() == "flash_attention_2"
