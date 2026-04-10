@@ -330,15 +330,19 @@ class LedgerStore:
         self, task_ids: Optional[list[str] | set[str]] = None
     ) -> list[dict[str, Any]]:
         """Return experiment run rows as dictionaries."""
-        if task_ids:
+        if task_ids is None:
+            rows = self._conn.execute(
+                "SELECT * FROM experiment_runs ORDER BY created_at ASC"
+            ).fetchall()
+        elif not task_ids:
+            # Empty collection means "no tasks to look up" — return nothing
+            # rather than falling through to the unfiltered query.
+            return []
+        else:
             placeholders = ",".join("?" for _ in task_ids)
             query = (
                 "SELECT * FROM experiment_runs "
                 f"WHERE task_id IN ({placeholders}) ORDER BY created_at ASC"
             )
             rows = self._conn.execute(query, tuple(task_ids)).fetchall()
-        else:
-            rows = self._conn.execute(
-                "SELECT * FROM experiment_runs ORDER BY created_at ASC"
-            ).fetchall()
         return [dict(r) for r in rows]

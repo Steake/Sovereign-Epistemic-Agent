@@ -28,6 +28,7 @@ class LLMGenerator(BaseGenerator):
         temperature: float = 0.1,
         top_p: float = 0.95,
         trust_remote_code: bool = False,
+        device: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(seed=seed, **kwargs)
@@ -36,6 +37,7 @@ class LLMGenerator(BaseGenerator):
         self.temperature = temperature
         self.top_p = top_p
         self.trust_remote_code = trust_remote_code
+        self.device = device
         self._pipeline: Any = None
 
     def generate(self, task: Task) -> CandidateTrace:
@@ -106,16 +108,26 @@ class LLMGenerator(BaseGenerator):
             from transformers import pipeline
         except ImportError as exc:
             raise ImportError(
-                "transformers is required to use the llm generator."
+                "transformers>=4.30 is required to use the llm generator."
             ) from exc
 
-        return pipeline(
-            "text-generation",
-            model=self.model_name,
-            tokenizer=self.model_name,
-            trust_remote_code=self.trust_remote_code,
-            device_map="auto",
-        )
+        pipe_kwargs: dict[str, Any] = {
+            "model": self.model_name,
+            "tokenizer": self.model_name,
+            "trust_remote_code": self.trust_remote_code,
+        }
+        if self.device is not None:
+            pipe_kwargs["device"] = self.device
+        else:
+            import importlib.util
+            if importlib.util.find_spec("accelerate") is not None:
+                pipe_kwargs["device_map"] = "auto"
+            else:
+                log.warning(
+                    "accelerate is not installed; LLM pipeline will run on CPU. "
+                    "Install accelerate>=0.20 for automatic device placement."
+                )
+        return pipeline("text-generation", **pipe_kwargs)
 
     def _parse_response(
         self,
@@ -196,6 +208,19 @@ class LLMGenerator(BaseGenerator):
                     if depth == 0:
                         block = text[start : idx + 1]
                         if '"answer"' in block or "'answer'" in block:
+                            trailing = text[idx + 1 :]
+                            trailing_clean = re.sub(
+                                r"<think>.*?</think>",
+                                "",
+                                trailing,
+                                flags=re.DOTALL | re.IGNORECASE,
+                            ).strip()
+                            if trailing_clean:
+                                log.warning(
+                                    "LLM response contained trailing prose after JSON "
+                                    "object; rejecting."
+                                )
+                                return None
                             return block
                         break
             start = text.find("{", start + 1)

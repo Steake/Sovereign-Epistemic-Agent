@@ -93,6 +93,11 @@ class Orchestrator:
     # Public API
     # ------------------------------------------------------------------
 
+    @property
+    def store(self) -> LedgerStore:
+        """Public accessor for the underlying :class:`LedgerStore`."""
+        return self._store
+
     def run(self, task: Task) -> ExperimentRun:
         """Execute the full tribunal pipeline for *task*.
 

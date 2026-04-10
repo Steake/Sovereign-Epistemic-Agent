@@ -8,6 +8,8 @@ computed via :mod:`epistemic_tribunal.evaluation.metrics`.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import time
 from pathlib import Path
 from typing import Optional
@@ -42,7 +44,7 @@ class BenchmarkRunner:
         if ledger_path:
             self._config.ledger.path = ledger_path
         self._orchestrator = Orchestrator(self._config)
-        self._store = self._orchestrator._store
+        self._store = self._orchestrator.store
         self._progress_path = Path(self._config.ledger.path).with_name("run_progress.json")
         self._checkpoint_path = Path(self._config.ledger.path).with_suffix(".checkpoint.sqlite3")
 
@@ -64,7 +66,7 @@ class BenchmarkRunner:
         start_time = time.monotonic()
         prior_progress = self._load_progress() if resume else {}
         completed_task_ids = set(prior_progress.get("completed_task_ids", []))
-        prior_runs = self._load_prior_runs(completed_task_ids) if resume else []
+        prior_runs = self._load_prior_runs(completed_task_ids) if (resume and completed_task_ids) else []
         elapsed_before_resume = float(prior_progress.get("elapsed_time_seconds", 0.0))
 
         if not task_files:
@@ -130,7 +132,19 @@ class BenchmarkRunner:
             "elapsed_time_seconds": round(elapsed_time_seconds, 4),
         }
         self._progress_path.parent.mkdir(parents=True, exist_ok=True)
-        self._progress_path.write_text(json.dumps(payload, indent=2))
+        tmp_fd, tmp_name = tempfile.mkstemp(
+            dir=self._progress_path.parent, suffix=".tmp"
+        )
+        try:
+            with os.fdopen(tmp_fd, "w") as fh:
+                json.dump(payload, fh, indent=2)
+            os.replace(tmp_name, self._progress_path)
+        except (OSError, ValueError):
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+            raise
         log.info(
             "Checkpointed benchmark progress to %s after %d completed task(s).",
             self._progress_path,
@@ -144,7 +158,15 @@ class BenchmarkRunner:
                 self._progress_path,
             )
             return {}
-        return json.loads(self._progress_path.read_text())
+        try:
+            return json.loads(self._progress_path.read_text())
+        except (json.JSONDecodeError, OSError) as exc:
+            log.warning(
+                "Failed to read progress file %s (%s); starting fresh.",
+                self._progress_path,
+                exc,
+            )
+            return {}
 
     def _load_prior_runs(self, completed_task_ids: set[str]) -> list[ExperimentRun]:
         rows = self._store.get_experiment_runs(completed_task_ids)

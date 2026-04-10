@@ -149,13 +149,25 @@ def test_no_training_data(simple_task: Task) -> None:
         assert len(trace.answer) == len(task.test_input)
 
 
-def test_llm_parse_response_ignores_trailing_prose(simple_task: Task) -> None:
+def test_llm_parse_response_rejects_trailing_prose(simple_task: Task) -> None:
     gen = LLMGenerator(model_name="test-model")
     response = (
         '<think>\nspot the swap\n</think>\n'
         '{"answer": [["2", "0", "1"], ["1", "2", "0"], ["0", "1", "2"]], '
         '"reasoning_steps": ["swap 1 and 2"], "confidence": 0.82}'
         "\nExtra prose after the closing brace."
+    )
+    answer, _steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
+    assert answer is None
+    assert confidence == 0.0
+
+
+def test_llm_parse_response_allows_think_after_json(simple_task: Task) -> None:
+    gen = LLMGenerator(model_name="test-model")
+    response = (
+        '{"answer": [["2", "0", "1"], ["1", "2", "0"], ["0", "1", "2"]], '
+        '"reasoning_steps": ["swap 1 and 2"], "confidence": 0.82}'
+        "\n<think>post-hoc thought</think>"
     )
     answer, steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
     assert answer == simple_task.ground_truth

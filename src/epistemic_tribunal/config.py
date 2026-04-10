@@ -52,6 +52,7 @@ class LLMGeneratorConfig(BaseModel):
     temperature: float = Field(default=0.1, ge=0.0)
     top_p: float = Field(default=0.95, ge=0.0, le=1.0)
     trust_remote_code: bool = Field(default=False)
+    device: Optional[str] = Field(default=None)
 
 
 class GeneratorsConfig(BaseModel):
