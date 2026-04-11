@@ -73,6 +73,7 @@ class ExperimentRunRecord:
     decision: str
     selected_trace_id: str | None
     ground_truth_match: int | None
+    confidence: float
     duration_seconds: float
     generator_names_json: str
     config_snapshot_json: str

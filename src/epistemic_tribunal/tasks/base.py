@@ -9,7 +9,6 @@ Row 0 is the top row; column 0 is the left-most column.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Optional
 
 
 # ---------------------------------------------------------------------------

@@ -19,11 +19,8 @@ from typing import Optional
 from epistemic_tribunal.critics.base import BaseCritic
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
 from epistemic_tribunal.tasks.base import (
-    colour_counts,
     grid_shape,
     grid_similarity,
-    has_any_symmetry,
-    object_count,
     unique_colours,
 )
 from epistemic_tribunal.types import (

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
 
-from epistemic_tribunal.config import TribunalSettings, TribunalConfig
+from epistemic_tribunal.config import TribunalSettings
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.types import DecisionKind, ExperimentRun, Task

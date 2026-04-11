@@ -14,7 +14,6 @@ from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.generators.greedy import GreedyGenerator
 from epistemic_tribunal.tasks.base import (
     colour_counts,
-    crop_to_content,
     grid_shape,
     object_count,
     unique_colours,

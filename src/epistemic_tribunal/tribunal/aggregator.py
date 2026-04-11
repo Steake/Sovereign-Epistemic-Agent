@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from epistemic_tribunal.config import TribunalConfig, TribunalWeights
+from epistemic_tribunal.config import TribunalConfig
 from epistemic_tribunal.tribunal.scoring import (
     TraceScore,
     compute_trace_score,

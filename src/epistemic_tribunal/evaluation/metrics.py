@@ -7,8 +7,8 @@ after running the tribunal over a dataset.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Optional
 
+from epistemic_tribunal.evaluation import calibration
 from epistemic_tribunal.types import DecisionKind, ExperimentRun
 
 
@@ -63,7 +63,7 @@ def average_duration(runs: list[ExperimentRun]) -> float:
 
 def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
     """Produce a full summary metrics dictionary."""
-    return {
+    report = {
         "total_runs": len(runs),
         "accuracy": round(accuracy(runs), 4),
         "coverage": round(coverage(runs), 4),
@@ -72,3 +72,12 @@ def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
         "decision_distribution": decision_distribution(runs),
         "avg_duration_seconds": round(average_duration(runs), 4),
     }
+
+    # Add calibration metrics if confidence data is available
+    if any(r.confidence > 0.0 for r in runs):
+        report["ece"] = round(calibration.expected_calibration_error(runs), 4)
+        report["brier_score"] = round(calibration.brier_score(runs), 4)
+        report["selective_accuracy_90"] = calibration.accuracy_at_coverage(runs, 0.9)
+        report["abstention_quality"] = calibration.abstention_quality(runs)
+
+    return report

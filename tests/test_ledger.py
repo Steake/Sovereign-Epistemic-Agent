@@ -4,28 +4,21 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
 
-import pytest
 
 from epistemic_tribunal.ledger.models import (
-    DecisionRecord,
     ExperimentRunRecord,
     FailureRecordRow,
-    InvariantViolationRecord,
     TaskRecord,
     TraceRecord,
 )
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.ledger.writer import LedgerWriter
 from epistemic_tribunal.types import (
-    CandidateTrace,
-    CritiqueResult,
     DecisionKind,
     ExperimentRun,
     FailureRecord,
     Task,
-    TribunalDecision,
 )
 
 
@@ -130,6 +123,7 @@ def test_insert_experiment_run(in_memory_store: LedgerStore) -> None:
         decision="select",
         selected_trace_id=str(uuid.uuid4()),
         ground_truth_match=1,
+        confidence=0.9,
         duration_seconds=0.5,
         generator_names_json=json.dumps(["greedy"]),
         config_snapshot_json="{}",

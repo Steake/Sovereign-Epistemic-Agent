@@ -6,9 +6,7 @@ thin wrapper around stdlib ``sqlite3`` so there is no ORM dependency.
 
 from __future__ import annotations
 
-import json
 import sqlite3
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -85,6 +83,7 @@ CREATE TABLE IF NOT EXISTS experiment_runs (
     decision TEXT,
     selected_trace_id TEXT,
     ground_truth_match INTEGER,
+    confidence REAL DEFAULT 0.0,
     duration_seconds REAL,
     generator_names_json TEXT,
     config_snapshot_json TEXT,
@@ -247,15 +246,16 @@ class LedgerStore:
         self._conn.execute(
             """INSERT OR IGNORE INTO experiment_runs
                (run_id, task_id, decision, selected_trace_id,
-                ground_truth_match, duration_seconds,
+                ground_truth_match, confidence, duration_seconds,
                 generator_names_json, config_snapshot_json, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 rec.run_id,
                 rec.task_id,
                 rec.decision,
                 rec.selected_trace_id,
                 rec.ground_truth_match,
+                rec.confidence,
                 rec.duration_seconds,
                 rec.generator_names_json,
                 rec.config_snapshot_json,

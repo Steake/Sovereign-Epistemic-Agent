@@ -51,7 +51,7 @@ class DiverseGenerator(BaseGenerator):
         confidence = max(0.1, base_trace.confidence_score or 0.5 - 0.05 * perturbations)
 
         steps = [
-            f"Initialised from greedy answer.",
+            "Initialised from greedy answer.",
             f"Perturbed {perturbations} cell(s) at rate {self.perturbation_rate}.",
             f"Final answer differs from greedy in {perturbations} position(s).",
         ]

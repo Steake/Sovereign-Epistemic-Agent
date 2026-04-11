@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
-from typing import Optional
 
 from epistemic_tribunal.ledger.models import (
     DecisionRecord,
@@ -133,6 +131,7 @@ class LedgerWriter:
                 else 0 if run.ground_truth_match is False
                 else None
             ),
+            confidence=run.confidence,
             duration_seconds=run.duration_seconds,
             generator_names_json=json.dumps(run.generator_names),
             config_snapshot_json=json.dumps(run.config_snapshot),

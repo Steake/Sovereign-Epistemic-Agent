@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from epistemic_tribunal.config import TribunalConfig, TribunalWeights
+from epistemic_tribunal.config import TribunalConfig
 from epistemic_tribunal.critics.trace_critic import TraceCritic
 from epistemic_tribunal.generators.base import build_generators
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
