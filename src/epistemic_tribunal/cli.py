@@ -11,7 +11,6 @@ tribunal ledger inspect — show records for a specific task ID
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -26,7 +25,7 @@ from epistemic_tribunal.evaluation.benchmark import experiment_run_from_row
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
-from epistemic_tribunal.types import DecisionKind
+from epistemic_tribunal.types import DecisionKind, ExperimentRun
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -140,7 +139,7 @@ def _print_metrics(metrics: dict) -> None:
     console.print(table)
 
 
-def _load_runs_from_ledger(db_path: str) -> list:
+def _load_runs_from_ledger(db_path: str) -> list[ExperimentRun]:
     store = LedgerStore(db_path)
     try:
         return [experiment_run_from_row(row) for row in store.get_experiment_runs()]
@@ -192,10 +191,10 @@ def calibrate_ledger(
     metrics_table = Table(title=f"Calibration Report — {ledger_path}", show_header=True)
     metrics_table.add_column("Metric", style="bold cyan")
     metrics_table.add_column("Value", style="white")
-    metrics_table.add_row("ECE", _format_float(calibration.expected_calibration_error(runs)))
-    metrics_table.add_row("Brier score", _format_float(calibration.brier_score(runs)))
+    metrics_table.add_row("ECE", _format_float(calibration.expected_calibration_error(eligible_with_confidence)))
+    metrics_table.add_row("Brier score", _format_float(calibration.brier_score(eligible_with_confidence)))
 
-    acc90 = calibration.accuracy_at_coverage(runs, 0.9)
+    acc90 = calibration.accuracy_at_coverage(eligible_with_confidence, 0.9)
     metrics_table.add_row("Accuracy@90% coverage", _format_float(acc90["accuracy"]))
     metrics_table.add_row("Coverage@90%", _format_float(acc90["coverage"]))
     metrics_table.add_row("Threshold@90%", _format_float(acc90["threshold"]))
@@ -210,7 +209,7 @@ def calibrate_ledger(
     )
     console.print(metrics_table)
 
-    _print_reliability_curve(calibration.reliability_curve(runs))
+    _print_reliability_curve(calibration.reliability_curve(eligible_with_confidence))
 
 
 # ---------------------------------------------------------------------------
@@ -282,7 +281,7 @@ def ledger_inspect(
     console.print(f"\n[bold]Task:[/bold] {task_id}")
     for section, records in summary.items():
         if section == "task":
-            console.print(f"\n[bold cyan]Task Record:[/bold cyan]")
+            console.print("\n[bold cyan]Task Record:[/bold cyan]")
             for k, v in records.items():
                 console.print(f"  {k}: {v}")
         elif isinstance(records, list):

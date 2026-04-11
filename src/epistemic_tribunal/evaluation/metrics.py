@@ -7,7 +7,6 @@ after running the tribunal over a dataset.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Optional
 
 from epistemic_tribunal.evaluation import calibration
 from epistemic_tribunal.types import DecisionKind, ExperimentRun
@@ -73,17 +72,18 @@ def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
         "decision_distribution": decision_distribution(runs),
         "avg_duration_seconds": round(average_duration(runs), 4),
     }
-    has_confidence = any(
-        run.confidence > 0.0
-        for run in runs
-        if run.decision == DecisionKind.SELECT and run.ground_truth_match is not None
-    )
-    if has_confidence:
-        report["ece"] = round(calibration.expected_calibration_error(runs), 4)
-        report["brier_score"] = round(calibration.brier_score(runs), 4)
+    eligible_with_confidence = [
+        run for run in runs
+        if run.decision == DecisionKind.SELECT
+        and run.ground_truth_match is not None
+        and run.confidence > 0.0
+    ]
+    if eligible_with_confidence:
+        report["ece"] = round(calibration.expected_calibration_error(eligible_with_confidence), 4)
+        report["brier_score"] = round(calibration.brier_score(eligible_with_confidence), 4)
         report["selective_accuracy_90"] = {
             key: round(value, 4)
-            for key, value in calibration.accuracy_at_coverage(runs, 0.9).items()
+            for key, value in calibration.accuracy_at_coverage(eligible_with_confidence, 0.9).items()
         }
         report["abstention_quality"] = {
             key: round(value, 4)

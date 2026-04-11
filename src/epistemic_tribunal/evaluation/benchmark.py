@@ -11,6 +11,7 @@ import json
 import os
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +27,16 @@ log = get_logger(__name__)
 
 def experiment_run_from_row(row: dict) -> ExperimentRun:
     """Reconstruct an ExperimentRun from a persisted ledger row."""
+    created_at_str = row.get("created_at")
+    if created_at_str:
+        try:
+            ts = datetime.fromisoformat(created_at_str)
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            ts = datetime.now(timezone.utc)
+    else:
+        ts = datetime.now(timezone.utc)
     return ExperimentRun(
         run_id=row["run_id"],
         task_id=row["task_id"],
@@ -40,6 +51,7 @@ def experiment_run_from_row(row: dict) -> ExperimentRun:
         ),
         duration_seconds=row["duration_seconds"],
         config_snapshot=json.loads(row["config_snapshot_json"]),
+        timestamp=ts,
     )
 
 

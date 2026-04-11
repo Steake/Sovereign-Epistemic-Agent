@@ -28,6 +28,8 @@ def _bin_index(confidence: float, n_bins: int) -> int:
 
 
 def expected_calibration_error(runs: list[ExperimentRun], n_bins: int = 10) -> float:
+    if n_bins <= 0:
+        raise ValueError(f"n_bins must be a positive integer, got {n_bins}.")
     eligible_runs = _eligible_selected_runs(runs)
     if not eligible_runs:
         return 0.0
@@ -59,6 +61,8 @@ def brier_score(runs: list[ExperimentRun]) -> float:
 
 
 def reliability_curve(runs: list[ExperimentRun], n_bins: int = 10) -> list[dict]:
+    if n_bins <= 0:
+        raise ValueError(f"n_bins must be a positive integer, got {n_bins}.")
     eligible_runs = _eligible_selected_runs(runs)
     if not eligible_runs:
         return []
