@@ -113,20 +113,25 @@ class LLMGenerator(BaseGenerator):
             from transformers import pipeline
         except ImportError as exc:
             raise ImportError(
-                "transformers>=4.30 is required to use the llm generator."
+                "transformers>=4.30 is required to use the llm generator. "
+                "Install the optional dependencies with `pip install .[llm]`."
             ) from exc
 
         try:
             import torch  # type: ignore[import]
-            _dtype_map: dict[str, Any] = {
-                "bfloat16": torch.bfloat16,
-                "float16": torch.float16,
-                "float32": torch.float32,
-            }
-            resolved_dtype: Any = _dtype_map.get(self.torch_dtype, self.torch_dtype)
-        except ImportError:
-            resolved_dtype = self.torch_dtype
+        except ImportError as exc:
+            raise ImportError(
+                "A supported runtime backend is required to use the llm generator. "
+                "Install the optional dependencies with `pip install .[llm]` "
+                "(or install `torch` manually)."
+            ) from exc
 
+        _dtype_map: dict[str, Any] = {
+            "bfloat16": torch.bfloat16,
+            "float16": torch.float16,
+            "float32": torch.float32,
+        }
+        resolved_dtype: Any = _dtype_map.get(self.torch_dtype, self.torch_dtype)
         resolved_attn = self._resolve_attn_implementation()
 
         has_accelerate = importlib.util.find_spec("accelerate") is not None
