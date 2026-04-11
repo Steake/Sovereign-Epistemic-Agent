@@ -71,6 +71,7 @@ class ExperimentRunRecord:
     run_id: str
     task_id: str
     decision: str
+    confidence: float
     selected_trace_id: str | None
     ground_truth_match: int | None
     duration_seconds: float

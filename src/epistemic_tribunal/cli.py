@@ -20,10 +20,13 @@ from rich.console import Console
 from rich.table import Table
 
 from epistemic_tribunal.config import load_config
+from epistemic_tribunal.evaluation import calibration
 from epistemic_tribunal.evaluation.benchmark import BenchmarkRunner
+from epistemic_tribunal.evaluation.benchmark import experiment_run_from_row
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
+from epistemic_tribunal.types import DecisionKind
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -135,6 +138,79 @@ def _print_metrics(metrics: dict) -> None:
         else:
             table.add_row(str(key), str(val))
     console.print(table)
+
+
+def _load_runs_from_ledger(db_path: str) -> list:
+    store = LedgerStore(db_path)
+    try:
+        return [experiment_run_from_row(row) for row in store.get_experiment_runs()]
+    finally:
+        store.close()
+
+
+def _format_float(value: float) -> str:
+    return f"{value:.4f}"
+
+
+def _print_reliability_curve(curve: list[dict]) -> None:
+    table = Table(title="Reliability Curve", show_header=True)
+    table.add_column("Bin Midpoint", style="bold cyan")
+    table.add_column("Mean Confidence", style="white")
+    table.add_column("Mean Accuracy", style="white")
+    table.add_column("Count", style="white")
+    for row in curve:
+        table.add_row(
+            _format_float(row["bin_midpoint"]),
+            _format_float(row["mean_confidence"]),
+            _format_float(row["mean_accuracy"]),
+            str(row["count"]),
+        )
+    console.print(table)
+
+
+@app.command("calibrate")
+def calibrate_ledger(
+    ledger_path: str = typer.Option(..., "--ledger", "-l", help="Path to ledger DB."),
+) -> None:
+    """Compute a calibration report from historical ledger runs."""
+    runs = _load_runs_from_ledger(ledger_path)
+    eligible_with_confidence = [
+        run
+        for run in runs
+        if (
+            run.decision == DecisionKind.SELECT
+            and run.ground_truth_match is not None
+            and run.confidence > 0.0
+        )
+    ]
+    if not eligible_with_confidence:
+        console.print(
+            f"[yellow]No usable confidence-bearing runs found in ledger:[/yellow] {ledger_path}"
+        )
+        return
+
+    metrics_table = Table(title=f"Calibration Report — {ledger_path}", show_header=True)
+    metrics_table.add_column("Metric", style="bold cyan")
+    metrics_table.add_column("Value", style="white")
+    metrics_table.add_row("ECE", _format_float(calibration.expected_calibration_error(runs)))
+    metrics_table.add_row("Brier score", _format_float(calibration.brier_score(runs)))
+
+    acc90 = calibration.accuracy_at_coverage(runs, 0.9)
+    metrics_table.add_row("Accuracy@90% coverage", _format_float(acc90["accuracy"]))
+    metrics_table.add_row("Coverage@90%", _format_float(acc90["coverage"]))
+    metrics_table.add_row("Threshold@90%", _format_float(acc90["threshold"]))
+
+    abstention = calibration.abstention_quality(runs)
+    metrics_table.add_row("Abstention rate", _format_float(abstention["abstention_rate"]))
+    metrics_table.add_row(
+        "Wrong abstention rate", _format_float(abstention["wrong_abstention_rate"])
+    )
+    metrics_table.add_row(
+        "Correct abstention rate", _format_float(abstention["correct_abstention_rate"])
+    )
+    console.print(metrics_table)
+
+    _print_reliability_curve(calibration.reliability_curve(runs))
 
 
 # ---------------------------------------------------------------------------

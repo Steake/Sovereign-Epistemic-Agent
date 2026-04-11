@@ -127,6 +127,7 @@ class LedgerWriter:
             run_id=run.run_id,
             task_id=run.task_id,
             decision=run.decision.value,
+            confidence=run.confidence,
             selected_trace_id=run.selected_trace_id,
             ground_truth_match=(
                 1 if run.ground_truth_match is True

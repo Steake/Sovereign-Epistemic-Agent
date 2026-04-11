@@ -205,6 +205,7 @@ class ExperimentRun(BaseModel):
     task_id: str
     generator_names: list[str] = Field(default_factory=list)
     decision: DecisionKind
+    confidence: float = 0.0
     selected_trace_id: Optional[str] = None
     ground_truth_match: Optional[bool] = None
     duration_seconds: float = 0.0

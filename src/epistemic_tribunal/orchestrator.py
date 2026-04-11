@@ -172,6 +172,7 @@ class Orchestrator:
             task_id=task.task_id,
             generator_names=[g.name for g in self._generators],
             decision=decision.decision,
+            confidence=decision.confidence,
             selected_trace_id=decision.selected_trace_id,
             ground_truth_match=ground_truth_match,
             duration_seconds=round(duration, 4),

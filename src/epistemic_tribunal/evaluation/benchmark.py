@@ -24,6 +24,25 @@ from epistemic_tribunal.utils.logging import get_logger
 log = get_logger(__name__)
 
 
+def experiment_run_from_row(row: dict) -> ExperimentRun:
+    """Reconstruct an ExperimentRun from a persisted ledger row."""
+    return ExperimentRun(
+        run_id=row["run_id"],
+        task_id=row["task_id"],
+        generator_names=json.loads(row["generator_names_json"]),
+        decision=DecisionKind(row["decision"]),
+        confidence=float(row.get("confidence", 0.0) or 0.0),
+        selected_trace_id=row["selected_trace_id"],
+        ground_truth_match=(
+            None
+            if row["ground_truth_match"] is None
+            else bool(row["ground_truth_match"])
+        ),
+        duration_seconds=row["duration_seconds"],
+        config_snapshot=json.loads(row["config_snapshot_json"]),
+    )
+
+
 class BenchmarkRunner:
     """Runs the tribunal over an entire dataset directory.
 
@@ -171,22 +190,4 @@ class BenchmarkRunner:
 
     def _load_prior_runs(self, completed_task_ids: set[str]) -> list[ExperimentRun]:
         rows = self._store.get_experiment_runs(completed_task_ids)
-        runs: list[ExperimentRun] = []
-        for row in rows:
-            runs.append(
-                ExperimentRun(
-                    run_id=row["run_id"],
-                    task_id=row["task_id"],
-                    generator_names=json.loads(row["generator_names_json"]),
-                    decision=DecisionKind(row["decision"]),
-                    selected_trace_id=row["selected_trace_id"],
-                    ground_truth_match=(
-                        None
-                        if row["ground_truth_match"] is None
-                        else bool(row["ground_truth_match"])
-                    ),
-                    duration_seconds=row["duration_seconds"],
-                    config_snapshot=json.loads(row["config_snapshot_json"]),
-                )
-            )
-        return runs
+        return [experiment_run_from_row(row) for row in rows]
