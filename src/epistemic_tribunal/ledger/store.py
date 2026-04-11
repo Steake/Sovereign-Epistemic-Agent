@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS experiment_runs (
     run_id TEXT PRIMARY KEY,
     task_id TEXT,
     decision TEXT,
+    confidence REAL DEFAULT 0.0,
     selected_trace_id TEXT,
     ground_truth_match INTEGER,
     duration_seconds REAL,
@@ -113,7 +114,18 @@ class LedgerStore:
 
     def _init_schema(self) -> None:
         self._conn.executescript(_DDL)
+        self._ensure_experiment_run_confidence_column()
         self._conn.commit()
+
+    def _ensure_experiment_run_confidence_column(self) -> None:
+        columns = {
+            row["name"]
+            for row in self._conn.execute("PRAGMA table_info(experiment_runs)").fetchall()
+        }
+        if "confidence" not in columns:
+            self._conn.execute(
+                "ALTER TABLE experiment_runs ADD COLUMN confidence REAL DEFAULT 0.0"
+            )
 
     def close(self) -> None:
         self._conn.close()
@@ -246,14 +258,15 @@ class LedgerStore:
     def insert_run(self, rec: ExperimentRunRecord) -> None:
         self._conn.execute(
             """INSERT OR IGNORE INTO experiment_runs
-               (run_id, task_id, decision, selected_trace_id,
+               (run_id, task_id, decision, confidence, selected_trace_id,
                 ground_truth_match, duration_seconds,
                 generator_names_json, config_snapshot_json, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 rec.run_id,
                 rec.task_id,
                 rec.decision,
+                rec.confidence,
                 rec.selected_trace_id,
                 rec.ground_truth_match,
                 rec.duration_seconds,

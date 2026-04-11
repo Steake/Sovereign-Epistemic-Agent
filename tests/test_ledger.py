@@ -128,6 +128,7 @@ def test_insert_experiment_run(in_memory_store: LedgerStore) -> None:
         run_id=str(uuid.uuid4()),
         task_id="t1",
         decision="select",
+        confidence=0.75,
         selected_trace_id=str(uuid.uuid4()),
         ground_truth_match=1,
         duration_seconds=0.5,
