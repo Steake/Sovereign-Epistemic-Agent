@@ -98,6 +98,11 @@ def run_benchmark(
     ledger_path: Optional[str] = typer.Option(
         None, "--ledger", "-l", help="Override ledger DB path."
     ),
+    resume: bool = typer.Option(
+        False,
+        "--resume",
+        help="Resume from run_progress.json and skip task IDs that already completed.",
+    ),
     json_output: bool = typer.Option(False, "--json", help="Output metrics as JSON."),
 ) -> None:
     """Run the tribunal over a directory of task JSON files."""
@@ -111,7 +116,7 @@ def run_benchmark(
         console.print(f"[red]Not a directory:[/red] {dataset_path}")
         raise typer.Exit(1)
 
-    metrics = runner.run_and_report(dataset_path)
+    metrics = runner.run_and_report(dataset_path, resume=resume)
 
     if json_output:
         print(json.dumps(metrics, indent=2, default=str))

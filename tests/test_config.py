@@ -29,6 +29,8 @@ def test_default_thresholds() -> None:
     assert 0.0 < cfg.tribunal.selection_threshold <= 1.0
     assert 0.0 < cfg.tribunal.resample_threshold <= 1.0
     assert cfg.tribunal.resample_threshold <= cfg.tribunal.selection_threshold
+    assert 0.0 <= cfg.tribunal.diversity_floor <= 1.0
+    assert cfg.tribunal.ledger_warmup_tasks >= 0
 
 
 def test_generator_list_nonempty() -> None:
@@ -45,6 +47,8 @@ tribunal:
 generators:
   enabled: [greedy]
   seed: 99
+benchmark:
+  checkpoint_every_n_tasks: 5
 """
     yaml_file = tmp_path / "custom.yaml"
     yaml_file.write_text(yaml_content)
@@ -53,6 +57,7 @@ generators:
     assert cfg.tribunal.resample_threshold == pytest.approx(0.33)
     assert cfg.generators.enabled == ["greedy"]
     assert cfg.generators.seed == 99
+    assert cfg.benchmark.checkpoint_every_n_tasks == 5
 
 
 def test_load_missing_file_uses_defaults(tmp_path: Path) -> None:
@@ -65,3 +70,9 @@ def test_env_override_ledger_path(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TRIBUNAL_LEDGER_PATH", "/tmp/test_ledger.db")
     cfg = load_config()
     assert cfg.ledger.path == "/tmp/test_ledger.db"
+
+
+def test_default_llm_generator_config_present() -> None:
+    cfg = load_config()
+    assert cfg.generators.llm.model_name != ""
+    assert cfg.generators.llm.max_new_tokens > 0

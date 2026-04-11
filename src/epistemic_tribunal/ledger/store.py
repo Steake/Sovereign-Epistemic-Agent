@@ -118,6 +118,16 @@ class LedgerStore:
     def close(self) -> None:
         self._conn.close()
 
+    def checkpoint(self, destination: str | Path) -> None:
+        """Write a SQLite backup snapshot to *destination*."""
+        destination = Path(destination)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        backup_conn = sqlite3.connect(str(destination))
+        try:
+            self._conn.backup(backup_conn)
+        finally:
+            backup_conn.close()
+
     # ------------------------------------------------------------------
     # Task
     # ------------------------------------------------------------------
@@ -315,3 +325,24 @@ class LedgerStore:
             "decisions": [dict(r) for r in decisions],
             "runs": [dict(r) for r in runs],
         }
+
+    def get_experiment_runs(
+        self, task_ids: Optional[list[str] | set[str]] = None
+    ) -> list[dict[str, Any]]:
+        """Return experiment run rows as dictionaries."""
+        if task_ids is None:
+            rows = self._conn.execute(
+                "SELECT * FROM experiment_runs ORDER BY created_at ASC"
+            ).fetchall()
+        elif not task_ids:
+            # Empty collection means "no tasks to look up" — return nothing
+            # rather than falling through to the unfiltered query.
+            return []
+        else:
+            placeholders = ",".join("?" for _ in task_ids)
+            query = (
+                "SELECT * FROM experiment_runs "
+                f"WHERE task_id IN ({placeholders}) ORDER BY created_at ASC"
+            )
+            rows = self._conn.execute(query, tuple(task_ids)).fetchall()
+        return [dict(r) for r in rows]

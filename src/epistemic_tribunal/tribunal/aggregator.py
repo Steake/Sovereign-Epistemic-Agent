@@ -115,6 +115,13 @@ class TribunalAggregator:
         # Look up the winning trace
         trace_by_id = {t.trace_id: t for t in traces}
         best_trace = trace_by_id.get(best.trace_id)
+        coalition_generator_types: set[str] = set()
+        if best_trace is not None:
+            coalition_generator_types = {
+                trace.generator_name
+                for trace in traces
+                if trace.answer == best_trace.answer
+            }
 
         # Decision logic
         decision: DecisionKind
@@ -127,7 +134,25 @@ class TribunalAggregator:
             f"Scores: { {ts.generator_name: ts.total for ts in trace_scores} }",
         ]
 
-        if best.total >= self._config.selection_threshold:
+        if (
+            best.total >= self._config.selection_threshold
+            and uncertainty.coalition_mass > self._config.diversity_floor
+            and len(coalition_generator_types) == 1
+        ):
+            decision = DecisionKind.RESAMPLE
+            reasoning_parts.append(
+                "Top candidate exceeded the diversity floor with support from only one "
+                f"generator type ({sorted(coalition_generator_types)}) — requesting resample."
+            )
+            log.info(
+                "Resampling task %s because coalition_mass=%.3f exceeded diversity_floor=%.3f "
+                "with a single generator type: %s",
+                task.task_id,
+                uncertainty.coalition_mass,
+                self._config.diversity_floor,
+                sorted(coalition_generator_types),
+            )
+        elif best.total >= self._config.selection_threshold:
             decision = DecisionKind.SELECT
             selected_id = best.trace_id
             selected_answer = best_trace.answer if best_trace else None

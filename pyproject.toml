@@ -26,6 +26,7 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "python-dotenv>=1.0",
+    "transformers>=4.30",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +34,10 @@ dev = [
     "pytest>=7.4",
     "pytest-cov>=4.1",
     "ruff>=0.1",
+]
+llm = [
+    "accelerate>=0.20",
+    "flash-attn>=2.0",
 ]
 
 [project.scripts]

@@ -40,6 +40,25 @@ class TribunalConfig(BaseModel):
     selection_threshold: float = Field(default=0.40, ge=0.0, le=1.0)
     resample_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
     max_resample_attempts: int = Field(default=2, ge=0)
+    diversity_floor: float = Field(default=0.90, ge=0.0, le=1.0)
+    ledger_warmup_tasks: int = Field(default=150, ge=0)
+
+
+class LLMGeneratorConfig(BaseModel):
+    model_name: str = Field(
+        default="Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
+    )
+    max_new_tokens: int = Field(default=1024, ge=1)
+    temperature: float = Field(default=0.1, ge=0.0)
+    top_p: float = Field(default=0.95, ge=0.0, le=1.0)
+    trust_remote_code: bool = Field(default=False)
+    device: Optional[str] = Field(default=None)
+    # BF16 is natively accelerated on H200/B100 Tensor Cores (halves memory vs FP32,
+    # same numerical range).  Use "float16" for older Volta/Turing, "float32" to disable.
+    torch_dtype: str = Field(default="bfloat16")
+    # "auto" detects flash_attention_2 at runtime and falls back to "sdpa".
+    # Set explicitly to "flash_attention_2", "sdpa", or "eager" to override.
+    attn_implementation: str = Field(default="auto")
 
 
 class GeneratorsConfig(BaseModel):
@@ -53,6 +72,7 @@ class GeneratorsConfig(BaseModel):
         ]
     )
     seed: int = Field(default=42)
+    llm: LLMGeneratorConfig = Field(default_factory=LLMGeneratorConfig)
 
 
 class InvariantsConfig(BaseModel):
@@ -87,6 +107,10 @@ class LedgerConfig(BaseModel):
     always_record: bool = False
 
 
+class BenchmarkConfig(BaseModel):
+    checkpoint_every_n_tasks: int = Field(default=0, ge=0)
+
+
 class LoggingConfig(BaseModel):
     level: str = Field(default="INFO")
     format: str = Field(default="rich")
@@ -106,6 +130,7 @@ class TribunalSettings(BaseModel):
     critic: CriticConfig = Field(default_factory=CriticConfig)
     uncertainty: UncertaintyConfig = Field(default_factory=UncertaintyConfig)
     ledger: LedgerConfig = Field(default_factory=LedgerConfig)
+    benchmark: BenchmarkConfig = Field(default_factory=BenchmarkConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
     @model_validator(mode="before")

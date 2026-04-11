@@ -8,7 +8,7 @@ concrete implementations can range from simple heuristics to full LLM calls.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 
 from epistemic_tribunal.types import CandidateTrace, Task
 
@@ -47,7 +47,11 @@ class BaseGenerator(ABC):
         return f"{self.__class__.__name__}(name={self.name!r}, seed={self.seed})"
 
 
-def build_generators(enabled: list[str], seed: int = 42) -> list[BaseGenerator]:
+def build_generators(
+    enabled: list[str],
+    seed: int = 42,
+    generator_configs: Optional[dict[str, dict[str, Any]]] = None,
+) -> list[BaseGenerator]:
     """Instantiate all enabled generators by name.
 
     Parameters
@@ -75,8 +79,13 @@ def build_generators(enabled: list[str], seed: int = 42) -> list[BaseGenerator]:
         "rule_first": RuleFirstGenerator,
         "minimal_description": MinimalDescriptionGenerator,
     }
+    if "llm" in enabled:
+        from epistemic_tribunal.generators.llm import LLMGenerator
+
+        REGISTRY["llm"] = LLMGenerator
 
     generators: list[BaseGenerator] = []
+    generator_configs = generator_configs or {}
     for name in enabled:
         cls = REGISTRY.get(name)
         if cls is None:
@@ -84,5 +93,5 @@ def build_generators(enabled: list[str], seed: int = 42) -> list[BaseGenerator]:
                 f"Unknown generator {name!r}. "
                 f"Available: {sorted(REGISTRY.keys())}"
             )
-        generators.append(cls(seed=seed))
+        generators.append(cls(seed=seed, **generator_configs.get(name, {})))
     return generators
