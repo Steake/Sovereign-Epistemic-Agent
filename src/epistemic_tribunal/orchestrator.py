@@ -174,6 +174,7 @@ class Orchestrator:
             decision=decision.decision,
             selected_trace_id=decision.selected_trace_id,
             ground_truth_match=ground_truth_match,
+            confidence=decision.confidence,
             duration_seconds=round(duration, 4),
             config_snapshot={
                 "selection_threshold": self._config.tribunal.selection_threshold,

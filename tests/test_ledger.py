@@ -130,6 +130,7 @@ def test_insert_experiment_run(in_memory_store: LedgerStore) -> None:
         decision="select",
         selected_trace_id=str(uuid.uuid4()),
         ground_truth_match=1,
+        confidence=0.75,
         duration_seconds=0.5,
         generator_names_json=json.dumps(["greedy"]),
         config_snapshot_json="{}",

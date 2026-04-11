@@ -207,6 +207,7 @@ class ExperimentRun(BaseModel):
     decision: DecisionKind
     selected_trace_id: Optional[str] = None
     ground_truth_match: Optional[bool] = None
+    confidence: float = 0.0
     duration_seconds: float = 0.0
     config_snapshot: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

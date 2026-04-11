@@ -133,6 +133,7 @@ class LedgerWriter:
                 else 0 if run.ground_truth_match is False
                 else None
             ),
+            confidence=run.confidence,
             duration_seconds=run.duration_seconds,
             generator_names_json=json.dumps(run.generator_names),
             config_snapshot_json=json.dumps(run.config_snapshot),

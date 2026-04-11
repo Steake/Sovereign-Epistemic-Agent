@@ -20,10 +20,12 @@ from rich.console import Console
 from rich.table import Table
 
 from epistemic_tribunal.config import load_config
+from epistemic_tribunal.evaluation import calibration
 from epistemic_tribunal.evaluation.benchmark import BenchmarkRunner
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
+from epistemic_tribunal.types import DecisionKind, ExperimentRun
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -213,6 +215,109 @@ def ledger_inspect(
             console.print(f"\n[bold cyan]{section.title()} ({len(records)}):[/bold cyan]")
             for rec in records:
                 console.print(f"  {rec}")
+
+
+# ---------------------------------------------------------------------------
+# tribunal calibrate
+# ---------------------------------------------------------------------------
+
+
+@app.command("calibrate")
+def calibrate_cmd(
+    ledger_path: str = typer.Option(
+        ..., "--ledger", "-l", help="Path to ledger DB."
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
+) -> None:
+    """Compute a calibration report from historical ledger runs."""
+    store = LedgerStore(ledger_path)
+    rows = store.get_experiment_runs()
+    store.close()
+
+    runs: list[ExperimentRun] = []
+    for row in rows:
+        runs.append(
+            ExperimentRun(
+                run_id=row["run_id"],
+                task_id=row["task_id"],
+                generator_names=json.loads(row["generator_names_json"]),
+                decision=DecisionKind(row["decision"]),
+                selected_trace_id=row["selected_trace_id"],
+                ground_truth_match=(
+                    None
+                    if row["ground_truth_match"] is None
+                    else bool(row["ground_truth_match"])
+                ),
+                confidence=row.get("confidence", 0.0) or 0.0,
+                duration_seconds=row["duration_seconds"],
+                config_snapshot=json.loads(row["config_snapshot_json"]),
+            )
+        )
+
+    if not any(r.confidence > 0 for r in runs):
+        console.print(
+            "[yellow]No runs with usable confidence scores found in the ledger.[/yellow]"
+        )
+        raise typer.Exit(0)
+
+    ece = calibration.expected_calibration_error(runs)
+    bs = calibration.brier_score(runs)
+    curve = calibration.reliability_curve(runs)
+    sel_acc = calibration.accuracy_at_coverage(runs, coverage_target=0.9)
+    abst = calibration.abstention_quality(runs)
+
+    if json_output:
+        report = {
+            "ece": round(ece, 4),
+            "brier_score": round(bs, 4),
+            "reliability_curve": curve,
+            "selective_accuracy_90": {k: round(v, 4) for k, v in sel_acc.items()},
+            "abstention_quality": {k: round(v, 4) for k, v in abst.items()},
+        }
+        print(json.dumps(report, indent=2))
+        return
+
+    # Scalar metrics table
+    metrics_table = Table(title="Calibration Report", show_header=True)
+    metrics_table.add_column("Metric", style="bold cyan")
+    metrics_table.add_column("Value", style="white")
+    metrics_table.add_row("ECE", f"{ece:.4f}")
+    metrics_table.add_row("Brier Score", f"{bs:.4f}")
+    console.print(metrics_table)
+
+    # Reliability curve table
+    if curve:
+        rc_table = Table(title="Reliability Curve", show_header=True)
+        rc_table.add_column("Bin Midpoint", style="bold cyan")
+        rc_table.add_column("Mean Confidence", style="white")
+        rc_table.add_column("Mean Accuracy", style="white")
+        rc_table.add_column("Count", style="white")
+        for entry in curve:
+            rc_table.add_row(
+                f"{entry['bin_midpoint']:.4f}",
+                f"{entry['mean_confidence']:.4f}",
+                f"{entry['mean_accuracy']:.4f}",
+                str(entry["count"]),
+            )
+        console.print(rc_table)
+
+    # Accuracy at coverage
+    acc_table = Table(title="Accuracy at 90% Coverage", show_header=True)
+    acc_table.add_column("Metric", style="bold cyan")
+    acc_table.add_column("Value", style="white")
+    acc_table.add_row("Accuracy", f"{sel_acc['accuracy']:.4f}")
+    acc_table.add_row("Coverage", f"{sel_acc['coverage']:.4f}")
+    acc_table.add_row("Threshold", f"{sel_acc['threshold']:.4f}")
+    console.print(acc_table)
+
+    # Abstention quality
+    abst_table = Table(title="Abstention Quality", show_header=True)
+    abst_table.add_column("Metric", style="bold cyan")
+    abst_table.add_column("Value", style="white")
+    abst_table.add_row("Abstention Rate", f"{abst['abstention_rate']:.4f}")
+    abst_table.add_row("Wrong Abstention Rate", f"{abst['wrong_abstention_rate']:.4f}")
+    abst_table.add_row("Correct Abstention Rate", f"{abst['correct_abstention_rate']:.4f}")
+    console.print(abst_table)
 
 
 if __name__ == "__main__":

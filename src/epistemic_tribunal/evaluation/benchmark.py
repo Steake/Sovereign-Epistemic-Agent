@@ -185,6 +185,7 @@ class BenchmarkRunner:
                         if row["ground_truth_match"] is None
                         else bool(row["ground_truth_match"])
                     ),
+                    confidence=row.get("confidence", 0.0) or 0.0,
                     duration_seconds=row["duration_seconds"],
                     config_snapshot=json.loads(row["config_snapshot_json"]),
                 )
