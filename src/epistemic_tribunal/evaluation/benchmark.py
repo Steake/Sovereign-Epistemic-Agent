@@ -96,11 +96,12 @@ class BenchmarkRunner:
             except Exception as exc:
                 log.error("Failed to process %s: %s", task_file.name, exc)
 
-        self._checkpoint_progress(
-            completed_task_ids=completed_task_ids,
-            runs=runs,
-            elapsed_time_seconds=elapsed_before_resume + (time.monotonic() - start_time),
-        )
+        if self._config.benchmark.checkpoint_every_n_tasks > 0:
+            self._checkpoint_progress(
+                completed_task_ids=completed_task_ids,
+                runs=runs,
+                elapsed_time_seconds=elapsed_before_resume + (time.monotonic() - start_time),
+            )
         return runs
 
     def report(self, runs: list[ExperimentRun]) -> dict:
