@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sovereign Epistemic Agent</title>
+  <meta
+    name="description"
+    content="A research initiative for governed machine reasoning, featuring the Epistemic Tribunal for ARC-like tasks."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#top">
+        <span class="brand-mark">SEA</span>
+        <span class="brand-text">
+          <strong>Sovereign Epistemic Agent</strong>
+          <span>Governed conflict for machine reasoning</span>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        Menu
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Primary">
+        <a href="#initiative">Initiative</a>
+        <a href="#stack">Stack</a>
+        <a href="#status">Status</a>
+        <a href="#explore">Explore</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero reveal">
+        <div class="hero-copy">
+          <p class="eyebrow">Research initiative</p>
+          <h1>Reasoning systems should govern disagreement, not hide it.</h1>
+          <p class="hero-lede">
+            Sovereign Epistemic Agent is a research direction for machine reasoning architectures
+            that stage competing internal accounts, critique them against structure and memory,
+            and decide when selection is justified, when resampling is needed, and when abstention
+            is the honest outcome.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#explore">Explore the project</a>
+            <a class="button button-secondary" href="../README.md">Read the repository</a>
+          </div>
+          <ul class="hero-metrics" aria-label="Project highlights">
+            <li><strong>1</strong><span>implemented module</span></li>
+            <li><strong>5</strong><span>generator strategies</span></li>
+            <li><strong>6</strong><span>ledger tables</span></li>
+          </ul>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="signal-card signal-card-primary">
+            <span>Candidate traces</span>
+            <strong>Compete</strong>
+            <p>Multiple reasoning accounts enter the tribunal instead of one pass pretending to be certainty.</p>
+          </div>
+          <div class="signal-card signal-card-secondary">
+            <span>Invariant checks</span>
+            <strong>Constrain</strong>
+            <p>Structural rules inferred from the task shape which hypotheses deserve continued trust.</p>
+          </div>
+          <div class="signal-card signal-card-tertiary">
+            <span>Failure ledger</span>
+            <strong>Remember</strong>
+            <p>Past mistakes persist in SQLite so similar traces can be penalized rather than forgotten.</p>
+          </div>
+          <div class="grid-orb"></div>
+        </div>
+      </section>
+
+      <section id="initiative" class="section reveal">
+        <div class="section-heading">
+          <p class="eyebrow">What this is</p>
+          <h2>An umbrella project with one concrete subsystem already running</h2>
+        </div>
+        <div class="two-column">
+          <article class="panel">
+            <h3>Sovereign Epistemic Agent</h3>
+            <p>
+              The umbrella identity and long-range direction. It names a class of reasoning systems
+              that treat internal disagreement, failure reuse, and deliberative restraint as first-order design concerns.
+            </p>
+          </article>
+          <article class="panel panel-accent">
+            <h3>Epistemic Tribunal</h3>
+            <p>
+              The implemented experimental stack in this repository. It operates on ARC-like tasks by
+              generating competing traces, extracting invariants, critiquing candidates, measuring uncertainty,
+              adjudicating outcomes, and recording failures.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="stack" class="section section-dark reveal">
+        <div class="section-heading">
+          <p class="eyebrow">Implemented stack</p>
+          <h2>The Epistemic Tribunal turns private model guesses into inspectable procedure.</h2>
+        </div>
+        <div class="stack-flow" aria-label="Architecture overview">
+          <article class="stack-step">
+            <span>01</span>
+            <h3>Generator bank</h3>
+            <p>Five strategies produce competing candidate traces instead of a single unchallenged output.</p>
+          </article>
+          <article class="stack-step">
+            <span>02</span>
+            <h3>Invariant extractor</h3>
+            <p>Task-level structural constraints are inferred from training examples and activated by confidence.</p>
+          </article>
+          <article class="stack-step">
+            <span>03</span>
+            <h3>Trace critic</h3>
+            <p>Candidates are scored for consistency, rule coherence, morphology, failure similarity, and compliance.</p>
+          </article>
+          <article class="stack-step">
+            <span>04</span>
+            <h3>Uncertainty analyzer</h3>
+            <p>Entropy, margin, coalition mass, and disagreement rate quantify how fractured the pool really is.</p>
+          </article>
+          <article class="stack-step">
+            <span>05</span>
+            <h3>Tribunal aggregator</h3>
+            <p>Weighted signals lead to select, resample, or abstain rather than forced confidence theater.</p>
+          </article>
+          <article class="stack-step">
+            <span>06</span>
+            <h3>Failure ledger</h3>
+            <p>SQLite captures traces, decisions, invariant violations, and failures as reusable memory.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section reveal">
+        <div class="section-heading">
+          <p class="eyebrow">Design philosophy</p>
+          <h2>The project is built around disciplined refusal.</h2>
+        </div>
+        <div class="principles">
+          <article class="principle">
+            <h3>Competing hypotheses</h3>
+            <p>The central object is not the answer but the governed conflict between plausible accounts of the task.</p>
+          </article>
+          <article class="principle">
+            <h3>Structural accountability</h3>
+            <p>Invariants and critics force candidate traces to answer to shape, symmetry, and prior evidence.</p>
+          </article>
+          <article class="principle">
+            <h3>Memory with consequence</h3>
+            <p>Failures are written down in a structured form so the system can stop repeating them blindly.</p>
+          </article>
+          <article class="principle">
+            <h3>Abstention as competence</h3>
+            <p>Low confidence is not hidden. The tribunal can resample or abstain when selection is not defensible.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="status" class="section reveal">
+        <div class="section-heading">
+          <p class="eyebrow">Status map</p>
+          <h2>Clear separation between what exists, what is next, and what remains research doctrine.</h2>
+        </div>
+        <div class="status-grid">
+          <article class="status-card">
+            <span class="status-label status-live">Implemented now</span>
+            <ul>
+              <li>Generator bank with five strategies</li>
+              <li>Invariant extraction and trace criticism</li>
+              <li>Uncertainty analysis and weighted adjudication</li>
+              <li>Persistent SQLite failure ledger</li>
+              <li>CLI, sample tasks, and test suite</li>
+            </ul>
+          </article>
+          <article class="status-card">
+            <span class="status-label status-next">Near-term extensions</span>
+            <ul>
+              <li>Model-backed generators and critics</li>
+              <li>Stronger live reuse of prior failures</li>
+              <li>Richer evaluation workflows</li>
+              <li>Alternative persistence backends</li>
+            </ul>
+          </article>
+          <article class="status-card">
+            <span class="status-label status-future">Long-range direction</span>
+            <ul>
+              <li>Strange Loop memory during reasoning</li>
+              <li>Richer co-agency or operator-mind architectures</li>
+              <li>Honest handling of undecidable or structurally unresolved cases</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="explore" class="section section-cta reveal">
+        <div class="section-heading">
+          <p class="eyebrow">Explore</p>
+          <h2>Start with the implemented tribunal, then follow the broader research direction.</h2>
+        </div>
+        <div class="cta-layout">
+          <article class="panel command-panel">
+            <h3>Run the reference environment</h3>
+            <pre><code>pip install -e .[dev]
+tribunal run-sample data/examples/colour_swap_001.json
+tribunal benchmark data/examples</code></pre>
+          </article>
+          <article class="panel links-panel">
+            <h3>Read more</h3>
+            <a href="../README.md">Repository overview</a>
+            <a href="./roadmap.md">Project roadmap</a>
+            <a href="../pyproject.toml">Package metadata</a>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
