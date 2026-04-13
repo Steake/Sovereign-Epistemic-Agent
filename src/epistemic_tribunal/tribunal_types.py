@@ -170,6 +170,7 @@ class TribunalDecision(BaseModel):
     )
     reasoning: str = ""
     confidence: float = Field(ge=0.0, le=1.0, default=0.0)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -210,4 +211,5 @@ class ExperimentRun(BaseModel):
     ground_truth_match: Optional[bool] = None
     duration_seconds: float = 0.0
     config_snapshot: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

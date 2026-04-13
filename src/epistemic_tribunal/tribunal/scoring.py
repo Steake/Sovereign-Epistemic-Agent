@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     InvariantSet,

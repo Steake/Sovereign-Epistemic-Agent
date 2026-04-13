@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS experiment_runs (
     duration_seconds REAL,
     generator_names_json TEXT,
     config_snapshot_json TEXT,
+    metadata_json TEXT DEFAULT '{}',
     created_at TEXT,
     FOREIGN KEY (task_id) REFERENCES tasks(task_id)
 );
@@ -114,10 +115,10 @@ class LedgerStore:
 
     def _init_schema(self) -> None:
         self._conn.executescript(_DDL)
-        self._ensure_experiment_run_confidence_column()
+        self._ensure_experiment_run_columns()
         self._conn.commit()
 
-    def _ensure_experiment_run_confidence_column(self) -> None:
+    def _ensure_experiment_run_columns(self) -> None:
         columns = {
             row["name"]
             for row in self._conn.execute("PRAGMA table_info(experiment_runs)").fetchall()
@@ -125,6 +126,10 @@ class LedgerStore:
         if "confidence" not in columns:
             self._conn.execute(
                 "ALTER TABLE experiment_runs ADD COLUMN confidence REAL DEFAULT 0.0"
+            )
+        if "metadata_json" not in columns:
+            self._conn.execute(
+                "ALTER TABLE experiment_runs ADD COLUMN metadata_json TEXT DEFAULT '{}'"
             )
 
     def close(self) -> None:
@@ -260,8 +265,8 @@ class LedgerStore:
             """INSERT OR IGNORE INTO experiment_runs
                (run_id, task_id, decision, confidence, selected_trace_id,
                 ground_truth_match, duration_seconds,
-                generator_names_json, config_snapshot_json, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                generator_names_json, config_snapshot_json, metadata_json, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 rec.run_id,
                 rec.task_id,
@@ -272,6 +277,7 @@ class LedgerStore:
                 rec.duration_seconds,
                 rec.generator_names_json,
                 rec.config_snapshot_json,
+                rec.metadata_json,
                 rec.created_at.isoformat(),
             ),
         )

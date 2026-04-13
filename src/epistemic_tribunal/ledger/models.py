@@ -77,4 +77,5 @@ class ExperimentRunRecord:
     duration_seconds: float
     generator_names_json: str
     config_snapshot_json: str
+    metadata_json: str = "{}"
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

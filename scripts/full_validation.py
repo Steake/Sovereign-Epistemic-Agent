@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from pathlib import Path
 from rich.console import Console
@@ -9,12 +10,55 @@ from epistemic_tribunal.config import load_config
 from epistemic_tribunal.evaluation.benchmark import BenchmarkRunner
 from epistemic_tribunal.evaluation.metrics import summary_report
 
+# ---------------------------------------------------------------------------
+# Dataset path resolution
+# Priority:
+#   1. ARC_DATASET_PATH environment variable  (set this on the pod)
+#   2. Local Mac dev path as a fallback
+# ---------------------------------------------------------------------------
+_LOCAL_DATASET_FALLBACK = (
+    "/Users/oli/Documents/Oli Works/arc_epistemic/Kaggle_Submission_Bundle/dataset"
+)
+_POD_DATASET_DEFAULT = "/workspace/arc_dataset"
+
+def _resolve_dataset_path() -> Path:
+    """Return the ARC benchmark dataset directory, failing fast if not found."""
+    # Explicit override always wins
+    env_path = os.environ.get("ARC_DATASET_PATH", "")
+    if env_path:
+        p = Path(env_path)
+        if p.is_dir() and list(p.glob("*.json")):
+            return p
+        raise SystemExit(
+            f"[ERROR] ARC_DATASET_PATH='{env_path}' is set but contains no *.json files.\n"
+            f"        Ensure the dataset is mounted/uploaded to that path on the pod."
+        )
+
+    # Local Mac fallback
+    fallback = Path(_LOCAL_DATASET_FALLBACK)
+    if fallback.is_dir() and list(fallback.glob("*.json")):
+        return fallback
+
+    # Pod default path
+    pod_default = Path(_POD_DATASET_DEFAULT)
+    if pod_default.is_dir() and list(pod_default.glob("*.json")):
+        return pod_default
+
+    raise SystemExit(
+        "[ERROR] Could not locate the ARC benchmark dataset.\n"
+        "  • Set  ARC_DATASET_PATH=/path/to/dataset  before running, OR\n"
+        "  • Upload dataset JSON files to /workspace/arc_dataset on the pod, OR\n"
+        f"  • Ensure local path exists: {_LOCAL_DATASET_FALLBACK}"
+    )
+
+
 def run_validation():
     console = Console()
     console.print("[bold blue]Starting Full 50-Task Validation Sweep (4 Arms)...[/bold blue]")
-    
+
     manifest_path = "data/validation_manifest_v1.txt"
-    dataset_path = "/Users/oli/Documents/Oli Works/arc_epistemic/Kaggle_Submission_Bundle/dataset"
+    dataset_path = _resolve_dataset_path()
+    console.print(f"[dim]Dataset: {dataset_path}[/dim]")
     configs_dir = Path("configs/validation")
     arms = [
         ("arm1_greedy.yaml", "Greedy"),
@@ -48,7 +92,15 @@ def run_validation():
             manifest_path=manifest_path
         )
         elapsed = time.monotonic() - start_t
-        
+
+        # Fail loudly if no tasks ran — avoids silent zero-accuracy results
+        if not runs:
+            console.print(
+                f"[bold red]\n[FATAL] Arm {label}: 0 tasks ran. "
+                f"Check that manifest IDs match files in:\n  {dataset_path}[/bold red]"
+            )
+            sys.exit(1)
+
         # Report
         metrics = summary_report(runs)
         final_results[label] = metrics

@@ -20,7 +20,7 @@ from epistemic_tribunal.tasks.base import (
     grids_equal,
     object_count,
 )
-from epistemic_tribunal.types import CandidateTrace, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
 Grid = list[list[int]]
 

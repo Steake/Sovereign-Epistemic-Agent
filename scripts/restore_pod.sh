@@ -7,6 +7,7 @@
 # Usage:
 #   HF_TOKEN=hf_xxx bash /workspace/scripts/restore_pod.sh
 #   HF_TOKEN=hf_xxx bash /workspace/scripts/restore_pod.sh --skip-download
+#   HF_TOKEN=hf_xxx bash /workspace/scripts/restore_pod.sh --dataset-dir /workspace/arc_dataset
 #
 # Sequence:
 #   1. Install system deps    (cmake, ninja, curl, aria2, git)
@@ -14,6 +15,7 @@
 #   3. Download GGUF weights  (Qwen3.5-27B Q8_0 + mmproj)
 #   4. Set up Python venv     (uv or venv + project install)
 #   5. Ignite                 (llama-server on :8000, health-check waits 180s)
+#   6. Seat ARC dataset       (validates ARC_DATASET_PATH or prints upload cmd)
 #
 # Lessons hard-won in production (H100, SM90a):
 #   - cmake must be installed before llama.cpp build
@@ -34,10 +36,12 @@ die()     { echo -e "${RED}[FAIL]${RESET}  $*" >&2; exit 1; }
 
 # ── Args ──────────────────────────────────────────────────────────────────────
 SKIP_DOWNLOAD=false
+DATASET_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-download) SKIP_DOWNLOAD=true; shift ;;
     --token)         HF_TOKEN="$2"; shift 2 ;;
+    --dataset-dir)   DATASET_DIR="$2"; shift 2 ;;
     *) die "Unknown argument: $1" ;;
   esac
 done
@@ -151,7 +155,7 @@ else
 fi
 
 # ── Step 4: Python venv ───────────────────────────────────────────────────────
-info "Step 4/5 — Python environment..."
+info "Step 4/6 — Python environment..."
 
 if [[ ! -d "${VENV_DIR}" ]]; then
     python3 -m venv "${VENV_DIR}"
@@ -166,18 +170,71 @@ else
     warn "pyproject.toml not found — skipping pip install."
 fi
 
-# Persist env for future sessions
+# Persist env for future sessions (ARC_DATASET_PATH will be patched after dataset seating)
 PROFILE="${WORKSPACE}/.container_env"
-cat > "${PROFILE}" << EOF
-export HF_TOKEN="${HF_TOKEN}"
-export PYTHONPATH="${REPO_DIR}/src"
+cat > "${PROFILE}" <<'ENVEOF'
+export HF_TOKEN="__HF_TOKEN__"
+export PYTHONPATH="__REPO_DIR__/src"
 export OPENAI_BASE_URL="http://localhost:8000/v1"
-export VIRTUAL_ENV="${VENV_DIR}"
-export PATH="${VENV_DIR}/bin:\${PATH}"
-EOF
+export VIRTUAL_ENV="__VENV_DIR__"
+export PATH="__VENV_DIR__/bin:${PATH}"
+export ARC_DATASET_PATH="/workspace/arc_dataset"
+ENVEOF
+# Substitute the real paths (avoid heredoc variable expansion issues)
+sed -i \
+    -e "s|__HF_TOKEN__|${HF_TOKEN}|g" \
+    -e "s|__REPO_DIR__|${REPO_DIR}|g" \
+    -e "s|__VENV_DIR__|${VENV_DIR}|g" \
+    "${PROFILE}"
 grep -qxF "source ${PROFILE}" ~/.bashrc 2>/dev/null || echo "source ${PROFILE}" >> ~/.bashrc
 success "Env persisted to ${PROFILE}"
 
 # ── Step 5: Ignite ────────────────────────────────────────────────────────────
-info "Step 5/5 — Igniting inference server..."
+info "Step 5/6 — Igniting inference server..."
 bash "${SCRIPTS_DIR}/ignite.sh"
+
+# ── Step 6: Seat ARC benchmark dataset ───────────────────────────────────────
+info "Step 6/6 — Validating ARC benchmark dataset..."
+
+ARC_DEFAULT_DIR="/workspace/arc_dataset"
+ARC_DATASET_RESOLVED=""
+
+# Prefer explicit --dataset-dir arg
+if [[ -n "${DATASET_DIR}" ]]; then
+    if [[ -d "${DATASET_DIR}" ]] && ls "${DATASET_DIR}"/*.json &>/dev/null; then
+        ARC_DATASET_RESOLVED="${DATASET_DIR}"
+        success "ARC dataset found at ${DATASET_DIR} ($(ls "${DATASET_DIR}"/*.json | wc -l) tasks)."
+    else
+        die "--dataset-dir '${DATASET_DIR}' is set but contains no *.json files."
+    fi
+elif [[ -d "${ARC_DEFAULT_DIR}" ]] && ls "${ARC_DEFAULT_DIR}"/*.json &>/dev/null; then
+    ARC_DATASET_RESOLVED="${ARC_DEFAULT_DIR}"
+    success "ARC dataset found at ${ARC_DEFAULT_DIR} ($(ls "${ARC_DEFAULT_DIR}"/*.json | wc -l) tasks)."
+else
+    warn "ARC dataset NOT found. Upload it before running the sweep:"
+    warn ""
+    warn "  From your Mac:"
+    warn "    scp -r '/Users/oli/Documents/Oli Works/arc_epistemic/Kaggle_Submission_Bundle/dataset/' \\"
+    warn "          root@<POD_IP>:/workspace/arc_dataset/"
+    warn ""
+    warn "  Then set ARC_DATASET_PATH=/workspace/arc_dataset in your shell, or re-run:"
+    warn "    bash ${SCRIPTS_DIR}/restore_pod.sh --dataset-dir /workspace/arc_dataset"
+    ARC_DATASET_RESOLVED="${ARC_DEFAULT_DIR}"   # write placeholder so env file is still valid
+fi
+
+# Patch env file with resolved dataset path
+sed -i "s|^export ARC_DATASET_PATH=.*|export ARC_DATASET_PATH=\"${ARC_DATASET_RESOLVED}\"|" "${PROFILE}" 2>/dev/null || true
+
+echo ""
+echo -e "${BOLD}═══════════════════════════════════════════════════════════${RESET}"
+echo -e "${BOLD}  🟢  Pod Restore Complete!${RESET}"
+echo -e "${BOLD}═══════════════════════════════════════════════════════════${RESET}"
+echo ""
+echo "  Inference API : http://localhost:8000/v1"
+echo "  ARC Dataset   : ${ARC_DATASET_RESOLVED}"
+echo ""
+echo "  Run sweep:"
+echo "    source ${PROFILE}"
+echo "    cd ${REPO_DIR}"
+echo "    python3 scripts/full_validation.py"
+echo ""

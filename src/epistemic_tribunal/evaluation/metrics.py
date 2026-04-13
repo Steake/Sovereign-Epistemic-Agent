@@ -9,14 +9,12 @@ from __future__ import annotations
 from collections import Counter
 
 from epistemic_tribunal.evaluation import calibration
-from epistemic_tribunal.types import DecisionKind, ExperimentRun
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun
 
 
-def accuracy(runs: list[ExperimentRun]) -> float:
-    """Fraction of runs where the selected answer matched the ground truth.
-
-    Only counts runs where both a selection was made *and* a ground-truth
-    label is available.
+def resolved_accuracy(runs: list[ExperimentRun]) -> float:
+    """Fraction of runs where the SELECTED answer matched the ground truth.
+    Only counts runs where we made a selection.
     """
     evaluated = [
         r for r in runs
@@ -25,6 +23,31 @@ def accuracy(runs: list[ExperimentRun]) -> float:
     if not evaluated:
         return 0.0
     return sum(1 for r in evaluated if r.ground_truth_match) / len(evaluated)
+
+
+def overall_accuracy(runs: list[ExperimentRun]) -> float:
+    """Fraction of ALL runs that resulted in a correct selection."""
+    if not runs:
+        return 0.0
+    return sum(1 for r in runs if r.ground_truth_match is True) / len(runs)
+
+
+def wrong_pick_count(runs: list[ExperimentRun]) -> int:
+    """Total number of tasks where the tribunal selected an incorrect answer."""
+    return sum(1 for r in runs if r.ground_truth_match is False and r.decision == DecisionKind.SELECT)
+
+
+def override_count(runs: list[ExperimentRun]) -> int:
+    """Total number of tasks where the Path B structural override was triggered."""
+    return sum(1 for r in runs if r.metadata.get("path_b_override") is True)
+
+
+def mean_confidence(runs: list[ExperimentRun]) -> float:
+    """Mean confidence score for selected tasks."""
+    selected = [r for r in runs if r.decision == DecisionKind.SELECT]
+    if not selected:
+        return 0.0
+    return sum(r.confidence for r in selected) / len(selected)
 
 
 def coverage(runs: list[ExperimentRun]) -> float:
@@ -65,10 +88,14 @@ def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
     """Produce a full summary metrics dictionary."""
     report: dict[str, float | int | dict] = {
         "total_runs": len(runs),
-        "accuracy": round(accuracy(runs), 4),
+        "overall_accuracy": round(overall_accuracy(runs), 4),
+        "resolved_accuracy": round(resolved_accuracy(runs), 4),
         "coverage": round(coverage(runs), 4),
         "abstention_rate": round(abstention_rate(runs), 4),
         "resample_rate": round(resample_rate(runs), 4),
+        "wrong_pick_count": wrong_pick_count(runs),
+        "override_count": override_count(runs),
+        "mean_confidence": round(mean_confidence(runs), 4),
         "decision_distribution": decision_distribution(runs),
         "avg_duration_seconds": round(average_duration(runs), 4),
     }

@@ -1,0 +1,15 @@
+# Arm 4: Path B Permissive (Breakthrough)
+tribunal:
+  adjudication_strategy: "standard"
+  diversity_floor: 1.0
+  structural_override:
+    enabled: true
+    v_threshold: 0.95  # Slightly more permissive than strict baseline
+    margin_threshold: 0.01
+    confidence_cap: 0.70
+  weights:
+    memory: 0.0
+ledger:
+  path: "configs/validation/data/arm4_path_b.db"
+metadata:
+  arm_name: "path_b_permissive"

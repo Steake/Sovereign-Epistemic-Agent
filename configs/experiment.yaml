@@ -1,0 +1,21 @@
+# Real deployment configuration for Falsification Sprint
+tribunal:
+  ledger_warmup_tasks: 0
+  weights:
+    uncertainty: 0.20
+    critic: 0.30
+    memory: 0.30
+    invariant: 0.20
+
+generators:
+  enabled:
+    - llm
+    - greedy
+  llm:
+    model_name: "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
+    device: "cuda:0"
+    max_new_tokens: 4096
+    temperature: 0.1
+    torch_dtype: "bfloat16"
+    attn_implementation: "flash_attention_2"
+    trust_remote_code: false

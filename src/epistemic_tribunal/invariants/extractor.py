@@ -20,7 +20,7 @@ from epistemic_tribunal.tasks.base import (
     bounding_box,
     connected_components,
 )
-from epistemic_tribunal.types import Invariant, InvariantSet, Task
+from epistemic_tribunal.tribunal_types import Invariant, InvariantSet, Task
 
 
 # ---------------------------------------------------------------------------

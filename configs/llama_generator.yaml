@@ -1,0 +1,17 @@
+# Tribunal Generation Config for llama.cpp Backend
+# Model: Jackrong-Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2
+
+generator:
+  type: "vllm" # Using the vllm generator class for OpenAI-compatible bridging
+  model: "Qwen3.5-27B.Q8_0.gguf"
+  api_base: "http://localhost:8000/v1"
+  api_key: "sk-no-key-required"
+  max_tokens: 4096
+  temperature: 0.6
+  top_p: 0.95
+  reasoning_parser: "qwen3" # Ensures reasoning_content is extracted from the trace
+
+benchmark:
+  concurrency: 8 # Optimized for H100 ubatch throughput
+  max_retries: 3
+  timeout: 120

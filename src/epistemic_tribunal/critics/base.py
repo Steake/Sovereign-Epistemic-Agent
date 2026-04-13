@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     InvariantSet,

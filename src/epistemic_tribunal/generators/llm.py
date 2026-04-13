@@ -90,35 +90,26 @@ class LLMGenerator(BaseGenerator):
 
         instructions = ""
         if self.prompt_style == "rule":
-            instructions = "Identify the core underlying rule first. Describe it precisely in coordinates or color mappings."
+            instructions = "Identify the transformation rule first, then apply it exactly."
         elif self.prompt_style == "adversarial":
-            instructions = "Critically examine the obvious transformation. Is there a more subtle geometric or logical rule? Propose an alternative if possible."
-        
+            instructions = "Consider the non-obvious transformation. Only output JSON."
+
         main_prompt = (
-            "Solve the ARC-style task and return JSON only.\n"
-            "Use this schema exactly:\n"
-            '{"answer": [[0]], "reasoning_steps": ["short step"], "confidence": 0.0}\n'
+            "Solve the ARC task. Output ONLY the JSON object below — no prose, no markdown, no <think> tags.\n"
+            'Schema: {"answer": [[int, ...], ...], "reasoning_steps": ["step"], "confidence": 0.0}\n'
+            "The answer must be a 2-D list of integers matching the expected output grid dimensions.\n"
         )
-        
-        if self.include_think:
-            main_prompt += (
-                "You may reason inside <think>...</think> tags.\n"
-                "After </think>, you MUST output ONLY the JSON object on its own line — nothing else.\n"
-                "Example: <think>\nreasoning here\n</think>\n{\"answer\": [[1,2],[3,4]], \"reasoning_steps\": [\"step\"], \"confidence\": 0.8}\n"
-            )
-        else:
-            main_prompt += "Do NOT use <think> tags. Output ONLY the JSON object, nothing else.\n"
 
         if instructions:
             main_prompt = f"{instructions}\n\n{main_prompt}"
 
+        train_block = "\n".join(train_examples) if train_examples else "None"
         return (
             f"{main_prompt}\n"
-            "Do not include prose outside the JSON object.\n\n"
-            f"Task ID: {task.task_id}\n"
-            f"Description: {task.description}\n"
-            f"Train:\n{chr(10).join(train_examples) if train_examples else 'None'}\n"
+            f"Task: {task.task_id}\n"
+            f"Train:\n{train_block}\n"
             f"Test Input: {json.dumps(task.test_input)}\n"
+            "JSON answer:"
         )
 
     def _load_vllm_pipeline(self) -> Any:
@@ -131,13 +122,15 @@ class LLMGenerator(BaseGenerator):
         except ImportError as exc:
             raise ImportError("openai client is required.") from exc
 
-        log.info("Connecting to vLLM background API server for inference.")
-        
+        import os
+        base_url = os.environ.get("OPENAI_BASE_URL", "http://localhost:8000/v1")
+        log.info("Connecting to vLLM background API server for inference at %s", base_url)
+
         client = OpenAI(
-            base_url="http://localhost:8000/v1",
+            base_url=base_url,
             api_key="empty",
         )
-        
+
         _GLOBAL_OAI_CLIENT = client
         return client, None
 
@@ -158,25 +151,27 @@ class LLMGenerator(BaseGenerator):
                 max_tokens=self.max_new_tokens,
                 top_p=self.top_p,
             )
-            # Try to get reasoning_content (llama-server splits think block here)
             message = response.choices[0].message
             text = message.content or ""
-            reasoning = getattr(message, "reasoning_content", None)
+            finish_reason = response.choices[0].finish_reason
 
-            if reasoning:
-                log.info("Captured %d chars of explicit reasoning_content", len(reasoning))
-                # Build full text: think block + content
-                # If content is empty, the JSON may be inside reasoning_content
-                full_think = f"<think>\n{reasoning}\n</think>\n{text}"
-                if self.include_think:
-                    text = full_think
-                else:
-                    # Still need to search reasoning for embedded JSON if content is empty
-                    if not text.strip():
-                        text = full_think
+            # llama-server may prefix content with '</think>' even when
+            # --reasoning off is set; strip it so the JSON parser finds
+            # the object cleanly.
+            if text.lstrip().startswith("</think>"):
+                text = text.lstrip()[len("</think>"):].lstrip()
 
-            snippet = text[:200].replace('\n', ' ')
-            log.info(f"LLM Generation complete. Length: {len(text)} chars. Snippet: {snippet}...")
+            if finish_reason == "length":
+                log.warning(
+                    "LLM response truncated at max_tokens=%d — answer may be incomplete.",
+                    self.max_new_tokens,
+                )
+
+            snippet = text[:200].replace("\n", " ")
+            log.info(
+                "LLM Generation complete. Length: %d chars. finish=%s. Snippet: %s...",
+                len(text), finish_reason, snippet,
+            )
             return text
 
         except Exception as e:

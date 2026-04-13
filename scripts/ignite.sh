@@ -62,6 +62,9 @@ nohup "$BIN_PATH" \
     -ngl 99 \
     --port 8000 \
     --host 0.0.0.0 \
+    --ctx-size 16384 \
+    --reasoning off \
+    --reasoning-budget 0 \
     > "$REPO_DIR/inference.log" 2>&1 &
 
 SERVER_PID=$!

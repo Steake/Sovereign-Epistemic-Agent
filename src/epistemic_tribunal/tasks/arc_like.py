@@ -25,7 +25,7 @@ import json
 from pathlib import Path
 from typing import Any, Optional
 
-from epistemic_tribunal.types import GridExample, Task, TaskDomain
+from epistemic_tribunal.tribunal_types import GridExample, Task, TaskDomain
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -74,10 +74,13 @@ def _parse_task_dict(data: dict[str, Any], source_path: Optional[Path] = None) -
     else:
         raise ValueError(f"Task {task_id!r} has no test input")
 
-    # Ground truth — optional
-    ground_truth: Optional[list[list[int]]] = data.get("ground_truth") or (
-        data["test"][0].get("output") if "test" in data and data["test"] else None
-    )
+    # Ground truth — support standard, test-nested, or 'golden' manifest formats
+    ground_truth: Optional[list[list[int]]] = data.get("ground_truth")
+    if ground_truth is None:
+        if "test" in data and data["test"] and "output" in data["test"][0]:
+            ground_truth = data["test"][0]["output"]
+        elif "golden" in data and "expected_test_outputs" in data["golden"]:
+            ground_truth = data["golden"]["expected_test_outputs"][0]
 
     metadata: dict[str, Any] = data.get("metadata", {})
 

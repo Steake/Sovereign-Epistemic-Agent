@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from epistemic_tribunal.types import DecisionKind, ExperimentRun
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun
 
 
 def _clamp_confidence(value: float) -> float:

@@ -1,0 +1,14 @@
+# Arm 1: Greedy Baseline
+tribunal:
+  adjudication_strategy: "greedy"
+  weights:
+    memory: 0.0
+generators:
+  enabled: ["llm", "greedy"]
+  configs:
+    greedy:
+      temperature: 0.0
+ledger:
+  path: "configs/validation/data/arm1_greedy.db"
+metadata:
+  arm_name: "greedy_baseline"

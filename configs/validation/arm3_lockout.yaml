@@ -1,0 +1,12 @@
+# Arm 3: Lockout Baseline (Legacy)
+tribunal:
+  adjudication_strategy: "standard"
+  diversity_floor: 1.0
+  structural_override:
+    enabled: false
+  weights:
+    memory: 0.0
+ledger:
+  path: "configs/validation/data/arm3_lockout.db"
+metadata:
+  arm_name: "lockout_baseline"

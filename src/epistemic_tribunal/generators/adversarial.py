@@ -13,7 +13,7 @@ import random
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.generators.greedy import GreedyGenerator
 from epistemic_tribunal.tasks.base import colour_counts, grid_shape, object_count
-from epistemic_tribunal.types import CandidateTrace, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
 
 class AdversarialGenerator(BaseGenerator):

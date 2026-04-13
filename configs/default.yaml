@@ -31,7 +31,7 @@ generators:
   seed: 42
   llm:
     model_name: "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
-    max_new_tokens: 1024
+    max_new_tokens: 4096
     temperature: 0.1
     top_p: 0.95
     trust_remote_code: false

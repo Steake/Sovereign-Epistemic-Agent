@@ -19,7 +19,7 @@ from epistemic_tribunal.config import TribunalSettings, load_config
 from epistemic_tribunal.evaluation.metrics import summary_report
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
-from epistemic_tribunal.types import DecisionKind, ExperimentRun
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -51,6 +51,7 @@ def experiment_run_from_row(row: dict) -> ExperimentRun:
         ),
         duration_seconds=row["duration_seconds"],
         config_snapshot=json.loads(row["config_snapshot_json"]),
+        metadata=json.loads(row.get("metadata_json", "{}")),
         timestamp=ts,
     )
 
@@ -78,14 +79,29 @@ class BenchmarkRunner:
         self._store = self._orchestrator.store
         self._progress_path = Path(self._config.ledger.path).with_name("run_progress.json")
         self._checkpoint_path = Path(self._config.ledger.path).with_suffix(".checkpoint.sqlite3")
+        self.last_runs: list[ExperimentRun] = []
 
-    def run(self, dataset_path: Path | str, *, resume: bool = False) -> list[ExperimentRun]:
-        """Run the tribunal over every ``*.json`` file in *dataset_path*.
+    def run(
+        self, 
+        dataset_path: Path | str, 
+        *, 
+        resume: bool = False,
+        manifest_path: Optional[str | Path] = None,
+        limit: Optional[int] = None,
+    ) -> list[ExperimentRun]:
+        """Run the tribunal over tasks in *dataset_path*.
 
         Parameters
         ----------
         dataset_path:
             Directory containing task JSON files.
+        resume:
+            Whether to attempt resuming from a prior checkpoint.
+        manifest_path:
+            Optional path to a text file containing task IDs (one per line).
+            If provided, this manifest determines the authoritative ordering.
+        limit:
+            Optional cap on the number of tasks to run.
 
         Returns
         -------
@@ -93,7 +109,29 @@ class BenchmarkRunner:
             One run record per task file.
         """
         dataset_path = Path(dataset_path)
-        task_files = sorted(dataset_path.glob("*.json"))
+        
+        # Determine task files and ordering
+        if manifest_path:
+            manifest_path = Path(manifest_path)
+            log.info("Loading tasks from authoritative manifest: %s", manifest_path)
+            with manifest_path.open("r") as f:
+                task_ids = [line.strip() for line in f if line.strip()]
+            
+            # Map IDs to local files (preserving order)
+            task_files = []
+            for tid in task_ids:
+                matches = list(dataset_path.glob(f"**/{tid}.json"))
+                if matches:
+                    task_files.append(matches[0])
+                else:
+                    log.warning("Task %s from manifest not found in %s.", tid, dataset_path)
+        else:
+            task_files = sorted(dataset_path.glob("*.json"))
+
+        # Apply limit if specified
+        if limit:
+            task_files = task_files[:limit]
+
         start_time = time.monotonic()
         prior_progress = self._load_progress() if resume else {}
         completed_task_ids = set(prior_progress.get("completed_task_ids", []))
@@ -133,6 +171,7 @@ class BenchmarkRunner:
                 runs=runs,
                 elapsed_time_seconds=elapsed_before_resume + (time.monotonic() - start_time),
             )
+        self.last_runs = runs
         return runs
 
     def report(self, runs: list[ExperimentRun]) -> dict:

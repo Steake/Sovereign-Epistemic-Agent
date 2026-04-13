@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from epistemic_tribunal.types import CandidateTrace, Task, UncertaintyReport
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task, UncertaintyReport
 
 
 class BaseUncertaintyAnalyzer(ABC):

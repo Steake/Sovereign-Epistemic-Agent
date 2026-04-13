@@ -35,20 +35,39 @@ class TribunalWeights(BaseModel):
     invariant: float = Field(default=0.25, ge=0.0)
 
 
+class StructuralOverrideConfig(BaseModel):
+    """Configuration for bypassing the diversity floor when structural
+    evidence is overwhelming (Path B).
+    """
+
+    enabled: bool = Field(default=False)
+    v_threshold: float = Field(default=1.0, ge=0.0, le=1.0)
+    c_threshold: float = Field(default=0.9, ge=0.0, le=1.0)
+    margin_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
+    confidence_cap: float = Field(default=0.70, ge=0.0, le=1.0)
+
+
 class TribunalConfig(BaseModel):
+    adjudication_strategy: str = Field(
+        default="standard",
+        description="standard | greedy — greedy bypasses tribunal entirely",
+    )
     weights: TribunalWeights = Field(default_factory=TribunalWeights)
     selection_threshold: float = Field(default=0.40, ge=0.0, le=1.0)
     resample_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
     max_resample_attempts: int = Field(default=2, ge=0)
     diversity_floor: float = Field(default=0.90, ge=0.0, le=1.0)
     ledger_warmup_tasks: int = Field(default=150, ge=0)
+    structural_override: StructuralOverrideConfig = Field(
+        default_factory=StructuralOverrideConfig
+    )
 
 
 class LLMGeneratorConfig(BaseModel):
     model_name: str = Field(
         default="Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
     )
-    max_new_tokens: int = Field(default=1024, ge=1)
+    max_new_tokens: int = Field(default=4096, ge=1)
     temperature: float = Field(default=0.1, ge=0.0)
     top_p: float = Field(default=0.95, ge=0.0, le=1.0)
     trust_remote_code: bool = Field(default=False)
@@ -73,6 +92,7 @@ class GeneratorsConfig(BaseModel):
     )
     seed: int = Field(default=42)
     llm: LLMGeneratorConfig = Field(default_factory=LLMGeneratorConfig)
+    configs: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
 
 class InvariantsConfig(BaseModel):
@@ -132,6 +152,7 @@ class TribunalSettings(BaseModel):
     ledger: LedgerConfig = Field(default_factory=LedgerConfig)
     benchmark: BenchmarkConfig = Field(default_factory=BenchmarkConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod

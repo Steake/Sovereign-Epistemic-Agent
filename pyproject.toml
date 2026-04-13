@@ -7,7 +7,7 @@ name = "epistemic-tribunal"
 version = "0.1.0"
 description = "Metacognitive reasoning architecture: Epistemic Tribunal for ARC-like tasks"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Epistemic Tribunal Contributors" }]
 keywords = ["ai", "reasoning", "metacognition", "arc", "epistemic"]
@@ -27,6 +27,7 @@ dependencies = [
     "scipy>=1.11",
     "python-dotenv>=1.0",
     "transformers>=4.30",
+    "openai>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +38,6 @@ dev = [
 ]
 llm = [
     "accelerate>=0.20",
-    "flash-attn>=2.0",
 ]
 
 [project.scripts]

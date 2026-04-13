@@ -10,7 +10,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from epistemic_tribunal.types import CandidateTrace, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
 
 class BaseGenerator(ABC):
@@ -72,26 +72,30 @@ def build_generators(
     from epistemic_tribunal.generators.rule_first import RuleFirstGenerator
     from epistemic_tribunal.generators.minimal import MinimalDescriptionGenerator
 
+    from epistemic_tribunal.generators.llm import LLMGenerator, OpenAIGenerator
+
     REGISTRY: dict[str, type[BaseGenerator]] = {
         "greedy": GreedyGenerator,
         "diverse": DiverseGenerator,
         "adversarial": AdversarialGenerator,
         "rule_first": RuleFirstGenerator,
         "minimal_description": MinimalDescriptionGenerator,
+        "llm": LLMGenerator,
+        "openai": OpenAIGenerator,
+        "vllm": OpenAIGenerator,
     }
-    if "llm" in enabled:
-        from epistemic_tribunal.generators.llm import LLMGenerator
-
-        REGISTRY["llm"] = LLMGenerator
 
     generators: list[BaseGenerator] = []
     generator_configs = generator_configs or {}
     for name in enabled:
-        cls = REGISTRY.get(name)
+        config = generator_configs.get(name, {})
+        # Allow overriding the registry lookup via 'type' key
+        lookup_name = str(config.get("type", name))
+        cls = REGISTRY.get(lookup_name)
         if cls is None:
             raise ValueError(
-                f"Unknown generator {name!r}. "
-                f"Available: {sorted(REGISTRY.keys())}"
+                f"Unknown generator {name!r} (resolved as {lookup_name!r}). "
+                f"Available types: {sorted(REGISTRY.keys())}"
             )
-        generators.append(cls(seed=seed, **generator_configs.get(name, {})))
+        generators.append(cls(seed=seed, **config))
     return generators

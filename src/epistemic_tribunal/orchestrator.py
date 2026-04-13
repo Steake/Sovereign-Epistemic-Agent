@@ -27,7 +27,7 @@ from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.ledger.writer import LedgerWriter
 from epistemic_tribunal.tasks.base import grids_equal
 from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     DecisionKind,
@@ -66,9 +66,15 @@ class Orchestrator:
         self._writer = LedgerWriter(self._store)
 
         # Build components
-        generator_configs: dict[str, dict[str, object]] = {}
+        generator_configs: dict[str, dict[str, Any]] = {}
+
+        # 1. Apply global LLM config block if LLM is enabled
         if "llm" in self._config.generators.enabled:
             generator_configs["llm"] = self._config.generators.llm.model_dump()
+
+        # 2. Merge specific per-generator config overrides from YAML
+        generator_configs.update(self._config.generators.configs)
+
         self._generators = build_generators(
             self._config.generators.enabled,
             seed=self._config.generators.seed,
@@ -136,21 +142,45 @@ class Orchestrator:
         uncertainty_report = self._uncertainty.analyze(task, traces)
         log.info("Uncertainty: %s", uncertainty_report.notes)
 
-        # 6. Adjudicate
-        tribunal = self._tribunal
-        if warmup_threshold > 0 and completed_runs_before < warmup_threshold:
-            warmup_config = self._config.tribunal.model_copy(deep=True)
-            warmup_config.weights.memory = 0.0
-            tribunal = TribunalAggregator(config=warmup_config)
-            log.info(
-                "Failure-ledger warmup active (%d/%d completed); setting memory weight gamma to 0.0.",
-                completed_runs_before,
-                warmup_threshold,
+        # 6. Adjudication
+        adjudication_strategy = self._config.tribunal.adjudication_strategy
+        if adjudication_strategy == "greedy":
+            # Explicitly select the greedy trace (bypass tribunal logic)
+            greedy_traces = [t for t in traces if t.generator_name == "greedy"]
+            if not greedy_traces:
+                raise ValueError("Adjudication strategy set to 'greedy', but no trace from 'greedy' generator found.")
+            
+            selected_trace = greedy_traces[0]
+            decision = TribunalDecision(
+                task_id=task.task_id,
+                decision=DecisionKind.SELECT,
+                selected_trace_id=selected_trace.trace_id,
+                selected_answer=selected_trace.answer,
+                confidence=selected_trace.confidence_score or 1.0,
+                reasoning="Bypassing tribunal: Forced greedy selection.",
+                metadata={
+                    "forced_greedy": True,
+                    "arm_name": self._config.metadata.get("arm_name", "greedy_baseline"),
+                    "candidate_count": len(traces)
+                }
             )
+            log.info("Adjudication strategy is 'greedy': Forced selection of greedy trace.")
+        else:
+            tribunal = self._tribunal
+            if warmup_threshold > 0 and completed_runs_before < warmup_threshold:
+                warmup_config = self._config.tribunal.model_copy(deep=True)
+                warmup_config.weights.memory = 0.0
+                tribunal = TribunalAggregator(config=warmup_config)
+                log.info(
+                    "Failure-ledger warmup active (%d/%d completed); setting memory weight gamma to 0.0.",
+                    completed_runs_before,
+                    warmup_threshold,
+                )
 
-        decision = tribunal.adjudicate(
-            task, traces, critiques, uncertainty_report, invariant_set
-        )
+            decision = tribunal.adjudicate(
+                task, traces, critiques, uncertainty_report, invariant_set
+            )
+        
         log.info("Decision: %s (confidence=%.3f)", decision.decision.value, decision.confidence)
         self._writer.write_decision(decision)
 
@@ -181,6 +211,7 @@ class Orchestrator:
                 "resample_threshold": self._config.tribunal.resample_threshold,
                 "generators": self._config.generators.enabled,
             },
+            metadata=decision.metadata
         )
         self._writer.write_run(run)
 

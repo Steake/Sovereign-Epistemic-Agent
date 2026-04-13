@@ -25,7 +25,7 @@ from epistemic_tribunal.evaluation.benchmark import experiment_run_from_row
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
-from epistemic_tribunal.types import DecisionKind, ExperimentRun
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -105,12 +105,17 @@ def run_benchmark(
         "--resume",
         help="Resume from run_progress.json and skip task IDs that already completed.",
     ),
+    forensic: bool = typer.Option(False, "--forensic", help="Display detailed candidate score breakdown."),
     json_output: bool = typer.Option(False, "--json", help="Output metrics as JSON."),
 ) -> None:
     """Run the tribunal over a directory of task JSON files."""
     config = load_config(config_path)
     if ledger_path:
         config.ledger.path = ledger_path
+
+    # Diagnostic Block
+    log.info("CONFIG BOOT: Enabled Generators: %s", config.generators.enabled)
+    log.info("CONFIG BOOT: Path B Enabled: %s", config.tribunal.structural_override.enabled)
 
     runner = BenchmarkRunner(config=config, ledger_path=ledger_path)
 
@@ -119,6 +124,9 @@ def run_benchmark(
         raise typer.Exit(1)
 
     metrics = runner.run_and_report(dataset_path, resume=resume)
+
+    if forensic:
+        _print_forensic_results(runner.last_runs)
 
     if json_output:
         print(json.dumps(metrics, indent=2, default=str))
@@ -137,6 +145,39 @@ def _print_metrics(metrics: dict) -> None:
         else:
             table.add_row(str(key), str(val))
     console.print(table)
+
+
+def _print_forensic_results(runs: list[ExperimentRun]) -> None:
+    """Print a detailed candidate score breakdown for each task."""
+    for run in runs:
+        forensic = run.metadata.get("forensic")
+        if not forensic:
+            continue
+            
+        table = Table(title=f"Forensic Audit — Task: {run.task_id}", show_header=True, header_style="bold magenta")
+        table.add_column("Generator", style="cyan")
+        table.add_column("U", justify="right")
+        table.add_column("C", justify="right")
+        table.add_column("M", justify="right")
+        table.add_column("V", justify="right")
+        table.add_column("Total", style="bold yellow", justify="right")
+        table.add_column("Conf", justify="right")
+        table.add_column("Rank", justify="center")
+
+        sorted_forensic = sorted(forensic, key=lambda x: x["total"], reverse=True)
+        for i, f in enumerate(sorted_forensic):
+            table.add_row(
+                f["generator"],
+                f"{f['U']:.3f}",
+                f"{f['C']:.3f}",
+                f"{f['M']:.3f}",
+                f"{f['V']:.3f}",
+                f"{f['total']:.3f}",
+                f"{f['confidence']:.3f}",
+                str(i + 1)
+            )
+        console.print(table)
+        console.print()
 
 
 def _load_runs_from_ledger(db_path: str) -> list[ExperimentRun]:

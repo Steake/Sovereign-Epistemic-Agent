@@ -26,7 +26,7 @@ from epistemic_tribunal.tasks.base import (
     object_count,
     unique_colours,
 )
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     InvariantSet,

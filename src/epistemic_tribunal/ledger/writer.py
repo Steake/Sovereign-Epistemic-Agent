@@ -20,7 +20,7 @@ from epistemic_tribunal.ledger.models import (
     TraceRecord,
 )
 from epistemic_tribunal.ledger.store import LedgerStore
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     ExperimentRun,
@@ -137,5 +137,6 @@ class LedgerWriter:
             duration_seconds=run.duration_seconds,
             generator_names_json=json.dumps(run.generator_names),
             config_snapshot_json=json.dumps(run.config_snapshot),
+            metadata_json=json.dumps(run.metadata),
         )
         self._store.insert_run(rec)
