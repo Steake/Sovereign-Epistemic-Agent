@@ -25,11 +25,12 @@ The system does not treat the first plausible answer as sovereign. It stages a c
 7. [Installation](#installation)
 8. [Running a sample task](#running-a-sample-task)
 9. [Running the benchmark](#running-the-benchmark)
-10. [Ledger inspection](#ledger-inspection)
-11. [Running tests](#running-tests)
-12. [Configuration reference](#configuration-reference)
-13. [Extending with real model backends](#extending-with-real-model-backends)
-14. [Design philosophy](#design-philosophy)
+10. [Website and Landing Page](#website-and-landing-page)
+11. [Ledger inspection](#ledger-inspection)
+12. [Running tests](#running-tests)
+13. [Configuration reference](#configuration-reference)
+14. [Extending with real model backends](#extending-with-real-model-backends)
+15. [Design philosophy](#design-philosophy)
 
 ---
 
@@ -435,6 +436,35 @@ Illustrative output:
 ```
 
 Treat these numbers as examples from the bundled sample tasks, not fixed performance guarantees.
+
+---
+
+## Website and Landing Page
+
+A modern landing page for the project is located in the `website/` directory. It is built with React, TypeScript, and Vite, and features a comprehensive overview of the Epistemic Tribunal architecture.
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm
+
+### Development
+
+```bash
+cd website
+npm install
+npm run dev
+```
+
+### Build
+
+```bash
+cd website
+npm install
+npm run build
+```
+
+The built files will be in `website/dist/`.
 
 ---
 

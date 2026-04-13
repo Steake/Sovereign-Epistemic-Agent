@@ -37,5 +37,9 @@ data/tribunal_ledger.db
 data/benchmark_ledger.db
 data/*.db
 
+# Website
+website/node_modules/
+website/dist/
+
 # macOS
 .DS_Store
