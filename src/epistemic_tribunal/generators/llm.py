@@ -53,12 +53,12 @@ class LLMGenerator(BaseGenerator):
         self._pipeline: Any = None
 
     def generate(self, task: Task) -> CandidateTrace:
-        response = self._complete(self._build_prompt(task))
+        response, finish_reason = self._complete(self._build_prompt(task))
         log.info("LLM Generation complete. Length: %d characters", len(response))
         log.debug("Raw Response: %s...", response[:200])
         expected_shape = grid_shape(task.test_input)
         answer, reasoning_steps, confidence = self._parse_response(
-            response, expected_shape=expected_shape
+            response, expected_shape=expected_shape, finish_reason=finish_reason
         )
         if answer is None:
             raise ValueError(
@@ -75,8 +75,12 @@ class LLMGenerator(BaseGenerator):
             derived_features={
                 "model_name": self.model_name,
                 "expected_shape": expected_shape,
+                "finish_reason": finish_reason,
             },
-            metadata={"model_name": self.model_name},
+            metadata={
+                "model_name": self.model_name,
+                "finish_reason": finish_reason,
+            },
         )
 
     def _build_prompt(self, task: Task) -> str:
@@ -134,7 +138,7 @@ class LLMGenerator(BaseGenerator):
         _GLOBAL_OAI_CLIENT = client
         return client, None
 
-    def _complete(self, prompt: str) -> str:
+    def _complete(self, prompt: str) -> tuple[str, str]:
         if self._pipeline is None:
             self._pipeline, _ = self._load_vllm_pipeline()
 
@@ -172,7 +176,7 @@ class LLMGenerator(BaseGenerator):
                 "LLM Generation complete. Length: %d chars. finish=%s. Snippet: %s...",
                 len(text), finish_reason, snippet,
             )
-            return text
+            return text, finish_reason
 
         except Exception as e:
             log.error("vLLM API generation failed. Is the vllm server running? Error: %s", e)
@@ -183,9 +187,10 @@ class LLMGenerator(BaseGenerator):
         response: str,
         *,
         expected_shape: tuple[int, int],
+        finish_reason: str = "stop"
     ) -> tuple[Optional[list[list[int]]], list[str], float]:
         reasoning_steps = self._extract_reasoning_steps(response)
-        payload = self._extract_payload(response)
+        payload = self._extract_payload(response, finish_reason=finish_reason)
         if payload is None:
             log.warning("LLM response contained no JSON object with an answer field.")
             return None, reasoning_steps, 0.0
@@ -242,6 +247,20 @@ class LLMGenerator(BaseGenerator):
             parsed = self._parse_json_like(candidate)
             if isinstance(parsed, dict) and "answer" in parsed:
                 return parsed
+
+        # STRICT SALVAGE for truncation
+        if finish_reason == "length":
+            start = response.find("{")
+            if start != -1:
+                base_text = response[start:].rstrip()
+                # Strict subset brace completion.
+                # Only succeeds if the grid rows and cells already parsed are complete.
+                for suffix in ["}", "]}", "]]}", "]}]}"]:
+                    candidate = base_text + suffix
+                    parsed = self._parse_json_like(candidate)
+                    if isinstance(parsed, dict) and "answer" in parsed:
+                        log.info("Successfully salvaged truncated JSON using precise bracket subset rule.")
+                        return parsed
 
         return None
 
@@ -348,6 +367,12 @@ class LLMGenerator(BaseGenerator):
         flattened = self._flatten_answer_payload(answer_raw).lower()
         if "<think>" in flattened or "</think>" in flattened:
             return True
+            
+        # Hard red flag: alphabet characters inside the grid payload indicates bleed
+        if re.search(r'[a-z]', flattened):
+            log.warning("Alphabet bleed detected in grid payload: %s", flattened[:100])
+            return True
+            
         for step in reasoning_steps:
             normalised_step = " ".join(step.lower().split())
             if len(normalised_step) >= 8 and normalised_step in flattened:

@@ -1,0 +1,4 @@
+# High-context recovery override
+generators:
+  llm:
+    max_new_tokens: 8192

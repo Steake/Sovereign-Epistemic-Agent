@@ -1,5 +1,6 @@
 # Arm 1: Greedy Baseline
 tribunal:
+  ledger_warmup_tasks: 0
   adjudication_strategy: "greedy"
   weights:
     memory: 0.0

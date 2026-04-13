@@ -260,6 +260,9 @@ class TribunalAggregator:
         # Forensic breakdown for all candidates
         forensic_data = []
         for ts in trace_scores:
+            tr = trace_by_id.get(ts.trace_id)
+            tr_length = tr.token_count if tr else 0
+            fr = tr.metadata.get("finish_reason", "stop") if tr else "stop"
             forensic_data.append({
                 "generator": ts.generator_name,
                 "U": ts.U,
@@ -267,8 +270,21 @@ class TribunalAggregator:
                 "M": ts.M,
                 "V": ts.V,
                 "total": ts.total,
-                "confidence": round(min(1.0, ts.total / max(self._config.selection_threshold, 1e-6)), 4)
+                "confidence": round(min(1.0, ts.total / max(self._config.selection_threshold, 1e-6)), 4),
+                "trace_length": tr_length,
+                "finish_reason": fr,
             })
+
+        metadata = {
+            "forensic": forensic_data,
+            "path_b_override": override_triggered,
+            "structural_margin": round(structural_margin, 4)
+        }
+        
+        if best_trace and decision == DecisionKind.SELECT:
+            metadata["candidate_source"] = best_trace.generator_name
+            metadata["trace_length"] = best_trace.token_count
+            metadata["finish_reason"] = best_trace.metadata.get("finish_reason", "stop")
 
         return TribunalDecision(
             task_id=task.task_id,
@@ -278,9 +294,5 @@ class TribunalAggregator:
             scores=score_map,
             reasoning="\n".join(reasoning_parts),
             confidence=round(confidence, 4),
-            metadata={
-                "forensic": forensic_data,
-                "path_b_override": override_triggered,
-                "structural_margin": round(structural_margin, 4)
-            }
+            metadata=metadata
         )

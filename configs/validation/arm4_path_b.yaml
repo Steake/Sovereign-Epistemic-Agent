@@ -1,5 +1,6 @@
 # Arm 4: Path B Permissive (Breakthrough)
 tribunal:
+  ledger_warmup_tasks: 0
   adjudication_strategy: "standard"
   diversity_floor: 1.0
   structural_override:

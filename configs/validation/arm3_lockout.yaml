@@ -1,5 +1,6 @@
 # Arm 3: Lockout Baseline (Legacy)
 tribunal:
+  ledger_warmup_tasks: 0
   adjudication_strategy: "standard"
   diversity_floor: 1.0
   structural_override:
