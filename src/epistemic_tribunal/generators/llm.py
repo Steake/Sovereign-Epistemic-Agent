@@ -10,11 +10,12 @@ from typing import Any, Optional
 
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.tasks.base import grid_shape
-from epistemic_tribunal.types import CandidateTrace, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.utils.logging import get_logger
 
 log = get_logger(__name__)
 
+_GLOBAL_OAI_CLIENT = None
 
 class LLMGenerator(BaseGenerator):
     """Generate a candidate trace with a text-generation model."""
@@ -25,8 +26,11 @@ class LLMGenerator(BaseGenerator):
         self,
         seed: int = 42,
         model_name: str = "Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2",
-        max_new_tokens: int = 1024,
+        max_new_tokens: int = 8192,
         temperature: float = 0.1,
+        system_prompt: Optional[str] = None,
+        prompt_style: str = "standard",
+        include_think: bool = True,
         top_p: float = 0.95,
         trust_remote_code: bool = False,
         device: Optional[str] = None,
@@ -38,6 +42,9 @@ class LLMGenerator(BaseGenerator):
         self.model_name = model_name
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
+        self.system_prompt = system_prompt
+        self.prompt_style = prompt_style
+        self.include_think = include_think
         self.top_p = top_p
         self.trust_remote_code = trust_remote_code
         self.device = device
@@ -47,6 +54,8 @@ class LLMGenerator(BaseGenerator):
 
     def generate(self, task: Task) -> CandidateTrace:
         response = self._complete(self._build_prompt(task))
+        log.info("LLM Generation complete. Length: %d characters", len(response))
+        log.debug("Raw Response: %s...", response[:200])
         expected_shape = grid_shape(task.test_input)
         answer, reasoning_steps, confidence = self._parse_response(
             response, expected_shape=expected_shape
@@ -79,112 +88,100 @@ class LLMGenerator(BaseGenerator):
                 f"Output: {json.dumps(example.output)}"
             )
 
-        return (
+        instructions = ""
+        if self.prompt_style == "rule":
+            instructions = "Identify the core underlying rule first. Describe it precisely in coordinates or color mappings."
+        elif self.prompt_style == "adversarial":
+            instructions = "Critically examine the obvious transformation. Is there a more subtle geometric or logical rule? Propose an alternative if possible."
+        
+        main_prompt = (
             "Solve the ARC-style task and return JSON only.\n"
             "Use this schema exactly:\n"
             '{"answer": [[0]], "reasoning_steps": ["short step"], "confidence": 0.0}\n'
-            "Put hidden reasoning only inside <think>...</think> if you emit it at all.\n"
+        )
+        
+        if self.include_think:
+            main_prompt += (
+                "You may reason inside <think>...</think> tags.\n"
+                "After </think>, you MUST output ONLY the JSON object on its own line — nothing else.\n"
+                "Example: <think>\nreasoning here\n</think>\n{\"answer\": [[1,2],[3,4]], \"reasoning_steps\": [\"step\"], \"confidence\": 0.8}\n"
+            )
+        else:
+            main_prompt += "Do NOT use <think> tags. Output ONLY the JSON object, nothing else.\n"
+
+        if instructions:
+            main_prompt = f"{instructions}\n\n{main_prompt}"
+
+        return (
+            f"{main_prompt}\n"
             "Do not include prose outside the JSON object.\n\n"
             f"Task ID: {task.task_id}\n"
             f"Description: {task.description}\n"
             f"Train:\n{chr(10).join(train_examples) if train_examples else 'None'}\n"
             f"Test Input: {json.dumps(task.test_input)}\n"
-            f"Expected answer shape: {grid_shape(task.test_input)}\n"
         )
+
+    def _load_vllm_pipeline(self) -> Any:
+        global _GLOBAL_OAI_CLIENT
+        if _GLOBAL_OAI_CLIENT is not None:
+            return _GLOBAL_OAI_CLIENT, None
+
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise ImportError("openai client is required.") from exc
+
+        log.info("Connecting to vLLM background API server for inference.")
+        
+        client = OpenAI(
+            base_url="http://localhost:8000/v1",
+            api_key="empty",
+        )
+        
+        _GLOBAL_OAI_CLIENT = client
+        return client, None
 
     def _complete(self, prompt: str) -> str:
         if self._pipeline is None:
-            self._pipeline = self._load_pipeline()
+            self._pipeline, _ = self._load_vllm_pipeline()
 
-        outputs = self._pipeline(
-            prompt,
-            max_new_tokens=self.max_new_tokens,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            do_sample=self.temperature > 0.0,
-            return_full_text=False,
-        )
-        if not outputs:
-            raise ValueError("LLM pipeline returned no output.")
-        return str(outputs[0]["generated_text"])
-
-    def _load_pipeline(self) -> Any:
-        try:
-            from transformers import pipeline
-        except ImportError as exc:
-            raise ImportError(
-                "transformers>=4.30 is required to use the llm generator. "
-                "Install the optional dependencies with `pip install .[llm]`."
-            ) from exc
+        messages = []
+        if self.system_prompt:
+            messages.append({"role": "system", "content": self.system_prompt})
+        messages.append({"role": "user", "content": prompt})
 
         try:
-            import torch  # type: ignore[import]
-        except ImportError as exc:
-            raise ImportError(
-                "A supported runtime backend is required to use the llm generator. "
-                "Install the optional dependencies with `pip install .[llm]` "
-                "(or install `torch` manually)."
-            ) from exc
-
-        _dtype_map: dict[str, Any] = {
-            "bfloat16": torch.bfloat16,
-            "float16": torch.float16,
-            "float32": torch.float32,
-        }
-        resolved_dtype: Any = _dtype_map.get(self.torch_dtype, self.torch_dtype)
-        resolved_attn = self._resolve_attn_implementation()
-
-        has_accelerate = importlib.util.find_spec("accelerate") is not None
-        if self.device is not None:
-            device_label = self.device
-        elif has_accelerate:
-            device_label = "auto"
-        else:
-            device_label = "cpu"
-
-        pipe_kwargs: dict[str, Any] = {
-            "model": self.model_name,
-            "tokenizer": self.model_name,
-            "trust_remote_code": self.trust_remote_code,
-            "torch_dtype": resolved_dtype,
-            "model_kwargs": {"attn_implementation": resolved_attn},
-        }
-        if self.device is not None:
-            pipe_kwargs["device"] = self.device
-        elif has_accelerate:
-            pipe_kwargs["device_map"] = "auto"
-        else:
-            log.warning(
-                "accelerate is not installed; LLM pipeline will run on CPU. "
-                "Install accelerate>=0.20 for automatic device placement."
+            response = self._pipeline.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_new_tokens,
+                top_p=self.top_p,
             )
+            # Try to get reasoning_content (llama-server splits think block here)
+            message = response.choices[0].message
+            text = message.content or ""
+            reasoning = getattr(message, "reasoning_content", None)
 
-        log.info(
-            "Loading LLM pipeline: model=%s dtype=%s attn=%s device=%s",
-            self.model_name,
-            self.torch_dtype,
-            resolved_attn,
-            device_label,
-        )
-        return pipeline("text-generation", **pipe_kwargs)
+            if reasoning:
+                log.info("Captured %d chars of explicit reasoning_content", len(reasoning))
+                # Build full text: think block + content
+                # If content is empty, the JSON may be inside reasoning_content
+                full_think = f"<think>\n{reasoning}\n</think>\n{text}"
+                if self.include_think:
+                    text = full_think
+                else:
+                    # Still need to search reasoning for embedded JSON if content is empty
+                    if not text.strip():
+                        text = full_think
 
-    def _resolve_attn_implementation(self) -> str:
-        """Resolve the attention implementation to use.
+            snippet = text[:200].replace('\n', ' ')
+            log.info(f"LLM Generation complete. Length: {len(text)} chars. Snippet: {snippet}...")
+            return text
 
-        ``"auto"`` selects ``"flash_attention_2"`` when the ``flash-attn``
-        package is installed (fastest on H200/B100), otherwise falls back to
-        ``"sdpa"`` (PyTorch 2.0+ native scaled dot-product attention).
-        """
-        if self.attn_implementation != "auto":
-            return self.attn_implementation
-        if importlib.util.find_spec("flash_attn") is not None:
-            log.info("flash-attn detected; using flash_attention_2 for maximum throughput.")
-            return "flash_attention_2"
-        log.info(
-            "flash-attn not found; using 'sdpa' (PyTorch scaled dot-product attention). "
-            "Install flash-attn>=2.0 for maximum throughput on H200/B100."
-        )
-        return "sdpa"
+        except Exception as e:
+            log.error("vLLM API generation failed. Is the vllm server running? Error: %s", e)
+            raise ValueError(f"vLLM API failure: {e}")
 
     def _parse_response(
         self,
@@ -231,13 +228,26 @@ class LLMGenerator(BaseGenerator):
         return steps or ["LLM provided no explicit reasoning steps."]
 
     def _extract_payload(self, response: str) -> Optional[dict[str, Any]]:
-        candidate = self._extract_balanced_json(response)
-        if candidate is None:
-            return None
+        # First try to find a JSON markdown block
+        md_match = re.search(r"```json\s*(.*?)\s*```", response, flags=re.DOTALL | re.IGNORECASE)
+        if md_match:
+            candidate = md_match.group(1).strip()
+            parsed = self._parse_json_like(candidate)
+            if isinstance(parsed, dict) and "answer" in parsed:
+                return parsed
 
-        parsed = self._parse_json_like(candidate)
-        if isinstance(parsed, dict) and "answer" in parsed:
-            return parsed
+        # Search the region AFTER </think> first (preferred)
+        post_think = re.split(r"</think>", response, flags=re.IGNORECASE)
+        search_regions = [post_think[-1]] + post_think[:-1] if len(post_think) > 1 else [response]
+
+        for region in search_regions:
+            candidate = self._extract_balanced_json(region)
+            if candidate is None:
+                continue
+            parsed = self._parse_json_like(candidate)
+            if isinstance(parsed, dict) and "answer" in parsed:
+                return parsed
+
         return None
 
     def _extract_balanced_json(self, text: str) -> Optional[str]:
@@ -265,19 +275,6 @@ class LLMGenerator(BaseGenerator):
                     if depth == 0:
                         block = text[start : idx + 1]
                         if '"answer"' in block or "'answer'" in block:
-                            trailing = text[idx + 1 :]
-                            trailing_clean = re.sub(
-                                r"<think>.*?</think>",
-                                "",
-                                trailing,
-                                flags=re.DOTALL | re.IGNORECASE,
-                            ).strip()
-                            if trailing_clean:
-                                log.warning(
-                                    "LLM response contained trailing prose after JSON "
-                                    "object; rejecting."
-                                )
-                                return None
                             return block
                         break
             start = text.find("{", start + 1)
@@ -375,3 +372,66 @@ class LLMGenerator(BaseGenerator):
         except (TypeError, ValueError):
             return 0.0
         return max(0.0, min(1.0, round(confidence, 4)))
+
+
+class OpenAIGenerator(LLMGenerator):
+    """Bridge for OpenAI-compatible API servers (llama.cpp, vLLM, etc)."""
+
+    name: str = "openai"
+
+    def __init__(
+        self,
+        model: str,
+        api_base: str = "http://localhost:8000/v1",
+        api_key: str = "sk-no-key-required",
+        max_tokens: int = 4096,
+        temperature: float = 0.6,
+        top_p: float = 0.95,
+        reasoning_parser: str = "qwen3",
+        system_prompt: Optional[str] = None,
+        prompt_style: str = "standard",
+        include_think: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            model_name=model,
+            temperature=temperature,
+            max_new_tokens=max_tokens,
+            top_p=top_p,
+            system_prompt=system_prompt,
+            prompt_style=prompt_style,
+            include_think=include_think,
+            **kwargs
+        )
+        self.model_name = model
+        self.api_base = api_base
+        self.api_key = api_key
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+        self.top_p = top_p
+        self.reasoning_parser = reasoning_parser
+        self._client: Optional[Any] = None
+
+    def _load_pipeline(self) -> Any:
+        # Lazy load openai client to avoid dependency on dev pods
+        from openai import OpenAI
+
+        if self._client is None:
+            self._client = OpenAI(base_url=self.api_base, api_key=self.api_key)
+        return self._client
+
+    def _complete(self, prompt: str) -> str:
+        client = self._load_pipeline()
+        messages = []
+        if self.system_prompt:
+            messages.append({"role": "system", "content": self.system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        
+        response = client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+        )
+        return response.choices[0].message.content or ""
