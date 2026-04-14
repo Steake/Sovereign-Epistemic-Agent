@@ -1,0 +1,29 @@
+{
+  "Greedy": {
+    "total_runs": 8,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.0,
+    "wrong_pick_count": 8,
+    "override_count": 0,
+    "mean_confidence": 0.5189,
+    "decision_distribution": {
+      "select": 8
+    },
+    "avg_duration_seconds": 31.523,
+    "ece": 0.5189,
+    "brier_score": 0.3083,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 1.0,
+      "threshold": 0.4056
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  }
+}

@@ -67,7 +67,7 @@ class LLMGeneratorConfig(BaseModel):
     model_name: str = Field(
         default="Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
     )
-    max_new_tokens: int = Field(default=4096, ge=1)
+    max_new_tokens: int = Field(default=8192, ge=1)
     temperature: float = Field(default=0.1, ge=0.0)
     top_p: float = Field(default=0.95, ge=0.0, le=1.0)
     trust_remote_code: bool = Field(default=False)
