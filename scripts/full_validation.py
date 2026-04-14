@@ -119,7 +119,15 @@ def run_validation():
         "coverage",
         "resample_rate",
         "wrong_pick_count",
-        "override_count"
+        "override_count",
+        "truncation_count",
+        "parse_failure_count",
+        "shape_mismatch_count",
+        "path_b_met_gate",
+        "path_b_failed_v",
+        "path_b_failed_c",
+        "path_b_failed_violations",
+        "path_b_failed_margin"
     ]
 
     for key in metric_keys:

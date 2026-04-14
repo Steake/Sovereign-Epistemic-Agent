@@ -84,6 +84,30 @@ def average_duration(runs: list[ExperimentRun]) -> float:
     return sum(r.duration_seconds for r in runs) / len(runs)
 
 
+def truncation_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("truncation_count", 0) for r in runs)
+
+def parse_failure_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("parse_failure_count", 0) for r in runs)
+
+def shape_mismatch_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("shape_mismatch_count", 0) for r in runs)
+
+def path_b_met_gate(runs: list[ExperimentRun]) -> int:
+    return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("met_gate_potential", False))
+
+def path_b_failed_v(runs: list[ExperimentRun]) -> int:
+    return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("failed_V", False))
+
+def path_b_failed_c(runs: list[ExperimentRun]) -> int:
+    return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("failed_C", False))
+
+def path_b_failed_margin(runs: list[ExperimentRun]) -> int:
+    return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("failed_margin", False))
+
+def path_b_failed_violations(runs: list[ExperimentRun]) -> int:
+    return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("failed_violations", False))
+
 def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
     """Produce a full summary metrics dictionary."""
     report: dict[str, float | int | dict] = {
@@ -95,6 +119,14 @@ def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
         "resample_rate": round(resample_rate(runs), 4),
         "wrong_pick_count": wrong_pick_count(runs),
         "override_count": override_count(runs),
+        "truncation_count": truncation_count(runs),
+        "parse_failure_count": parse_failure_count(runs),
+        "shape_mismatch_count": shape_mismatch_count(runs),
+        "path_b_met_gate": path_b_met_gate(runs),
+        "path_b_failed_v": path_b_failed_v(runs),
+        "path_b_failed_c": path_b_failed_c(runs),
+        "path_b_failed_margin": path_b_failed_margin(runs),
+        "path_b_failed_violations": path_b_failed_violations(runs),
         "mean_confidence": round(mean_confidence(runs), 4),
         "decision_distribution": decision_distribution(runs),
         "avg_duration_seconds": round(average_duration(runs), 4),

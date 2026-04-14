@@ -54,6 +54,7 @@ class LLMGenerator(BaseGenerator):
 
     def generate(self, task: Task) -> CandidateTrace:
         response, finish_reason = self._complete(self._build_prompt(task))
+        self.last_finish_reason = finish_reason
         log.info("LLM Generation complete. Length: %d characters", len(response))
         log.debug("Raw Response: %s...", response[:200])
         expected_shape = grid_shape(task.test_input)
@@ -227,7 +228,7 @@ class LLMGenerator(BaseGenerator):
 
         return steps or ["LLM provided no explicit reasoning steps."]
 
-    def _extract_payload(self, response: str) -> Optional[dict[str, Any]]:
+    def _extract_payload(self, response: str, finish_reason: str = "stop") -> Optional[dict[str, Any]]:
         # First try to find a JSON markdown block
         md_match = re.search(r"```json\s*(.*?)\s*```", response, flags=re.DOTALL | re.IGNORECASE)
         if md_match:

@@ -159,16 +159,32 @@ class TribunalAggregator:
 
         # Check for Path B Bypass (Structural Override)
         ov = self._config.structural_override
+        path_b_stats = {
+            "met_gate_potential": False,
+            "fired": False,
+            "failed_V": False,
+            "failed_C": False,
+            "failed_violations": False,
+            "failed_margin": False,
+        }
+        
         if ov.enabled:
+            path_b_stats["met_gate_potential"] = (len(coalition_generator_types) == 1)
+            if best.V < ov.v_threshold: path_b_stats["failed_V"] = True
+            if best.C < ov.c_threshold: path_b_stats["failed_C"] = True
+            if violation_count > 0: path_b_stats["failed_violations"] = True
+            if structural_margin < ov.margin_threshold: path_b_stats["failed_margin"] = True
+
             can_bypass = (
-                best.V >= ov.v_threshold and
-                best.C >= ov.c_threshold and
-                violation_count == 0 and
-                structural_margin >= ov.margin_threshold
+                not path_b_stats["failed_V"] and
+                not path_b_stats["failed_C"] and
+                not path_b_stats["failed_violations"] and
+                not path_b_stats["failed_margin"]
             )
             
             if can_bypass and len(coalition_generator_types) == 1:
                 override_triggered = True
+                path_b_stats["fired"] = True
                 reasoning_parts.append(
                     f"Path B Bypass Triggered: Overriding single-mind lockout due to overwhelming structural evidence "
                     f"(V={best.V:.3f}, C={best.C:.3f}, violations=0, structural_margin={structural_margin:.3f})."
@@ -278,6 +294,7 @@ class TribunalAggregator:
         metadata = {
             "forensic": forensic_data,
             "path_b_override": override_triggered,
+            "path_b_stats": path_b_stats,
             "structural_margin": round(structural_margin, 4)
         }
         
