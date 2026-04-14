@@ -53,18 +53,37 @@ class LLMGenerator(BaseGenerator):
         self._pipeline: Any = None
 
     def generate(self, task: Task) -> CandidateTrace:
-        response, finish_reason = self._complete(self._build_prompt(task))
+        expected_shape = grid_shape(task.test_input)
+        prompt, schema = self._build_prompt(task, expected_shape)
+        
+        response, finish_reason = self._complete(prompt, schema)
         self.last_finish_reason = finish_reason
         log.info("LLM Generation complete. Length: %d characters", len(response))
         log.debug("Raw Response: %s...", response[:200])
-        expected_shape = grid_shape(task.test_input)
-        answer, reasoning_steps, confidence = self._parse_response(
-            response, expected_shape=expected_shape, finish_reason=finish_reason
-        )
+        
+        if finish_reason == "length":
+            raise ValueError(f"[length] LLM hit max_tokens={self.max_new_tokens}")
+
+        reasoning_steps = []  # Explicitly disabled per Sprint A
+        confidence = 1.0      # Hardcoded default since unprompted
+
+        payload = self._extract_payload(response, finish_reason=finish_reason)
+        if payload is None:
+            raise ValueError("[json_not_found] LLM response contained no parsable JSON object.")
+
+        if "answer" not in payload:
+            raise ValueError("[json_invalid] JSON object parsed but missing 'answer' key.")
+
+        answer_raw = payload.get("answer")
+        
+        if self._contains_reasoning_text(answer_raw, reasoning_steps):
+            raise ValueError("[reasoning_bleed] Rejected LLM answer because reasoning text bled into the answer grid.")
+            
+        answer = self._validate_answer(answer_raw, expected_shape=expected_shape)
         if answer is None:
-            raise ValueError(
-                f"LLM response did not contain a valid {expected_shape[0]}x{expected_shape[1]} grid."
-            )
+            # We must distinguish between invalid shape and invalid values inside _validate_answer or we can just raise shape generally if it fails.
+            # _validate_answer currently returns None on shape mismatch or bad token types.
+            raise ValueError(f"[grid_shape_invalid] LLM response grid did not match exact {expected_shape[0]}x{expected_shape[1]} dimensionality or contained invalid tokens.")
 
         return CandidateTrace(
             generator_name=self.name,
@@ -84,7 +103,8 @@ class LLMGenerator(BaseGenerator):
             },
         )
 
-    def _build_prompt(self, task: Task) -> str:
+    def _build_prompt(self, task: Task, expected_shape: tuple[int, int]) -> tuple[str, dict]:
+        H, W = expected_shape
         train_examples = []
         for idx, example in enumerate(task.train, start=1):
             train_examples.append(
@@ -93,29 +113,46 @@ class LLMGenerator(BaseGenerator):
                 f"Output: {json.dumps(example.output)}"
             )
 
-        instructions = ""
-        if self.prompt_style == "rule":
-            instructions = "Identify the transformation rule first, then apply it exactly."
-        elif self.prompt_style == "adversarial":
-            instructions = "Consider the non-obvious transformation. Only output JSON."
-
+        # Sprint A: Answer-only forced
         main_prompt = (
-            "Solve the ARC task. Output ONLY the JSON object below — no prose, no markdown, no <think> tags.\n"
-            'Schema: {"answer": [[int, ...], ...], "reasoning_steps": ["step"], "confidence": 0.0}\n'
-            "The answer must be a 2-D list of integers matching the expected output grid dimensions.\n"
+            "Return ONLY a JSON object. No prose. No markdown. No explanation.\n"
+            'Schema: {"answer": [[int, ...], ...]}\n\n'
+            f"The answer grid MUST have exactly {H} rows and {W} columns.\n"
+            "Every cell MUST be an integer 0-9.\n"
+            "Do not include confidence.\n"
+            "Do not include reasoning_steps.\n"
+            "Do not include any extra keys."
         )
 
-        if instructions:
-            main_prompt = f"{instructions}\n\n{main_prompt}"
-
         train_block = "\n".join(train_examples) if train_examples else "None"
-        return (
+        prompt = (
             f"{main_prompt}\n"
             f"Task: {task.task_id}\n"
             f"Train:\n{train_block}\n"
             f"Test Input: {json.dumps(task.test_input)}\n"
             "JSON answer:"
         )
+
+        # Sprint B: Brutally simple, completely flat schema
+        schema = {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {"type": "integer", "minimum": 0, "maximum": 9},
+                        "minItems": W,
+                        "maxItems": W
+                    },
+                    "minItems": H,
+                    "maxItems": H
+                }
+            },
+            "required": ["answer"],
+            "additionalProperties": False
+        }
+        return prompt, schema
 
     def _load_vllm_pipeline(self) -> Any:
         global _GLOBAL_OAI_CLIENT
@@ -139,7 +176,7 @@ class LLMGenerator(BaseGenerator):
         _GLOBAL_OAI_CLIENT = client
         return client, None
 
-    def _complete(self, prompt: str) -> tuple[str, str]:
+    def _complete(self, prompt: str, schema: dict) -> tuple[str, str]:
         if self._pipeline is None:
             self._pipeline, _ = self._load_vllm_pipeline()
 
@@ -148,6 +185,17 @@ class LLMGenerator(BaseGenerator):
             messages.append({"role": "system", "content": self.system_prompt})
         messages.append({"role": "user", "content": prompt})
 
+        # Sprint B: constrained decoding via llama.cpp json_schema.
+        # Probed and confirmed working on this server (returns exact H×W on 2x2 probe).
+        # This physically prevents the model from emitting wrong-dimension arrays.
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "arc_answer",
+                "schema": schema
+            }
+        }
+
         try:
             response = self._pipeline.chat.completions.create(
                 model=self.model_name,
@@ -155,14 +203,13 @@ class LLMGenerator(BaseGenerator):
                 temperature=self.temperature,
                 max_tokens=self.max_new_tokens,
                 top_p=self.top_p,
+                response_format=response_format,
             )
             message = response.choices[0].message
             text = message.content or ""
             finish_reason = response.choices[0].finish_reason
 
-            # llama-server may prefix content with '</think>' even when
-            # --reasoning off is set; strip it so the JSON parser finds
-            # the object cleanly.
+            # Strip any residual LLM tags it forces despite decoding constraints
             if text.lstrip().startswith("</think>"):
                 text = text.lstrip()[len("</think>"):].lstrip()
 

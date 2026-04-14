@@ -87,11 +87,20 @@ def average_duration(runs: list[ExperimentRun]) -> float:
 def truncation_count(runs: list[ExperimentRun]) -> int:
     return sum(r.metadata.get("generation_stats", {}).get("truncation_count", 0) for r in runs)
 
+def json_not_found_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("json_not_found_count", 0) for r in runs)
+
+def json_invalid_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("json_invalid_count", 0) for r in runs)
+
+def grid_shape_invalid_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("grid_shape_invalid_count", 0) for r in runs)
+
+def reasoning_bleed_count(runs: list[ExperimentRun]) -> int:
+    return sum(r.metadata.get("generation_stats", {}).get("reasoning_bleed_count", 0) for r in runs)
+
 def parse_failure_count(runs: list[ExperimentRun]) -> int:
     return sum(r.metadata.get("generation_stats", {}).get("parse_failure_count", 0) for r in runs)
-
-def shape_mismatch_count(runs: list[ExperimentRun]) -> int:
-    return sum(r.metadata.get("generation_stats", {}).get("shape_mismatch_count", 0) for r in runs)
 
 def path_b_met_gate(runs: list[ExperimentRun]) -> int:
     return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("met_gate_potential", False))
@@ -120,8 +129,11 @@ def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
         "wrong_pick_count": wrong_pick_count(runs),
         "override_count": override_count(runs),
         "truncation_count": truncation_count(runs),
+        "json_not_found_count": json_not_found_count(runs),
+        "json_invalid_count": json_invalid_count(runs),
+        "grid_shape_invalid_count": grid_shape_invalid_count(runs),
+        "reasoning_bleed_count": reasoning_bleed_count(runs),
         "parse_failure_count": parse_failure_count(runs),
-        "shape_mismatch_count": shape_mismatch_count(runs),
         "path_b_met_gate": path_b_met_gate(runs),
         "path_b_failed_v": path_b_failed_v(runs),
         "path_b_failed_c": path_b_failed_c(runs),

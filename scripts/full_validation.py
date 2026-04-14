@@ -56,7 +56,8 @@ def run_validation():
     console = Console()
     console.print("[bold blue]Starting Full 50-Task Validation Sweep (4 Arms)...[/bold blue]")
 
-    manifest_path = "data/validation_manifest_v1.txt"
+    import sys
+    manifest_path = sys.argv[1] if len(sys.argv) > 1 else "data/validation_manifest_v1.txt"
     dataset_path = _resolve_dataset_path()
     console.print(f"[dim]Dataset: {dataset_path}[/dim]")
     configs_dir = Path("configs/validation")
@@ -121,8 +122,11 @@ def run_validation():
         "wrong_pick_count",
         "override_count",
         "truncation_count",
+        "json_not_found_count",
+        "json_invalid_count",
+        "grid_shape_invalid_count",
+        "reasoning_bleed_count",
         "parse_failure_count",
-        "shape_mismatch_count",
         "path_b_met_gate",
         "path_b_failed_v",
         "path_b_failed_c",

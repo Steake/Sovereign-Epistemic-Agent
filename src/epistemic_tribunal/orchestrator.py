@@ -195,8 +195,21 @@ class Orchestrator:
             task, traces, critiques, decision, uncertainty_report, ground_truth_match
         )
 
+        duration = time.monotonic() - start_time
         decision.metadata["generation_stats"] = getattr(self, "last_generation_stats", {})
         
+        # Determine budget from generators
+        budget = next((getattr(g, "max_new_tokens", None) for g in self._generators if hasattr(g, "max_new_tokens")), None)
+        if budget is not None:
+            decision.metadata["budget"] = budget
+            
+        # Determine arm_name from ledger path structure (e.g. data/arm1_greedy.db -> arm1_greedy)
+        if self._config.ledger.path:
+            from pathlib import Path
+            decision.metadata["arm_name"] = Path(self._config.ledger.path).stem
+        else:
+            decision.metadata["arm_name"] = "unknown"
+
         run = ExperimentRun(
             run_id=run_id,
             task_id=task.task_id,
@@ -246,8 +259,11 @@ class Orchestrator:
         traces: list[CandidateTrace] = []
         self.last_generation_stats = {
             "truncation_count": 0,
-            "shape_mismatch_count": 0,
-            "parse_failure_count": 0
+            "json_not_found_count": 0,
+            "json_invalid_count": 0,
+            "grid_shape_invalid_count": 0,
+            "reasoning_bleed_count": 0,
+            "parse_failure_count": 0  # legacy fallback
         }
         for gen in self._generators:
             try:
@@ -256,18 +272,16 @@ class Orchestrator:
                 log.debug("Generator %r produced trace %s", gen.name, trace.trace_id[:8])
             except Exception as exc:
                 exc_str = str(exc)
-                if "finish_reason='length'" in exc_str or "length" in str(getattr(exc, '__context__', '')):
-                   # we'll need LLMGenerator to actually pass truncation signals
-                   pass
-                if "did not contain a valid" in exc_str:
-                    self.last_generation_stats["shape_mismatch_count"] += 1
-                elif "no JSON object" in exc_str:
-                    # Let's check for truncation in the log string if possible, 
-                    # but if not, assume parse failure
-                    if getattr(gen, "last_finish_reason", None) == "length":
-                        self.last_generation_stats["truncation_count"] += 1
-                    else:
-                        self.last_generation_stats["parse_failure_count"] += 1
+                if "[length]" in exc_str:
+                    self.last_generation_stats["truncation_count"] += 1
+                elif "[json_not_found]" in exc_str:
+                    self.last_generation_stats["json_not_found_count"] += 1
+                elif "[json_invalid]" in exc_str:
+                    self.last_generation_stats["json_invalid_count"] += 1
+                elif "[grid_shape_invalid]" in exc_str:
+                    self.last_generation_stats["grid_shape_invalid_count"] += 1
+                elif "[reasoning_bleed]" in exc_str:
+                    self.last_generation_stats["reasoning_bleed_count"] += 1
                 else:
                     self.last_generation_stats["parse_failure_count"] += 1
                     

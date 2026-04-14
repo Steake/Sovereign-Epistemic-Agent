@@ -23,11 +23,14 @@ echo "=========================================================="
 pkill -f llama-server || true
 sleep 3
 
-# 2. Determine exact reasoning flag
+# 2. Determine reasoning flag.
+# NOTE: --reasoning-budget 0 causes llama-server slot-reset bug that drops HTTP connections.
+# Workaround: for budget=0, launch with NO reasoning flag at all.
+# The answer-only prompt contract handles suppression at the prompt level.
+# For budget>0, normal --reasoning-budget N flag is safe to use.
 if [ "$REASONING_BUDGET" -eq "0" ]; then
-    REASONING_FLAG="--reasoning off --reasoning-budget 0"
+    REASONING_FLAG=""
 else
-    # Enable reasoning but cap it to the budget
     REASONING_FLAG="--reasoning-budget ${REASONING_BUDGET}"
 fi
 
