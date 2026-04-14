@@ -107,7 +107,8 @@ def run_validation():
         console.print(f"Arm {label} complete in {elapsed:.1f}s. Accuracy: {metrics.get('overall_accuracy')}")
 
     # Final Comparison Table
-    table = Table(title="Final Validation Scorecard (50 Tasks)")
+    task_count = len(runs) if runs else 0
+    table = Table(title=f"Final Validation Scorecard ({task_count} Tasks)")
     table.add_column("Metric", style="cyan")
     for _, label in arms:
         table.add_column(label, justify="right")
