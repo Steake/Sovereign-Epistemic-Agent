@@ -109,11 +109,17 @@ class LiveBenchmarkUI:
         """Callback from Orchestrator/Generator."""
         if token_type == "reasoning":
             self.current_reasoning += text
+        elif token_type == "sandbox_code":
+            self.current_sandbox_code = text
+        elif token_type == "sandbox_state":
+            self.current_sandbox_state = text
+        elif token_type == "sandbox_result":
+            self.current_sandbox_result = text
         else:
             self.current_content += text
             
         if hasattr(self, 'layout'):
-            self.layout["streaming"].update(self.make_reasoning_panel())
+            self.layout["streaming"].update(self.make_streaming_panel())
             self.layout["header"].update(self.make_header())
 
     def make_header(self) -> Panel:
@@ -145,15 +151,57 @@ class LiveBenchmarkUI:
         
         return table
 
-    def make_reasoning_panel(self) -> Panel:
+    def make_streaming_panel(self) -> Panel:
         from rich.markup import escape
+        from rich.syntax import Syntax
+        from rich.console import Group
         
-        # Truncate raw strings before adding markup to prevent unclosed tags
+        # If we have sandbox code, we branch into the CodeGen UI Mode
+        if self.current_sandbox_code:
+            elements = []
+            
+            # Syntax highlighted Python code
+            syntax = Syntax(
+                self.current_sandbox_code, 
+                "python", 
+                theme="monokai", 
+                line_numbers=True,
+                word_wrap=True
+            )
+            elements.append(Panel(syntax, title="[bold magenta]Synthesized Python Code[/]", border_style="magenta"))
+            
+            # Execution State
+            state_style = "yellow"
+            if "Success" in self.current_sandbox_state:
+                state_style = "bold green"
+            elif "Error" in self.current_sandbox_state:
+                state_style = "bold red"
+                
+            state_text = f"[{state_style}]Status: {escape(self.current_sandbox_state)}[/{state_style}]"
+            if self.current_sandbox_result:
+                escaped_res = escape(self.current_sandbox_result)
+                if len(escaped_res) > 500:
+                    escaped_res = escaped_res[:500] + "..."
+                state_text += f"\n[dim]{escaped_res}[/]"
+                
+            elements.append(Panel(
+                Text.from_markup(state_text), 
+                title="[white]Sandbox Execution[/]", 
+                border_style="white"
+            ))
+            
+            return Panel(
+                Group(*elements),
+                title=f"Terminal Output: [yellow]{self.current_task_id}[/] (CodeGen Mode)",
+                border_style="yellow",
+                padding=(1, 1),
+                expand=True
+            )
+            
+        # Standard Reasoner/Chat UI Mode
         reasoning_str = self.current_reasoning
         content_str = self.current_content
         
-        # Roughly truncate to last 1000 characters to prevent massive slowdowns
-        # and prevent splitting lines/tags awkwardly
         if len(reasoning_str) > 1500:
             reasoning_str = "...\n" + reasoning_str[-1500:]
         if len(content_str) > 1500:
@@ -168,9 +216,6 @@ class LiveBenchmarkUI:
         display_text = "\n".join(sections)
         if not display_text:
             display_text = "[italic dim]Awaiting LLM generation tokens...[/italic dim]"
-            
-        # We handle size via string slicing above instead of line slicing here
-        # which protects the markup bounding tags.
             
         return Panel(
             Text.from_markup(display_text),
@@ -221,13 +266,16 @@ class LiveBenchmarkUI:
                     self.current_task_id = tid
                     self.current_reasoning = ""
                     self.current_content = ""
+                    self.current_sandbox_code = ""
+                    self.current_sandbox_state = ""
+                    self.current_sandbox_result = ""
                     
                     # Update UI
                     self.layout["header"].update(self.make_header())
                     self.layout["footer"].update(Panel(Text(f"Task {idx+1}/{len(task_ids)} — {tid}"), style="dim"))
                     self.layout["metrics"].update(self.make_metrics_table())
                     self.layout["tribunal"].update(self.make_tribunal_panel())
-                    self.layout["streaming"].update(self.make_reasoning_panel())
+                    self.layout["streaming"].update(self.make_streaming_panel())
                     
                     # Find task file
                     matches = list(self.dataset_path.glob(f"**/{tid}.json"))
@@ -243,7 +291,7 @@ class LiveBenchmarkUI:
                     except Exception as e:
                         # Log failure to reasoning pane for visibility
                         self.current_reasoning += f"\n[bold red]FATAL CRASH on task {tid}: {escape(str(e))}[/]"
-                        self.layout["streaming"].update(self.make_reasoning_panel())
+                        self.layout["streaming"].update(self.make_streaming_panel())
                         time.sleep(2) # Let user see it
                         
                     # Update metrics

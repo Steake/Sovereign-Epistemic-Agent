@@ -134,8 +134,22 @@ class CodeGenLLMGenerator(LLMGenerator):
             
         code_str = code_match.group(1).strip()
         
+        # Emit the extracted Python Code to the orchestrator tracker
+        if on_token:
+            on_token("sandbox_code", f"{code_str}")
+            on_token("sandbox_state", "Executing...")
+        
         # Sandbox execution
-        answer_raw = self._execute_sandbox(code_str, task.test_input)
+        try:
+            answer_raw = self._execute_sandbox(code_str, task.test_input)
+            if on_token:
+                on_token("sandbox_state", "Success")
+                on_token("sandbox_result", json.dumps(answer_raw)[:200]) # truncated slice preview
+        except Exception as e:
+            if on_token:
+                on_token("sandbox_state", "Error")
+                on_token("sandbox_result", str(e))
+            raise  # bubble up to orchestrator
         
         answer = self._validate_answer(answer_raw, expected_shape=expected_shape)
         if answer is None:
