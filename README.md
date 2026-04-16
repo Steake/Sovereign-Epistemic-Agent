@@ -60,12 +60,12 @@ Our most recent 3-arm DeepSeek experiment resolved the core "paralysis of entrop
 **Findings:**
 1. **The Pathology of the Misshapen Grid is Cured:** By enforcing rigid visual prompt boundaries and a programmatic `shape-clamp` sequence, we successfully reduced LLM spatial hallucinations from an 80% failure rate to 0%. The LLMs now reliably communicate valid ARC grids.
 2. **Margin Guardrails and Fiat (M0):** Stripping the Tribunal of its guardrails in our M0 configuration dramatically forced action (90% coverage) but degraded into a system running on fiat. It led to 8 wrong picks, demonstrating that forcing consensus on high-entropy states yields fiction, not truth.
-3. **Intellectual Plurality (M1):** In M1, we retained basic coalition margins and injected true diversity via a "warm" stochastic LLM (0.7 temp). M1 correctly diagnosed hypotheses independently, broke the gridlock, and doubled resolved accuracy to 20% while severely restricting the rate of confident false-positives.
+3. **Intellectual Plurality (M1):** In M1, we retained basic coalition margins and injected diversity via a "warm" stochastic LLM (0.7 temp). M1 diagnosed hypotheses independently, broke the gridlock, and doubled resolved accuracy to 20%. The true measure of success here was not coverage, but candidate quality and coalition diversity correctly filtering false positives.
 
 **Roadmap to Genuine Epistemic Synthesis:**
 - **Invoke Chain-of-Thought (CoT):** The ARC grid generators must be refactored to emit explicit reasoning logs *first*. Generating logic traces before raw matrices provides a semantic attack surface for the Tribunal to evaluate, rather than limiting criticism solely to synthetic outputs.
 - **Elicit True Plurality from the LLM:** The current LLM array still struggles with tie-breaks because the prompting variations remain highly correlated. To break this, we must force the LLM into orthogonal cognitive modes—for instance, having one LLM instance write and execute Python code to generate the grid, while another reasons visually. The goal is to extract entirely separate vectors of reasoning *from the LLMs themselves*, rather than defeating the purpose of the project by falling back on deterministic DSL solvers.
-- **Production Scale Migration:** Having validated the robust internal architecture of the Epistemic Sovereign Agent, it is fully primed for distributed runtime scaling across the complete Kaggle ARC testing ensemble. 
+- **Production Scale Migration:** Having built and evaluated the core internal architecture of the Epistemic Sovereign Agent, it is ready for distributed runtime scaling across the complete Kaggle ARC testing ensemble. 
 
 ---
 
