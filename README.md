@@ -64,7 +64,7 @@ Our most recent 3-arm DeepSeek experiment resolved the core "paralysis of entrop
 
 **Roadmap to Genuine Epistemic Synthesis:**
 - **Invoke Chain-of-Thought (CoT):** The ARC grid generators must be refactored to emit explicit reasoning logs *first*. Generating logic traces before raw matrices provides a semantic attack surface for the Tribunal to evaluate, rather than limiting criticism solely to synthetic outputs.
-- **Introduce Orthogonal Generators:** The current LLM array still struggles with tie-breaks heavily correlated directly with greedy heuristics. We must graft genuinely alien logical generators into the mix—such as explicit program synthesis frameworks or DSL solvers.
+- **Elicit True Plurality from the LLM:** The current LLM array still struggles with tie-breaks because the prompting variations remain highly correlated. To break this, we must force the LLM into orthogonal cognitive modes—for instance, having one LLM instance write and execute Python code to generate the grid, while another reasons visually. The goal is to extract entirely separate vectors of reasoning *from the LLMs themselves*, rather than defeating the purpose of the project by falling back on deterministic DSL solvers.
 - **Production Scale Migration:** Having validated the robust internal architecture of the Epistemic Sovereign Agent, it is fully primed for distributed runtime scaling across the complete Kaggle ARC testing ensemble. 
 
 ---
