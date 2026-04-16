@@ -1,0 +1,24 @@
+# DeepSeek Chat (non-reasoning, deepseek-chat / V3.2) — 25-task benchmark
+tribunal:
+  ledger_warmup_tasks: 0
+  adjudication_strategy: "standard"
+  weights:
+    memory: 0.0
+
+generators:
+  enabled: ["llm"]
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 8192
+    temperature: 0.0
+    top_p: 0.95
+    use_json_schema: false  # deepseek-chat supports json_object mode
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/deepseek_chat_25_ledger.db"
+
+metadata:
+  arm_name: "deepseek_chat_25"
+  experiment: "phase1_deepseek_comparison"

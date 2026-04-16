@@ -1,0 +1,78 @@
+# ============================================================================
+# Experiment M1 — Second LLM at Higher Temperature
+# ============================================================================
+# Root cause from Run 3: with greedy+diverse both deriving from the same
+# heuristic, they often agree — forming a 2-type coalition. But the LLM's
+# answer is always unique, forcing 3-way maximum entropy every time.
+#
+# M1 fix: add a second LLM (llm_warm, T=0.7) which stochastically samples
+# and sometimes agrees with the deterministic LLM, sometimes with greedy.
+# This creates a more realistic coalition distribution:
+#   • llm (T=0.0) + llm_warm (T=0.7) agree  → coalition spans 2 LLM types
+#   • llm_warm agrees with greedy/diverse    → coalition validates heuristic
+#   • 4-generator pool breaks the 3-way maximum entropy impasse
+#
+# Generator pool: llm (T=0.0), llm_warm (T=0.7), greedy, diverse
+# Total: 4 generators. Coalition of 2 = coalition_mass=0.5 < diversity_floor.
+# diversity_floor lowered to 0.45 to allow 2/4 coalition to pass.
+# ============================================================================
+
+tribunal:
+  adjudication_strategy: "standard"
+  selection_threshold: 0.30       # Slightly relaxed vs baseline
+  resample_threshold: 0.10
+  max_resample_attempts: 1
+  diversity_floor: 0.45           # ↓ from 0.60 — 2/4 generators (0.50) now passes
+  ledger_warmup_tasks: 0
+  # Disable margin guardrail: with 4 generators, top-2 scores are nearly equal
+  # (margin ≈ 0) even when one is clearly better by rank. Keep coalition floor
+  # at 0.20 so at least 1/4 generators must agree (coalition_mass >= 0.25).
+  guardrail_margin_threshold: 0.0   # No minimum margin required
+  guardrail_min_coalition_mass: 0.20 # 1 of 4 generators agreeing = 0.25 > 0.20
+  weights:
+    uncertainty: 0.25
+    critic: 0.35
+    memory: 0.00
+    invariant: 0.40
+  structural_override:
+    enabled: true
+    v_threshold: 0.75
+    c_threshold: 0.70
+    margin_threshold: 0.03
+    confidence_cap: 0.72
+
+generators:
+  enabled: ["llm", "llm_warm", "greedy", "diverse"]
+  seed: 42
+  # Per-generator config uses 'type' to map to the LLMGenerator class,
+  # and 'name' to give each instance a distinct identity for coalition scoring.
+  configs:
+    llm:
+      model_name: "deepseek-chat"
+      temperature: 0.0            # Deterministic — strong primary signal
+      max_new_tokens: 8192
+      top_p: 0.95
+      use_json_schema: false
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+    llm_warm:
+      type: "llm"                 # Maps to LLMGenerator in the registry
+      name: "llm_warm"            # Per-instance identity (overrides class name)
+      model_name: "deepseek-chat"
+      temperature: 0.7            # Stochastic — explores alternative hypotheses
+      max_new_tokens: 8192
+      top_p: 0.95
+      use_json_schema: false
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/tribunal_m1_ledger.db"
+
+metadata:
+  arm_name: "tribunal_m1"
+  experiment: "m1_dual_llm_temperature"
+  description: >
+    M1: Dual LLM generators (T=0.0 cold + T=0.7 warm) plus greedy + diverse.
+    4 generators total. Diversity floor lowered to 0.45 so a 2/4 coalition
+    (coalition_mass=0.50) can satisfy the gate and trigger SELECT.

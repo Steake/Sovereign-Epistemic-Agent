@@ -8,7 +8,7 @@ concrete implementations can range from simple heuristics to full LLM calls.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
@@ -28,13 +28,20 @@ class BaseGenerator(ABC):
         self._extra_kwargs = kwargs
 
     @abstractmethod
-    def generate(self, task: Task) -> CandidateTrace:
+    def generate(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> CandidateTrace:
         """Produce one candidate reasoning trace for *task*.
 
         Parameters
         ----------
         task:
             The task to solve.
+        on_token:
+            Optional callback for streaming tokens. Signature: (type, text).
+            Types: 'reasoning', 'content'.
 
         Returns
         -------
@@ -73,6 +80,7 @@ def build_generators(
     from epistemic_tribunal.generators.minimal import MinimalDescriptionGenerator
 
     from epistemic_tribunal.generators.llm import LLMGenerator, OpenAIGenerator
+    from epistemic_tribunal.generators.synthesis import ProgramSynthesisGenerator
 
     REGISTRY: dict[str, type[BaseGenerator]] = {
         "greedy": GreedyGenerator,
@@ -82,7 +90,7 @@ def build_generators(
         "minimal_description": MinimalDescriptionGenerator,
         "llm": LLMGenerator,
         "openai": OpenAIGenerator,
-        "vllm": OpenAIGenerator,
+        "synthesis": ProgramSynthesisGenerator,
     }
 
     generators: list[BaseGenerator] = []

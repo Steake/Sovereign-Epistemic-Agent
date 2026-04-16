@@ -58,6 +58,16 @@ class TribunalConfig(BaseModel):
     max_resample_attempts: int = Field(default=2, ge=0)
     diversity_floor: float = Field(default=0.90, ge=0.0, le=1.0)
     ledger_warmup_tasks: int = Field(default=150, ge=0)
+    # Discordant-resample guardrail parameters (FIX B)
+    # These prevent a SELECT when the top candidate barely edges out rivals.
+    guardrail_margin_threshold: float = Field(
+        default=0.01, ge=0.0, le=1.0,
+        description="Minimum score margin between top-2 candidates to allow SELECT."
+    )
+    guardrail_min_coalition_mass: float = Field(
+        default=0.40, ge=0.0, le=1.0,
+        description="Minimum coalition_mass to allow SELECT (0 to disable)."
+    )
     structural_override: StructuralOverrideConfig = Field(
         default_factory=StructuralOverrideConfig
     )
@@ -65,7 +75,7 @@ class TribunalConfig(BaseModel):
 
 class LLMGeneratorConfig(BaseModel):
     model_name: str = Field(
-        default="Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2"
+        default="deepseek-reasoner"
     )
     max_new_tokens: int = Field(default=8192, ge=1)
     temperature: float = Field(default=0.1, ge=0.0)
@@ -78,6 +88,11 @@ class LLMGeneratorConfig(BaseModel):
     # "auto" detects flash_attention_2 at runtime and falls back to "sdpa".
     # Set explicitly to "flash_attention_2", "sdpa", or "eager" to override.
     attn_implementation: str = Field(default="auto")
+    # Use full json_schema constrained decoding (if supported by remote API) or fall back
+    # to json_object (DeepSeek, older OpenAI cloud APIs that lack schema support).
+    use_json_schema: bool = Field(default=True)
+    api_base: Optional[str] = Field(default=None)
+    api_key: Optional[str] = Field(default=None)
 
 
 class GeneratorsConfig(BaseModel):
@@ -189,7 +204,8 @@ def load_config(path: Optional[Path | str] = None) -> TribunalSettings:
     path = Path(path)
     if path.exists():
         with open(path) as fh:
-            raw: dict[str, Any] = yaml.safe_load(fh) or {}
+            content = os.path.expandvars(fh.read())
+            raw: dict[str, Any] = yaml.safe_load(content) or {}
     else:
         raw = {}
 

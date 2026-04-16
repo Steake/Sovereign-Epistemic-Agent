@@ -21,7 +21,11 @@ class AdversarialGenerator(BaseGenerator):
 
     name = "adversarial"
 
-    def generate(self, task: Task) -> CandidateTrace:
+    def generate(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> CandidateTrace:
         rng = random.Random(self.seed + 2)
 
         # Get greedy mapping features

@@ -1,0 +1,113 @@
+{
+  "Greedy": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.0,
+    "wrong_pick_count": 50,
+    "override_count": 0,
+    "mean_confidence": 0.6991,
+    "decision_distribution": {
+      "select": 50
+    },
+    "avg_duration_seconds": 38.7482,
+    "ece": 0.6991,
+    "brier_score": 0.5431,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.9,
+      "threshold": 0.4056
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  },
+  "Structural": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.76,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.24,
+    "wrong_pick_count": 38,
+    "override_count": 0,
+    "mean_confidence": 0.4376,
+    "decision_distribution": {
+      "select": 38,
+      "resample": 12
+    },
+    "avg_duration_seconds": 0.0129,
+    "ece": 0.4376,
+    "brier_score": 0.1937,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.9211,
+      "threshold": 0.3608
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  },
+  "Lockout": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.86,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.14,
+    "wrong_pick_count": 43,
+    "override_count": 0,
+    "mean_confidence": 0.4353,
+    "decision_distribution": {
+      "select": 43,
+      "resample": 7
+    },
+    "avg_duration_seconds": 0.0131,
+    "ece": 0.4353,
+    "brier_score": 0.1917,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.907,
+      "threshold": 0.3673
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  },
+  "Path B": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.86,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.14,
+    "wrong_pick_count": 43,
+    "override_count": 0,
+    "mean_confidence": 0.4353,
+    "decision_distribution": {
+      "select": 43,
+      "resample": 7
+    },
+    "avg_duration_seconds": 0.0131,
+    "ece": 0.4353,
+    "brier_score": 0.1917,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.907,
+      "threshold": 0.3673
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  }
+}

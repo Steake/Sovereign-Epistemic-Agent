@@ -68,7 +68,11 @@ class RuleFirstGenerator(BaseGenerator):
 
     name = "rule_first"
 
-    def generate(self, task: Task) -> CandidateTrace:
+    def generate(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> CandidateTrace:
         rng = random.Random(self.seed + 3)
 
         best_rule_name = "copy"

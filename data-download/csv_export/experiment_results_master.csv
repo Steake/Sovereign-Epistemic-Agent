@@ -1,0 +1,26 @@
+run_id,task_id,decision,confidence,selected_trace_id,ground_truth_match,duration_seconds,generator_names_json,config_snapshot_json,created_at,reasoning,diagnosis
+3e425b7e-801e-4958-8492-25ae5150bf0e,colour_swap_001,select,1.0,714a192d-315d-4713-9c77-844a473b8f6a,1,0.1396,"[""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]","{""selection_threshold"": 0.4, ""resample_threshold"": 0.2, ""generators"": [""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]}",2026-04-13T12:52:28.405768+00:00,"Top score: 0.7665 (generator='greedy')
+Selection threshold: 0.4
+Resample threshold: 0.2
+Scores: {'greedy': 0.7665, 'diverse': 0.7471, 'minimal_description': 0.6858, 'adversarial': 0.6035, 'rule_first': 0.5902}
+Selected 'greedy' (score=0.7665).",
+1bb4e1dc-dda2-4588-b5dd-279eaf4eb672,copy_identity_003,select,1.0,e1da58e0-bf3c-4fd5-b6f4-6c6715a7b0ab,1,0.2463,"[""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]","{""selection_threshold"": 0.4, ""resample_threshold"": 0.2, ""generators"": [""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]}",2026-04-13T12:52:28.673721+00:00,"Top score: 0.7147 (generator='greedy')
+Selection threshold: 0.4
+Resample threshold: 0.2
+Scores: {'greedy': 0.7147, 'rule_first': 0.7069, 'diverse': 0.6479, 'minimal_description': 0.6337, 'adversarial': 0.5335}
+Selected 'greedy' (score=0.7147).",
+f119e408-fd7c-429b-9246-910dfd6765ec,fill_background_002,select,1.0,463f67d5-07d8-4fe6-803d-ab09afd84357,1,0.2466,"[""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]","{""selection_threshold"": 0.4, ""resample_threshold"": 0.2, ""generators"": [""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]}",2026-04-13T12:52:29.038968+00:00,"Top score: 0.6506 (generator='rule_first')
+Selection threshold: 0.4
+Resample threshold: 0.2
+Scores: {'rule_first': 0.6506, 'greedy': 0.6394, 'minimal_description': 0.6202, 'diverse': 0.6041, 'adversarial': 0.404}
+Selected 'rule_first' (score=0.6506).",
+949ee948-85f2-4345-bf23-3b5cb28beb74,horizontal_flip_004,select,1.0,e4b0ebb0-5742-4e98-8bab-e82824de4013,0,0.195,"[""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]","{""selection_threshold"": 0.4, ""resample_threshold"": 0.2, ""generators"": [""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]}",2026-04-13T12:52:29.257572+00:00,"Top score: 0.7463 (generator='greedy')
+Selection threshold: 0.4
+Resample threshold: 0.2
+Scores: {'greedy': 0.7463, 'rule_first': 0.6946, 'minimal_description': 0.6754, 'diverse': 0.6577, 'adversarial': 0.5478}
+Selected 'greedy' (score=0.7463).","Selected candidate did not match ground truth."
+8cf39249-6791-4a16-b1f1-e4a9bd515d9a,vertical_flip_005,select,1.0,9b53f06f-65d0-49e9-adca-ecf1ea2fe729,0,0.1862,"[""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]","{""selection_threshold"": 0.4, ""resample_threshold"": 0.2, ""generators"": [""greedy"", ""diverse"", ""adversarial"", ""rule_first"", ""minimal_description""]}",2026-04-13T12:52:29.466930+00:00,"Top score: 0.7574 (generator='greedy')
+Selection threshold: 0.4
+Resample threshold: 0.2
+Scores: {'greedy': 0.7574, 'rule_first': 0.7178, 'minimal_description': 0.6767, 'diverse': 0.6752, 'adversarial': 0.5943}
+Selected 'greedy' (score=0.7574).","Selected candidate did not match ground truth."

@@ -1,0 +1,157 @@
+{
+  "Greedy": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.0,
+    "wrong_pick_count": 50,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 0,
+    "path_b_failed_v": 0,
+    "path_b_failed_c": 0,
+    "path_b_failed_margin": 0,
+    "path_b_failed_violations": 0,
+    "mean_confidence": 0.6991,
+    "decision_distribution": {
+      "select": 50
+    },
+    "avg_duration_seconds": 14.7489,
+    "ece": 0.6991,
+    "brier_score": 0.5431,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.9,
+      "threshold": 0.4056
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  },
+  "Structural": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.76,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.24,
+    "wrong_pick_count": 38,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 5,
+    "path_b_failed_v": 21,
+    "path_b_failed_c": 50,
+    "path_b_failed_margin": 12,
+    "path_b_failed_violations": 21,
+    "mean_confidence": 0.4376,
+    "decision_distribution": {
+      "select": 38,
+      "resample": 12
+    },
+    "avg_duration_seconds": 0.0127,
+    "ece": 0.4376,
+    "brier_score": 0.1937,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.9211,
+      "threshold": 0.3608
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  },
+  "Lockout": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.86,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.14,
+    "wrong_pick_count": 43,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 0,
+    "path_b_failed_v": 0,
+    "path_b_failed_c": 0,
+    "path_b_failed_margin": 0,
+    "path_b_failed_violations": 0,
+    "mean_confidence": 0.4353,
+    "decision_distribution": {
+      "select": 43,
+      "resample": 7
+    },
+    "avg_duration_seconds": 0.0122,
+    "ece": 0.4353,
+    "brier_score": 0.1917,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.907,
+      "threshold": 0.3673
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  },
+  "Path B": {
+    "total_runs": 50,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.86,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.14,
+    "wrong_pick_count": 43,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 5,
+    "path_b_failed_v": 21,
+    "path_b_failed_c": 50,
+    "path_b_failed_margin": 12,
+    "path_b_failed_violations": 21,
+    "mean_confidence": 0.4353,
+    "decision_distribution": {
+      "select": 43,
+      "resample": 7
+    },
+    "avg_duration_seconds": 0.0132,
+    "ece": 0.4353,
+    "brier_score": 0.1917,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 0.907,
+      "threshold": 0.3673
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  }
+}

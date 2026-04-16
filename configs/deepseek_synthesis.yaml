@@ -1,0 +1,22 @@
+generators:
+  enabled: ["synthesis", "llm"]
+  configs:
+    synthesis:
+      model: "deepseek-reasoner"
+      max_tokens: 8192
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+      temperature: 0.0 # Strict for code
+      include_think: true
+    
+    llm:
+      model_name: "deepseek-reasoner"
+      max_new_tokens: 8192
+      temperature: 1.0 # High diversity for grid gen
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+      use_json_schema: true
+
+orchestrator:
+  consensus_strategy: "diversity_consensus"
+  max_candidates: 3

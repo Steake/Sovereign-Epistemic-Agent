@@ -1,0 +1,24 @@
+# DeepSeek Reasoner — 25-task benchmark on custom ARC dataset
+tribunal:
+  ledger_warmup_tasks: 0
+  adjudication_strategy: "standard"
+  weights:
+    memory: 0.0
+
+generators:
+  enabled: ["llm"]
+  llm:
+    model_name: "deepseek-reasoner"
+    max_new_tokens: 8192
+    temperature: 0.0
+    top_p: 0.95
+    use_json_schema: false
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/deepseek_custom_25_ledger.db"
+
+metadata:
+  arm_name: "deepseek_reasoner_custom_25"
+  experiment: "phase1_deepseek_custom_dataset"

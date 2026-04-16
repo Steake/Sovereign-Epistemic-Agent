@@ -1,0 +1,144 @@
+[04/13/26 14:05:52] INFO     Running tribunal on task colour_swap_001           
+[04/13/26 14:05:52] INFO     Starting tribunal run 4dacf16b for task            
+                             colour_swap_001                                    
+                    INFO     Extracted 6 invariant(s) for task colour_swap_001  
+                    INFO     Uncertainty: n_traces=5, clusters=3, entropy=0.950,
+                             margin=0.400, coalition_mass=0.600,                
+                             disagreement_rate=0.700                            
+                    INFO     Failure-ledger warmup active (5/150 completed);    
+                             setting memory weight gamma to 0.0.                
+                    INFO     Decision: select (confidence=1.000)                
+                    INFO     Ground-truth match: True                           
+                    INFO     Running tribunal on task copy_identity_003         
+                    INFO     Starting tribunal run 302ac734 for task            
+                             copy_identity_003                                  
+                    INFO     Extracted 7 invariant(s) for task copy_identity_003
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Failure-ledger warmup active (6/150 completed);    
+                             setting memory weight gamma to 0.0.                
+                    INFO     Decision: select (confidence=1.000)                
+                    INFO     Ground-truth match: True                           
+                    INFO     Running tribunal on task fill_background_002       
+                    INFO     Starting tribunal run 9c7d213d for task            
+                             fill_background_002                                
+                    INFO     Extracted 6 invariant(s) for task                  
+                             fill_background_002                                
+                    INFO     Uncertainty: n_traces=5, clusters=4, entropy=1.332,
+                             margin=0.200, coalition_mass=0.400,                
+                             disagreement_rate=0.900                            
+                    INFO     Failure-ledger warmup active (7/150 completed);    
+                             setting memory weight gamma to 0.0.                
+                    INFO     Decision: select (confidence=1.000)                
+                    INFO     Ground-truth match: True                           
+                    INFO     Running tribunal on task horizontal_flip_004       
+                    INFO     Starting tribunal run 647480e9 for task            
+                             horizontal_flip_004                                
+                    INFO     Extracted 6 invariant(s) for task                  
+                             horizontal_flip_004                                
+                    INFO     Uncertainty: n_traces=5, clusters=4, entropy=1.332,
+                             margin=0.200, coalition_mass=0.400,                
+                             disagreement_rate=0.900                            
+                    INFO     Failure-ledger warmup active (8/150 completed);    
+                             setting memory weight gamma to 0.0.                
+                    INFO     Decision: select (confidence=1.000)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 21cd70da                   
+                    INFO     Running tribunal on task vertical_flip_005         
+                    INFO     Starting tribunal run a41b31be for task            
+                             vertical_flip_005                                  
+                    INFO     Extracted 6 invariant(s) for task vertical_flip_005
+                    INFO     Uncertainty: n_traces=5, clusters=3, entropy=0.950,
+                             margin=0.400, coalition_mass=0.600,                
+                             disagreement_rate=0.700                            
+                    INFO     Failure-ledger warmup active (9/150 completed);    
+                             setting memory weight gamma to 0.0.                
+                    INFO     Decision: select (confidence=1.000)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: c0f8fef6                   
+                    INFO     Benchmark complete: {'total_runs': 5, 'accuracy':  
+                             0.6, 'coverage': 1.0, 'abstention_rate': 0.0,      
+                             'resample_rate': 0.0, 'decision_distribution':     
+                             {'select': 5}, 'avg_duration_seconds': 0.0112,     
+                             'ece': 0.4, 'brier_score': 0.4,                    
+                             'selective_accuracy_90': {'accuracy': 0.6,         
+                             'coverage': 1.0, 'threshold': 1.0},                
+                             'abstention_quality': {'abstention_rate': 0.0,     
+                             'wrong_abstention_rate': 0.0,                      
+                             'correct_abstention_rate': 0.0}}                   
+                    Forensic Audit — Task: colour_swap_001                    
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator           ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ greedy              │ 0.700 │ 0.647 │ 1.000 │ 1.000 │ 0.766 │ 1.000 │  1   │
+│ diverse             │ 0.634 │ 0.647 │ 1.000 │ 1.000 │ 0.747 │ 1.000 │  2   │
+│ minimal_description │ 0.466 │ 0.619 │ 1.000 │ 1.000 │ 0.686 │ 1.000 │  3   │
+│ adversarial         │ 0.267 │ 0.560 │ 1.000 │ 1.000 │ 0.604 │ 1.000 │  4   │
+│ rule_first          │ 0.204 │ 0.574 │ 1.000 │ 1.000 │ 0.590 │ 1.000 │  5   │
+└─────────────────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+                   Forensic Audit — Task: copy_identity_003                   
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator           ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ greedy              │ 0.800 │ 0.552 │ 1.000 │ 0.857 │ 0.715 │ 1.000 │  1   │
+│ rule_first          │ 0.793 │ 0.538 │ 1.000 │ 0.857 │ 0.707 │ 1.000 │  2   │
+│ diverse             │ 0.725 │ 0.546 │ 1.000 │ 0.714 │ 0.648 │ 1.000 │  3   │
+│ minimal_description │ 0.559 │ 0.527 │ 1.000 │ 0.857 │ 0.634 │ 1.000 │  4   │
+│ adversarial         │ 0.305 │ 0.465 │ 1.000 │ 0.857 │ 0.533 │ 1.000 │  5   │
+└─────────────────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+                  Forensic Audit — Task: fill_background_002                  
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator           ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ rule_first          │ 0.474 │ 0.527 │ 1.000 │ 1.000 │ 0.651 │ 1.000 │  1   │
+│ greedy              │ 0.497 │ 0.603 │ 1.000 │ 0.833 │ 0.639 │ 1.000 │  2   │
+│ minimal_description │ 0.419 │ 0.611 │ 1.000 │ 0.833 │ 0.620 │ 1.000 │  3   │
+│ diverse             │ 0.377 │ 0.603 │ 1.000 │ 0.833 │ 0.604 │ 1.000 │  4   │
+│ adversarial         │ 0.109 │ 0.427 │ 1.000 │ 0.667 │ 0.404 │ 1.000 │  5   │
+└─────────────────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+                  Forensic Audit — Task: horizontal_flip_004                  
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator           ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ greedy              │ 0.600 │ 0.670 │ 1.000 │ 1.000 │ 0.746 │ 1.000 │  1   │
+│ rule_first          │ 0.474 │ 0.634 │ 1.000 │ 1.000 │ 0.695 │ 1.000 │  2   │
+│ minimal_description │ 0.399 │ 0.641 │ 1.000 │ 1.000 │ 0.675 │ 1.000 │  3   │
+│ diverse             │ 0.543 │ 0.614 │ 1.000 │ 0.833 │ 0.658 │ 1.000 │  4   │
+│ adversarial         │ 0.109 │ 0.538 │ 1.000 │ 1.000 │ 0.548 │ 1.000 │  5   │
+└─────────────────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+                   Forensic Audit — Task: vertical_flip_005                   
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator           ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ greedy              │ 0.700 │ 0.625 │ 1.000 │ 1.000 │ 0.757 │ 1.000 │  1   │
+│ rule_first          │ 0.554 │ 0.634 │ 1.000 │ 1.000 │ 0.718 │ 1.000 │  2   │
+│ minimal_description │ 0.466 │ 0.596 │ 1.000 │ 1.000 │ 0.677 │ 1.000 │  3   │
+│ diverse             │ 0.634 │ 0.592 │ 1.000 │ 0.833 │ 0.675 │ 1.000 │  4   │
+│ adversarial         │ 0.267 │ 0.538 │ 1.000 │ 1.000 │ 0.594 │ 1.000 │  5   │
+└─────────────────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+                    Benchmark Metrics                    
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Metric                                       ┃ Value  ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ total_runs                                   │ 5      │
+│ accuracy                                     │ 0.6    │
+│ coverage                                     │ 1.0    │
+│ abstention_rate                              │ 0.0    │
+│ resample_rate                                │ 0.0    │
+│   decision_distribution.select               │ 5      │
+│ avg_duration_seconds                         │ 0.0112 │
+│ ece                                          │ 0.4    │
+│ brier_score                                  │ 0.4    │
+│   selective_accuracy_90.accuracy             │ 0.6    │
+│   selective_accuracy_90.coverage             │ 1.0    │
+│   selective_accuracy_90.threshold            │ 1.0    │
+│   abstention_quality.abstention_rate         │ 0.0    │
+│   abstention_quality.wrong_abstention_rate   │ 0.0    │
+│   abstention_quality.correct_abstention_rate │ 0.0    │
+└──────────────────────────────────────────────┴────────┘

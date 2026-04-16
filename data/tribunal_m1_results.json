@@ -1,0 +1,41 @@
+{
+  "DeepSeek (tribunal_m1)": {
+    "total_runs": 10,
+    "overall_accuracy": 0.1,
+    "resolved_accuracy": 0.2,
+    "coverage": 0.5,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.5,
+    "wrong_pick_count": 4,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 7,
+    "path_b_failed_v": 2,
+    "path_b_failed_c": 9,
+    "path_b_failed_margin": 4,
+    "path_b_failed_violations": 4,
+    "mean_confidence": 0.3754,
+    "decision_distribution": {
+      "select": 5,
+      "resample": 5
+    },
+    "avg_duration_seconds": 13.9125,
+    "ece": 0.1754,
+    "brier_score": 0.1956,
+    "selective_accuracy_90": {
+      "accuracy": 0.2,
+      "coverage": 1.0,
+      "threshold": 0.3128
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  }
+}

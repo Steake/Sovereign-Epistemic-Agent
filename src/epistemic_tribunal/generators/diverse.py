@@ -24,7 +24,11 @@ class DiverseGenerator(BaseGenerator):
     #: Fraction of cells to perturb.
     perturbation_rate: float = 0.10
 
-    def generate(self, task: Task) -> CandidateTrace:
+    def generate(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> CandidateTrace:
         rng = random.Random(self.seed + 1)  # offset seed for diversity
 
         # Start from greedy answer

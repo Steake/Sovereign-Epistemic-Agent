@@ -1,0 +1,26 @@
+{
+  "DeepSeek Reasoner (Live)": {
+    "total_runs": 0,
+    "overall_accuracy": 0.0,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.0,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.0,
+    "wrong_pick_count": 0,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 0,
+    "path_b_failed_v": 0,
+    "path_b_failed_c": 0,
+    "path_b_failed_margin": 0,
+    "path_b_failed_violations": 0,
+    "mean_confidence": 0.0,
+    "decision_distribution": {},
+    "avg_duration_seconds": 0.0
+  }
+}

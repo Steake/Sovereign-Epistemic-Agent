@@ -1,0 +1,58 @@
+Starting Full 50-Task Validation Sweep (4 Arms)...
+
+Targeting Arm: Greedy (arm1_greedy.yaml)
+[04/13/26 18:38:27] INFO     Loading tasks from authoritative manifest:         
+                             data/validation_manifest_v1.txt                    
+                    INFO     Running tribunal on task arc_agi_00576224          
+[04/13/26 18:38:27] INFO     Starting tribunal run cd3a9a5a for task            
+                             arc_agi_00576224                                   
+[04/13/26 18:38:28] INFO     Connecting to vLLM background API server for       
+                             inference.                                         
+[04/13/26 18:38:42] INFO     Captured 1448 chars of explicit reasoning_content  
+                    INFO     LLM Generation complete. Length: 1860 chars.       
+                             Snippet: <think> Let me analyze the pattern in     
+                             these examples.  **Example 1:** Input: [[8, 6], [6,
+                             4]] (2x2 grid) Output: 6x6 grid  Let me break down 
+                             the output: - Row 0: [8, 6, 8, 6, 8, 6] - repeats  
+                             [8, 6] th...                                       
+                    INFO     LLM Generation complete. Length: 1860 characters   
+                    WARNING  Rejected LLM answer due to shape mismatch: expected
+                             (2, 2), got (6, 6).                                
+[04/13/26 18:38:42] ERROR    Generator 'llm' failed: LLM response did not       
+                             contain a valid 2x2 grid.                          
+                    INFO     Extracted 4 invariant(s) for task arc_agi_00576224 
+                    INFO     Uncertainty: n_traces=1, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 389c834f                   
+[04/13/26 18:38:42] INFO     Running tribunal on task arc_agi_009d5c81          
+                    INFO     Starting tribunal run ee8b2e12 for task            
+                             arc_agi_009d5c81                                   
+[04/13/26 18:39:00] INFO     Captured 2173 chars of explicit reasoning_content  
+                    INFO     LLM Generation complete. Length: 2448 chars.       
+                             Snippet: <think> Let me analyze this ARC task step 
+                             by step.  **Observations from the examples:**  1.  
+                             Each input contains two distinct objects:    - A   
+                             larger pattern made of color 8 (teal)    - A       
+                             smaller patter...                                  
+                    INFO     LLM Generation complete. Length: 2448 characters   
+                    WARNING  LLM response contained no JSON object with an      
+                             answer field.                                      
+[04/13/26 18:39:00] ERROR    Generator 'llm' failed: LLM response did not       
+                             contain a valid 14x14 grid.                        
+                    INFO     Extracted 4 invariant(s) for task arc_agi_009d5c81 
+                    INFO     Uncertainty: n_traces=1, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.906)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 49ae84c4                   
+[04/13/26 18:39:00] INFO     Running tribunal on task arc_agi_00dbd492          
+                    INFO     Starting tribunal run e8b4546c for task            
+                             arc_agi_00dbd492                                   

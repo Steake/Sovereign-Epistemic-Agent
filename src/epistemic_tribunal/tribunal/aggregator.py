@@ -225,24 +225,26 @@ class TribunalAggregator:
         # If we have high disagreement (negligible margin or weak top candidate dominance),
         # force a RESAMPLE instead of a blind SELECT.
         # EXCEPTION: If Path B triggered, we trust the structural override.
+        # Both thresholds are config-driven — set to 0.0 to disable each guard.
         margin = 0.0
         if len(trace_scores) > 1:
             margin = best.total - trace_scores[1].total
 
-        # PROVISIONAL: experimental control margin to prevent false-certainty
-        # without collapsing successful runs. Do not canonize.
-        margin_threshold = 0.01
-        
+        margin_threshold = self._config.guardrail_margin_threshold
+        min_coalition_mass = self._config.guardrail_min_coalition_mass
+
         if decision == DecisionKind.SELECT and not override_triggered:
-            if margin < margin_threshold:
+            if margin_threshold > 0 and margin < margin_threshold:
                 decision = DecisionKind.RESAMPLE
                 reasoning_parts.append(
-                    f"Guardrail: Selection demoted to RESAMPLE due to negligible margin ({margin:.3f}) between top candidates."
+                    f"Guardrail: Selection demoted to RESAMPLE due to negligible margin "
+                    f"({margin:.3f} < {margin_threshold:.3f}) between top candidates."
                 )
-            elif uncertainty.coalition_mass < 0.4:
+            elif min_coalition_mass > 0 and uncertainty.coalition_mass < min_coalition_mass:
                 decision = DecisionKind.RESAMPLE
                 reasoning_parts.append(
-                    f"Guardrail: Selection demoted to RESAMPLE due to weak coalition support ({uncertainty.coalition_mass:.3f})."
+                    f"Guardrail: Selection demoted to RESAMPLE due to weak coalition support "
+                    f"({uncertainty.coalition_mass:.3f} < {min_coalition_mass:.3f})."
                 )
 
         if decision != DecisionKind.SELECT:

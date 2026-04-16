@@ -1,0 +1,174 @@
+[04/13/26 15:16:22] INFO     CONFIG BOOT: Enabled Generators:                   
+                             ['vllm_deterministic', 'vllm_creative',            
+                             'vllm_logical', 'vllm_adversarial', 'vllm_compact']
+                    INFO     CONFIG BOOT: Path B Enabled: True                  
+[04/13/26 15:16:22] INFO     Running tribunal on task colour_swap_001           
+[04/13/26 15:16:22] INFO     Starting tribunal run 3ec27e11 for task            
+                             colour_swap_001                                    
+[04/13/26 15:16:39] INFO     LLM Generation complete. Length: 391 characters    
+[04/13/26 15:16:48] INFO     LLM Generation complete. Length: 361 characters    
+[04/13/26 15:17:02] INFO     LLM Generation complete. Length: 382 characters    
+[04/13/26 15:17:17] INFO     LLM Generation complete. Length: 690 characters    
+[04/13/26 15:17:29] INFO     LLM Generation complete. Length: 399 characters    
+[04/13/26 15:17:29] INFO     Extracted 6 invariant(s) for task colour_swap_001  
+                    INFO     Uncertainty: n_traces=5, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Failure-ledger warmup active (5/150 completed);    
+                             setting memory weight gamma to 0.0.                
+[04/13/26 15:17:29] INFO     Path B Bypass Triggered for task colour_swap_001:  
+                             Structural Margin 0.585 >= 0.010                   
+                    INFO     Decision: resample (confidence=0.500)              
+                    INFO     Ground-truth match: True                           
+                    INFO     Failure record written: 747b8986                   
+[04/13/26 15:17:29] INFO     Running tribunal on task copy_identity_003         
+                    INFO     Starting tribunal run 99e9d074 for task            
+                             copy_identity_003                                  
+[04/13/26 15:17:31] INFO     LLM Generation complete. Length: 170 characters    
+[04/13/26 15:17:34] INFO     LLM Generation complete. Length: 317 characters    
+[04/13/26 15:17:38] INFO     LLM Generation complete. Length: 294 characters    
+[04/13/26 15:17:52] INFO     LLM Generation complete. Length: 567 characters    
+[04/13/26 15:17:56] INFO     LLM Generation complete. Length: 307 characters    
+[04/13/26 15:17:56] INFO     Extracted 7 invariant(s) for task copy_identity_003
+                    INFO     Uncertainty: n_traces=5, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Failure-ledger warmup active (6/150 completed);    
+                             setting memory weight gamma to 0.0.                
+[04/13/26 15:17:56] INFO     Resampling task copy_identity_003 because          
+                             coalition_mass=1.000 exceeded diversity_floor=0.900
+                             with a single generator type: ['openai']           
+                    INFO     Decision: resample (confidence=0.510)              
+                    INFO     Failure record written: dd1b9f98                   
+[04/13/26 15:17:56] INFO     Running tribunal on task fill_background_002       
+                    INFO     Starting tribunal run 6cfd16d3 for task            
+                             fill_background_002                                
+[04/13/26 15:18:04] INFO     LLM Generation complete. Length: 457 characters    
+[04/13/26 15:18:11] INFO     LLM Generation complete. Length: 351 characters    
+[04/13/26 15:18:19] INFO     LLM Generation complete. Length: 291 characters    
+[04/13/26 15:18:40] INFO     LLM Generation complete. Length: 287 characters    
+[04/13/26 15:18:48] INFO     LLM Generation complete. Length: 340 characters    
+[04/13/26 15:18:48] INFO     Extracted 6 invariant(s) for task                  
+                             fill_background_002                                
+                    INFO     Uncertainty: n_traces=5, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Failure-ledger warmup active (7/150 completed);    
+                             setting memory weight gamma to 0.0.                
+[04/13/26 15:18:48] INFO     Path B Bypass Triggered for task                   
+                             fill_background_002: Structural Margin 0.541 >=    
+                             0.010                                              
+                    INFO     Decision: resample (confidence=0.505)              
+                    INFO     Ground-truth match: True                           
+                    INFO     Failure record written: b72989e6                   
+[04/13/26 15:18:48] INFO     Running tribunal on task horizontal_flip_004       
+                    INFO     Starting tribunal run bad5eed8 for task            
+                             horizontal_flip_004                                
+[04/13/26 15:18:59] INFO     LLM Generation complete. Length: 367 characters    
+[04/13/26 15:19:09] INFO     LLM Generation complete. Length: 298 characters    
+[04/13/26 15:19:20] INFO     LLM Generation complete. Length: 257 characters    
+[04/13/26 15:19:34] INFO     LLM Generation complete. Length: 334 characters    
+[04/13/26 15:19:45] INFO     LLM Generation complete. Length: 336 characters    
+[04/13/26 15:19:45] INFO     Extracted 6 invariant(s) for task                  
+                             horizontal_flip_004                                
+                    INFO     Uncertainty: n_traces=5, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Failure-ledger warmup active (8/150 completed);    
+                             setting memory weight gamma to 0.0.                
+[04/13/26 15:19:45] INFO     Path B Bypass Triggered for task                   
+                             horizontal_flip_004: Structural Margin 0.585 >=    
+                             0.010                                              
+                    INFO     Decision: resample (confidence=0.500)              
+                    INFO     Ground-truth match: True                           
+                    INFO     Failure record written: 84c0eb97                   
+[04/13/26 15:19:45] INFO     Running tribunal on task vertical_flip_005         
+                    INFO     Starting tribunal run 29d0ec29 for task            
+                             vertical_flip_005                                  
+[04/13/26 15:19:53] INFO     LLM Generation complete. Length: 313 characters    
+[04/13/26 15:20:01] INFO     LLM Generation complete. Length: 357 characters    
+[04/13/26 15:20:10] INFO     LLM Generation complete. Length: 264 characters    
+[04/13/26 15:20:22] INFO     LLM Generation complete. Length: 536 characters    
+[04/13/26 15:20:33] INFO     LLM Generation complete. Length: 407 characters    
+[04/13/26 15:20:33] INFO     Extracted 6 invariant(s) for task vertical_flip_005
+                    INFO     Uncertainty: n_traces=5, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Failure-ledger warmup active (9/150 completed);    
+                             setting memory weight gamma to 0.0.                
+[04/13/26 15:20:33] INFO     Path B Bypass Triggered for task vertical_flip_005:
+                             Structural Margin 0.585 >= 0.010                   
+                    INFO     Decision: resample (confidence=0.500)              
+                    INFO     Ground-truth match: True                           
+                    INFO     Failure record written: 452826d0                   
+[04/13/26 15:20:33] INFO     Benchmark complete: {'total_runs': 5, 'accuracy':  
+                             0.0, 'coverage': 0.0, 'abstention_rate': 0.0,      
+                             'resample_rate': 1.0, 'decision_distribution':     
+                             {'resample': 5}, 'avg_duration_seconds': 50.1383}  
+               Forensic Audit — Task: colour_swap_001               
+┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  1   │
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  2   │
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  3   │
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  4   │
+│ openai    │ 1.000 │ 0.683 │ 1.000 │ 1.000 │ 0.869 │ 1.000 │  5   │
+└───────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+              Forensic Audit — Task: copy_identity_003              
+┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ openai    │ 1.000 │ 0.611 │ 1.000 │ 0.857 │ 0.798 │ 1.000 │  1   │
+│ openai    │ 1.000 │ 0.563 │ 1.000 │ 0.857 │ 0.778 │ 1.000 │  2   │
+│ openai    │ 1.000 │ 0.563 │ 1.000 │ 0.857 │ 0.778 │ 1.000 │  3   │
+│ openai    │ 1.000 │ 0.563 │ 1.000 │ 0.857 │ 0.778 │ 1.000 │  4   │
+│ openai    │ 1.000 │ 0.539 │ 1.000 │ 0.857 │ 0.768 │ 1.000 │  5   │
+└───────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+             Forensic Audit — Task: fill_background_002             
+┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ openai    │ 1.000 │ 0.600 │ 1.000 │ 1.000 │ 0.835 │ 1.000 │  1   │
+│ openai    │ 1.000 │ 0.576 │ 1.000 │ 1.000 │ 0.825 │ 1.000 │  2   │
+│ openai    │ 1.000 │ 0.552 │ 1.000 │ 1.000 │ 0.816 │ 1.000 │  3   │
+│ openai    │ 1.000 │ 0.552 │ 1.000 │ 1.000 │ 0.816 │ 1.000 │  4   │
+│ openai    │ 1.000 │ 0.552 │ 1.000 │ 1.000 │ 0.816 │ 1.000 │  5   │
+└───────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+             Forensic Audit — Task: horizontal_flip_004             
+┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  1   │
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  2   │
+│ openai    │ 1.000 │ 0.683 │ 1.000 │ 1.000 │ 0.869 │ 1.000 │  3   │
+│ openai    │ 1.000 │ 0.683 │ 1.000 │ 1.000 │ 0.869 │ 1.000 │  4   │
+│ openai    │ 1.000 │ 0.683 │ 1.000 │ 1.000 │ 0.869 │ 1.000 │  5   │
+└───────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+              Forensic Audit — Task: vertical_flip_005              
+┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━┓
+┃ Generator ┃     U ┃     C ┃     M ┃     V ┃ Total ┃  Conf ┃ Rank ┃
+┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━┩
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  1   │
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  2   │
+│ openai    │ 1.000 │ 0.707 │ 1.000 │ 1.000 │ 0.879 │ 1.000 │  3   │
+│ openai    │ 1.000 │ 0.683 │ 1.000 │ 1.000 │ 0.869 │ 1.000 │  4   │
+│ openai    │ 1.000 │ 0.683 │ 1.000 │ 1.000 │ 0.869 │ 1.000 │  5   │
+└───────────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+
+              Benchmark Metrics               
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ Metric                           ┃ Value   ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ total_runs                       │ 5       │
+│ accuracy                         │ 0.0     │
+│ coverage                         │ 0.0     │
+│ abstention_rate                  │ 0.0     │
+│ resample_rate                    │ 1.0     │
+│   decision_distribution.resample │ 5       │
+│ avg_duration_seconds             │ 50.1383 │
+└──────────────────────────────────┴─────────┘

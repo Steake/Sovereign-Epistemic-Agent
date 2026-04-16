@@ -104,8 +104,19 @@ class Orchestrator:
         """Public accessor for the underlying :class:`LedgerStore`."""
         return self._store
 
-    def run(self, task: Task) -> ExperimentRun:
+    def run(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> ExperimentRun:
         """Execute the full tribunal pipeline for *task*.
+
+        Parameters
+        ----------
+        task:
+            The task to solve.
+        on_token:
+            Optional callback for streaming tokens from generators.
 
         Returns
         -------
@@ -122,7 +133,7 @@ class Orchestrator:
         self._writer.write_task(task)
 
         # 1. Generate candidates
-        traces = self._generate(task)
+        traces = self._generate(task, on_token=on_token)
         self._writer.write_traces(task, traces)
 
         # 2. Extract invariants
@@ -239,9 +250,13 @@ class Orchestrator:
             )
         return run
 
-    def run_and_format(self, task: Task) -> dict:
+    def run_and_format(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> dict:
         """Run the pipeline and return a JSON-serialisable result dict."""
-        run = self.run(task)
+        run = self.run(task, on_token=on_token)
         return {
             "run_id": run.run_id,
             "task_id": run.task_id,
@@ -255,7 +270,11 @@ class Orchestrator:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _generate(self, task: Task) -> list[CandidateTrace]:
+    def _generate(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> list[CandidateTrace]:
         traces: list[CandidateTrace] = []
         self.last_generation_stats = {
             "truncation_count": 0,
@@ -267,7 +286,7 @@ class Orchestrator:
         }
         for gen in self._generators:
             try:
-                trace = gen.generate(task)
+                trace = gen.generate(task, on_token=on_token)
                 traces.append(trace)
                 log.debug("Generator %r produced trace %s", gen.name, trace.trace_id[:8])
             except Exception as exc:

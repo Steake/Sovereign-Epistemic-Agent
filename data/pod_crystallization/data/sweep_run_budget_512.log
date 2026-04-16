@@ -1,0 +1,468 @@
+Starting Full 50-Task Validation Sweep (4 Arms)...
+Dataset: /workspace/arc_dataset
+
+Targeting Arm: Greedy (arm1_greedy.yaml)
+Clearing existing ledger: configs/validation/data/arm1_greedy.db
+[04/14/26 19:59:12] INFO     Loading tasks from authoritative manifest:         
+                             data/smoke_test_manifest.txt                       
+                    INFO     Running tribunal on task auto_control_0a7d41f9     
+[04/14/26 19:59:12] INFO     Starting tribunal run ea454f2b for task            
+                             auto_control_0a7d41f9                              
+[04/14/26 19:59:12] INFO     Connecting to vLLM background API server for       
+                             inference at http://localhost:8000/v1              
+[04/14/26 19:59:24] INFO     LLM Generation complete. Length: 173 chars.        
+                             finish=stop. Snippet: {"answer": [[0, 0, 0, 0, 0,  
+                             0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0,   
+                             0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],  
+                             [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]}...  
+                    INFO     LLM Generation complete. Length: 173 characters    
+[04/14/26 19:59:24] INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_0a7d41f9                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.906)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 5c7bfb22                   
+[04/14/26 19:59:24] INFO     Running tribunal on task auto_control_10a8c371     
+                    INFO     Starting tribunal run 9c64206a for task            
+                             auto_control_10a8c371                              
+[04/14/26 19:59:35] INFO     LLM Generation complete. Length: 98 chars.         
+                             finish=stop. Snippet: {"answer": [[4, 1, 1, 4, 1], 
+                             [4, 1, 1, 4, 1], [4, 1, 1, 4, 1], [4, 1, 1, 4, 1], 
+                             [4, 1, 1, 4, 1]]} ...                              
+                    INFO     LLM Generation complete. Length: 98 characters     
+[04/14/26 19:59:35] INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_10a8c371                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: befbfd72                   
+[04/14/26 19:59:35] INFO     Running tribunal on task auto_control_22ae2e50     
+                    INFO     Starting tribunal run bbac31d5 for task            
+                             auto_control_22ae2e50                              
+[04/14/26 19:59:46] INFO     LLM Generation complete. Length: 114 chars.        
+                             finish=stop. Snippet: {"answer": [[4, 4, 4, 4, 4], 
+                             [1, 1, 1, 1, 1], [3, 3, 3, 3, 3], [5, 5, 5, 5, 5], 
+                             [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]}...              
+                    INFO     LLM Generation complete. Length: 114 characters    
+[04/14/26 19:59:46] INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_22ae2e50                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 93ee87f1                   
+[04/14/26 19:59:46] INFO     Running tribunal on task auto_control_2387060f     
+                    INFO     Starting tribunal run 6a391c27 for task            
+                             auto_control_2387060f                              
+[04/14/26 19:59:56] INFO     LLM Generation complete. Length: 83 chars.         
+                             finish=stop. Snippet: {"answer": [[5, 9, 1, 3], [1,
+                             1, 8, 2], [7, 3, 7, 2], [2, 2, 2, 6], [5, 1, 2,    
+                             7]]} ...                                           
+                    INFO     LLM Generation complete. Length: 83 characters     
+[04/14/26 19:59:56] INFO     Extracted 3 invariant(s) for task                  
+                             auto_control_2387060f                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: bf00d092                   
+[04/14/26 19:59:56] INFO     Running tribunal on task auto_control_2670f740     
+                    INFO     Starting tribunal run 487c7d2e for task            
+                             auto_control_2670f740                              
+[04/14/26 20:00:07] INFO     LLM Generation complete. Length: 83 chars.         
+                             finish=stop. Snippet: {"answer": [[3, 5, 7, 5], [3,
+                             9, 8, 6], [3, 7, 4, 5], [3, 9, 9, 2], [3, 9, 6,    
+                             2]]} ...                                           
+                    INFO     LLM Generation complete. Length: 83 characters     
+[04/14/26 20:00:07] INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_2670f740                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 59c3cc74                   
+[04/14/26 20:00:07] INFO     Running tribunal on task auto_control_26d0e348     
+                    INFO     Starting tribunal run 70f5b646 for task            
+                             auto_control_26d0e348                              
+[04/14/26 20:00:17] INFO     LLM Generation complete. Length: 97 chars.         
+                             finish=stop. Snippet: {"answer": [[0, 0, 0, 0, 0], 
+                             [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], 
+                             [0, 0, 0, 0, 0]]}...                               
+                    INFO     LLM Generation complete. Length: 97 characters     
+[04/14/26 20:00:17] INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26d0e348                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 996db245                   
+[04/14/26 20:00:17] INFO     Running tribunal on task auto_control_26f31f37     
+                    INFO     Starting tribunal run 670cd722 for task            
+                             auto_control_26f31f37                              
+[04/14/26 20:00:27] INFO     LLM Generation complete. Length: 82 chars.         
+                             finish=stop. Snippet: {"answer": [[4, 1, 2, 3], [1,
+                             4, 2, 3], [2, 4, 3, 1], [3, 1, 2, 2], [5, 0, 0,    
+                             0]]}...                                            
+                    INFO     LLM Generation complete. Length: 82 characters     
+[04/14/26 20:00:27] INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26f31f37                              
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.406)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 76827cae                   
+[04/14/26 20:00:27] INFO     Running tribunal on task                           
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Starting tribunal run 2cea7879 for task            
+                             auto_selector_divergence_2ef7ff5d                  
+[04/14/26 20:00:39] INFO     LLM Generation complete. Length: 220 chars.        
+                             finish=stop. Snippet: {"answer": [[0, 0, 0, 0, 0,  
+                             0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 4, 4, 4,
+                             4, 0, 0], [0, 0, 4, 0, 0, 4, 0, 0], [0, 0, 0, 0, 0,
+                             0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0,
+                             0, 0, 0], [0, 0,...                                
+                    INFO     LLM Generation complete. Length: 220 characters    
+[04/14/26 20:00:39] INFO     Extracted 6 invariant(s) for task                  
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Uncertainty: n_traces=2, clusters=2, entropy=0.693,
+                             margin=0.000, coalition_mass=0.500,                
+                             disagreement_rate=1.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.812)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: febdbc93                   
+Arm Greedy complete in 87.4s. Accuracy: 0.0
+
+Targeting Arm: Structural (arm2_structural.yaml)
+Clearing existing ledger: configs/validation/data/arm2_structural.db
+[04/14/26 20:00:39] INFO     Loading tasks from authoritative manifest:         
+                             data/smoke_test_manifest.txt                       
+                    INFO     Running tribunal on task auto_control_0a7d41f9     
+                    INFO     Starting tribunal run 3a8fbc30 for task            
+                             auto_control_0a7d41f9                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_0a7d41f9                              
+                    INFO     Uncertainty: n_traces=5, clusters=4, entropy=1.332,
+                             margin=0.200, coalition_mass=0.400,                
+                             disagreement_rate=0.900                            
+                    INFO     Decision: select (confidence=0.372)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: fe8ad9b0                   
+                    INFO     Running tribunal on task auto_control_10a8c371     
+                    INFO     Starting tribunal run 0689d980 for task            
+                             auto_control_10a8c371                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_10a8c371                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.455)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 6252bc86                   
+                    INFO     Running tribunal on task auto_control_22ae2e50     
+                    INFO     Starting tribunal run 22d8195d for task            
+                             auto_control_22ae2e50                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_22ae2e50                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.458)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 191a6780                   
+                    INFO     Running tribunal on task auto_control_2387060f     
+                    INFO     Starting tribunal run e82a183f for task            
+                             auto_control_2387060f                              
+                    INFO     Extracted 3 invariant(s) for task                  
+                             auto_control_2387060f                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.455)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 081032a0                   
+                    INFO     Running tribunal on task auto_control_2670f740     
+                    INFO     Starting tribunal run a8287f00 for task            
+                             auto_control_2670f740                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_2670f740                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: resample (confidence=0.454)              
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: f695174b                   
+                    INFO     Running tribunal on task auto_control_26d0e348     
+                    INFO     Starting tribunal run 5e36186f for task            
+                             auto_control_26d0e348                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26d0e348                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.456)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: cbb53f0f                   
+                    INFO     Running tribunal on task auto_control_26f31f37     
+                    INFO     Starting tribunal run 1b591136 for task            
+                             auto_control_26f31f37                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26f31f37                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.457)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: b394bff3                   
+                    INFO     Running tribunal on task                           
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Starting tribunal run 4a6e707b for task            
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Extracted 6 invariant(s) for task                  
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.484)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 66c236ea                   
+Arm Structural complete in 0.1s. Accuracy: 0.0
+
+Targeting Arm: Lockout (arm3_lockout.yaml)
+Clearing existing ledger: configs/validation/data/arm3_lockout.db
+                    INFO     Loading tasks from authoritative manifest:         
+                             data/smoke_test_manifest.txt                       
+                    INFO     Running tribunal on task auto_control_0a7d41f9     
+                    INFO     Starting tribunal run 08dade59 for task            
+                             auto_control_0a7d41f9                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_0a7d41f9                              
+                    INFO     Uncertainty: n_traces=5, clusters=4, entropy=1.332,
+                             margin=0.200, coalition_mass=0.400,                
+                             disagreement_rate=0.900                            
+                    INFO     Decision: select (confidence=0.372)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: f933efdd                   
+                    INFO     Running tribunal on task auto_control_10a8c371     
+                    INFO     Starting tribunal run 53100965 for task            
+                             auto_control_10a8c371                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_10a8c371                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.455)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: dd741673                   
+                    INFO     Running tribunal on task auto_control_22ae2e50     
+                    INFO     Starting tribunal run f3a96eab for task            
+                             auto_control_22ae2e50                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_22ae2e50                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.458)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 769e11b7                   
+                    INFO     Running tribunal on task auto_control_2387060f     
+                    INFO     Starting tribunal run 04614cc8 for task            
+                             auto_control_2387060f                              
+                    INFO     Extracted 3 invariant(s) for task                  
+                             auto_control_2387060f                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.455)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 3de4fefc                   
+                    INFO     Running tribunal on task auto_control_2670f740     
+                    INFO     Starting tribunal run 03156883 for task            
+                             auto_control_2670f740                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_2670f740                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: resample (confidence=0.454)              
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 6219c0de                   
+                    INFO     Running tribunal on task auto_control_26d0e348     
+                    INFO     Starting tribunal run 5ec12e06 for task            
+                             auto_control_26d0e348                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26d0e348                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.456)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 9fbf2c03                   
+                    INFO     Running tribunal on task auto_control_26f31f37     
+                    INFO     Starting tribunal run 8f7e27f9 for task            
+                             auto_control_26f31f37                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26f31f37                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.457)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 7482e943                   
+                    INFO     Running tribunal on task                           
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Starting tribunal run 67aed876 for task            
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Extracted 6 invariant(s) for task                  
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.484)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 301c0e39                   
+Arm Lockout complete in 0.1s. Accuracy: 0.0
+
+Targeting Arm: Path B (arm4_path_b.yaml)
+Clearing existing ledger: configs/validation/data/arm4_path_b.db
+                    INFO     Loading tasks from authoritative manifest:         
+                             data/smoke_test_manifest.txt                       
+                    INFO     Running tribunal on task auto_control_0a7d41f9     
+                    INFO     Starting tribunal run 454037f0 for task            
+                             auto_control_0a7d41f9                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_0a7d41f9                              
+                    INFO     Uncertainty: n_traces=5, clusters=4, entropy=1.332,
+                             margin=0.200, coalition_mass=0.400,                
+                             disagreement_rate=0.900                            
+                    INFO     Decision: select (confidence=0.372)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 84b5b584                   
+                    INFO     Running tribunal on task auto_control_10a8c371     
+                    INFO     Starting tribunal run 3719f58f for task            
+                             auto_control_10a8c371                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_10a8c371                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.455)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: d0c6866b                   
+                    INFO     Running tribunal on task auto_control_22ae2e50     
+                    INFO     Starting tribunal run 2a2f5242 for task            
+                             auto_control_22ae2e50                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_22ae2e50                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.458)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 0839e327                   
+                    INFO     Running tribunal on task auto_control_2387060f     
+                    INFO     Starting tribunal run 25d2e56a for task            
+                             auto_control_2387060f                              
+                    INFO     Extracted 3 invariant(s) for task                  
+                             auto_control_2387060f                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.455)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 47cbe170                   
+                    INFO     Running tribunal on task auto_control_2670f740     
+                    INFO     Starting tribunal run 5d443833 for task            
+                             auto_control_2670f740                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_2670f740                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: resample (confidence=0.454)              
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 7c936dba                   
+                    INFO     Running tribunal on task auto_control_26d0e348     
+                    INFO     Starting tribunal run b14aa827 for task            
+                             auto_control_26d0e348                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26d0e348                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.456)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: bd2b26c6                   
+                    INFO     Running tribunal on task auto_control_26f31f37     
+                    INFO     Starting tribunal run 51be6c3d for task            
+                             auto_control_26f31f37                              
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_26f31f37                              
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.457)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 980ce634                   
+                    INFO     Running tribunal on task                           
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Starting tribunal run 600f95a4 for task            
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Extracted 6 invariant(s) for task                  
+                             auto_selector_divergence_2ef7ff5d                  
+                    INFO     Uncertainty: n_traces=5, clusters=2, entropy=0.500,
+                             margin=0.600, coalition_mass=0.800,                
+                             disagreement_rate=0.400                            
+                    INFO     Decision: select (confidence=0.484)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 43642faa                   
+Arm Path B complete in 0.1s. Accuracy: 0.0
+
+
+                Final Validation Scorecard (8 Tasks)                 
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━┓
+┃ Metric                   ┃ Greedy ┃ Structural ┃ Lockout ┃ Path B ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━┩
+│ overall_accuracy         │    0.0 │        0.0 │     0.0 │    0.0 │
+│ resolved_accuracy        │    0.0 │        0.0 │     0.0 │    0.0 │
+│ coverage                 │    1.0 │      0.875 │   0.875 │  0.875 │
+│ resample_rate            │    0.0 │      0.125 │   0.125 │  0.125 │
+│ wrong_pick_count         │      8 │          7 │       7 │      7 │
+│ override_count           │      0 │          0 │       0 │      0 │
+│ truncation_count         │      0 │          0 │       0 │      0 │
+│ json_not_found_count     │      0 │          0 │       0 │      0 │
+│ json_invalid_count       │      0 │          0 │       0 │      0 │
+│ grid_shape_invalid_count │      0 │          0 │       0 │      0 │
+│ reasoning_bleed_count    │      0 │          0 │       0 │      0 │
+│ parse_failure_count      │      0 │          0 │       0 │      0 │
+│ path_b_met_gate          │      0 │          0 │       0 │      0 │
+│ path_b_failed_v          │      0 │          5 │       0 │      5 │
+│ path_b_failed_c          │      0 │          8 │       0 │      8 │
+│ path_b_failed_violations │      0 │          5 │       0 │      5 │
+│ path_b_failed_margin     │      0 │          1 │       0 │      1 │
+└──────────────────────────┴────────┴────────────┴─────────┴────────┘
+Final results saved to data/validation_results_v1.json

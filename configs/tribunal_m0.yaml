@@ -1,0 +1,57 @@
+# ============================================================================
+# Experiment M0 — Lower Selection Threshold
+# ============================================================================
+# Root cause from Run 3: all 3 generators produce different answers → max
+# entropy, coalition_mass=0.33, margin=0.000. The tribunal scores fall in the
+# range [0.28, 0.38] — above resample_threshold but below selection_threshold
+# (0.35), landing in the RESAMPLE zone on almost every task.
+#
+# M0 fix: lower selection_threshold to 0.27 so scores >=0.28 trigger SELECT
+# instead of RESAMPLE. We keep the other signal weights the same.
+# ============================================================================
+
+tribunal:
+  adjudication_strategy: "standard"
+  selection_threshold: 0.27       # ↓ from 0.35 — captures scores in 0.28-0.35
+  resample_threshold: 0.10        # ↓ slightly to avoid abstaining on low tasks
+  max_resample_attempts: 1
+  diversity_floor: 0.60
+  ledger_warmup_tasks: 0
+  # Disable the discordant-resample guardrails — they were blocking every SELECT
+  # because margin is always 0 when all generators disagree. Setting to 0.0
+  # disables each guard entirely (per aggregator logic).
+  guardrail_margin_threshold: 0.0   # No minimum margin required
+  guardrail_min_coalition_mass: 0.0 # No minimum coalition mass required
+  weights:
+    uncertainty: 0.25
+    critic: 0.35
+    memory: 0.00
+    invariant: 0.40
+  structural_override:
+    enabled: true
+    v_threshold: 0.75
+    c_threshold: 0.70
+    margin_threshold: 0.03
+    confidence_cap: 0.72
+
+generators:
+  enabled: ["llm", "greedy", "diverse"]
+  seed: 42
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 8192
+    temperature: 0.0
+    top_p: 0.95
+    use_json_schema: false
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/tribunal_m0_ledger.db"
+
+metadata:
+  arm_name: "tribunal_m0"
+  experiment: "m0_lower_threshold"
+  description: >
+    M0: Lowered selection_threshold to 0.27 to break the RESAMPLE deadlock.
+    Same 3-generator pool as Run 3 (llm + greedy + diverse).

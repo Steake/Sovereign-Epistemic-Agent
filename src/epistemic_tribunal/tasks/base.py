@@ -179,3 +179,28 @@ def grid_similarity(a: Grid, b: Grid) -> float:
         return 0.0
     matches = sum(a[r][c] == b[r][c] for r in range(rows) for c in range(cols))
     return matches / total
+
+
+# ---------------------------------------------------------------------------
+# Transformation primitives
+# ---------------------------------------------------------------------------
+
+
+def rotate_90(grid: Grid) -> Grid:
+    """Rotate the grid 90 degrees clockwise."""
+    rows, cols = grid_shape(grid)
+    new_grid = [[0] * rows for _ in range(cols)]
+    for r in range(rows):
+        for c in range(cols):
+            new_grid[c][rows - 1 - r] = grid[r][c]
+    return new_grid
+
+
+def flip_h(grid: Grid) -> Grid:
+    """Flip the grid horizontally (left to right)."""
+    return [row[::-1] for row in grid]
+
+
+def flip_v(grid: Grid) -> Grid:
+    """Flip the grid vertically (top to bottom)."""
+    return grid[::-1]

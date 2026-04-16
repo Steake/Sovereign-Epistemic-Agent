@@ -1,0 +1,36 @@
+Starting Full 50-Task Validation Sweep (4 Arms)...
+Dataset: /workspace/arc_dataset
+
+Targeting Arm: Greedy (arm1_greedy.yaml)
+Clearing existing ledger: configs/validation/data/arm1_greedy.db
+[04/14/26 19:22:06] INFO     Loading tasks from authoritative manifest:         
+                             data/smoke_test_manifest.txt                       
+                    INFO     Running tribunal on task auto_control_0a7d41f9     
+[04/14/26 19:22:06] INFO     Starting tribunal run e6792eaf for task            
+                             auto_control_0a7d41f9                              
+[04/14/26 19:22:06] INFO     Connecting to vLLM background API server for       
+                             inference at http://localhost:8000/v1              
+[04/14/26 19:23:57] INFO     LLM Generation complete. Length: 14404 chars.      
+                             finish=stop. Snippet: { "answer": [[0, 0, 0, 0, 0, 
+                             0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0,   
+                             0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],  
+                             [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],     
+                             "reasoning_steps": [   "A...                       
+                    INFO     LLM Generation complete. Length: 14404 characters  
+                    WARNING  LLM response contained no JSON object with an      
+                             answer field.                                      
+[04/14/26 19:23:57] ERROR    Generator 'llm' failed: LLM response did not       
+                             contain a valid 7x7 grid.                          
+                    INFO     Extracted 4 invariant(s) for task                  
+                             auto_control_0a7d41f9                              
+                    INFO     Uncertainty: n_traces=1, clusters=1, entropy=0.000,
+                             margin=1.000, coalition_mass=1.000,                
+                             disagreement_rate=0.000                            
+                    INFO     Adjudication strategy is 'greedy': Forced selection
+                             of greedy trace.                                   
+                    INFO     Decision: select (confidence=0.906)                
+                    INFO     Ground-truth match: False                          
+                    INFO     Failure record written: 1782cb04                   
+[04/14/26 19:23:57] INFO     Running tribunal on task auto_control_10a8c371     
+                    INFO     Starting tribunal run d13c64f1 for task            
+                             auto_control_10a8c371                              

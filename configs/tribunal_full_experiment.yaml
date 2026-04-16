@@ -1,0 +1,66 @@
+# ============================================================================
+# Epistemic ARC — Full Tribunal Experiment
+# ============================================================================
+# This is the DEFINITIVE experiment that exercises the tribunal's full
+# adjudication machinery:
+#
+#  Generator Pool (3 diverse agents):
+#   1. llm       — DeepSeek-chat via remote API (primary intelligent agent)
+#   2. greedy    — deterministic heuristic (colour-frequency majority rule)
+#   3. diverse   — stochastic perturbation of greedy (10% cell perturbation)
+#
+#  Why this composition works:
+#   - LLM answers are genuine pattern-recognition hypotheses
+#   - Greedy provides a solid, deterministic baseline that often agrees with LLM
+#   - Diverse adds controlled noise to break ties and test coalition sensitivity
+#   - Coalition can now span 2+ generator types → diversity_floor can be satisfied
+#   - Tribunal can SELECT, not just RESAMPLE/ABSTAIN
+#
+#  adjudication_strategy: standard (full tribunal pipeline)
+#  diversity_floor: 0.60  (relaxed vs default 0.90 — allows coalition with 2 types)
+#  selection_threshold: 0.35 (slightly relaxed for real-world single-API coverage)
+#  structural_override: enabled — Path B can snap a decision when critic+invariant evidence is overwhelming
+#  ledger_warmup_tasks: 0  (no warmup required for this test)
+# ============================================================================
+
+tribunal:
+  adjudication_strategy: "standard"
+  selection_threshold: 0.35       # Score at which tribunal commits to SELECT
+  resample_threshold: 0.15        # Score floor below which we ABSTAIN
+  max_resample_attempts: 1        # One retry before abstaining
+  diversity_floor: 0.60           # Relaxed: coalition of 2 types can satisfy this
+  ledger_warmup_tasks: 0          # No memory warmup — cold start
+  weights:
+    uncertainty: 0.25             # Entropy + coalition mass signal
+    critic: 0.35                  # Consistency + invariant compliance
+    memory: 0.00                  # No ledger history yet
+    invariant: 0.40               # Shape, colour, object count checks
+  structural_override:
+    enabled: true
+    v_threshold: 0.80             # Invariant compliance must be high
+    c_threshold: 0.75             # Critic aggregate must be high
+    margin_threshold: 0.04        # Structural margin needed for Path B bypass
+    confidence_cap: 0.72          # Cap confidence on bypass to mark uncertainty
+
+generators:
+  enabled: ["llm", "greedy", "diverse"]
+  seed: 42
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 8192
+    temperature: 0.0              # Greedy decoding for deterministic LLM output
+    top_p: 0.95
+    use_json_schema: false        # json_object mode (DeepSeek V3 compatible)
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/tribunal_full_experiment_ledger.db"
+
+metadata:
+  arm_name: "tribunal_full_3gen"
+  experiment: "full_tribunal_exercise_v1"
+  description: >
+    Full tribunal test: LLM + Greedy + Diverse generators.
+    Exercises standard adjudication, Path B override, and coalition
+    diversity gating across 10 tasks.

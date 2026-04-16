@@ -1,0 +1,41 @@
+{
+  "DeepSeek (tribunal_full_experiment)": {
+    "total_runs": 10,
+    "overall_accuracy": 0.1,
+    "resolved_accuracy": 0.0,
+    "coverage": 0.1,
+    "abstention_rate": 0.0,
+    "resample_rate": 0.9,
+    "wrong_pick_count": 1,
+    "override_count": 0,
+    "truncation_count": 0,
+    "json_not_found_count": 0,
+    "json_invalid_count": 0,
+    "grid_shape_invalid_count": 0,
+    "reasoning_bleed_count": 0,
+    "parse_failure_count": 0,
+    "path_b_met_gate": 9,
+    "path_b_failed_v": 4,
+    "path_b_failed_c": 10,
+    "path_b_failed_margin": 5,
+    "path_b_failed_violations": 4,
+    "mean_confidence": 0.5492,
+    "decision_distribution": {
+      "select": 1,
+      "resample": 9
+    },
+    "avg_duration_seconds": 7.6133,
+    "ece": 0.5492,
+    "brier_score": 0.3016,
+    "selective_accuracy_90": {
+      "accuracy": 0.0,
+      "coverage": 1.0,
+      "threshold": 0.5492
+    },
+    "abstention_quality": {
+      "abstention_rate": 0.0,
+      "wrong_abstention_rate": 0.0,
+      "correct_abstention_rate": 0.0
+    }
+  }
+}

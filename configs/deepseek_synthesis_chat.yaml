@@ -1,0 +1,23 @@
+# Phase 3 Synthesis Debug — DeepSeek Chat (Non-Reasoning)
+tribunal:
+  ledger_warmup_tasks: 0
+  adjudication_strategy: "greedy"
+  weights:
+    memory: 0.0
+
+generators:
+  enabled: ["synthesis"]
+  llm:
+    model_name: "deepseek-chat"
+  configs:
+    synthesis:
+      model: "deepseek-chat"
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/deepseek_synthesis_chat.db"
+
+metadata:
+  arm_name: "synthesis_debug_chat"
+  experiment: "phase3_synthesis_verification"

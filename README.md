@@ -6,6 +6,8 @@ This repository is the home of the **Sovereign Epistemic Agent** project. Its fi
 
 The system does not treat the first plausible answer as sovereign. It stages a contest between competing internal accounts of the task, scores those accounts against structural constraints and prior failure patterns, and then decides whether any candidate deserves selection. The central object here is not "the answer." It is the governed conflict between candidate hypotheses.
 
+**Read the final experimental audit:** [The Crucible of Reason: An Audit of the Epistemic Tribunal](docs/experiment_report_final.md)
+
 ---
 
 ## Table of Contents

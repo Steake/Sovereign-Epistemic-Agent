@@ -22,7 +22,11 @@ class GreedyGenerator(BaseGenerator):
 
     name = "greedy"
 
-    def generate(self, task: Task) -> CandidateTrace:
+    def generate(
+        self, 
+        task: Task, 
+        on_token: Optional[Callable[[str, str], None]] = None
+    ) -> CandidateTrace:
         rng = random.Random(self.seed)
 
         # Build colour mapping from training pairs
