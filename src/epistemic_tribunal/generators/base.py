@@ -80,6 +80,8 @@ def build_generators(
     from epistemic_tribunal.generators.minimal import MinimalDescriptionGenerator
 
     from epistemic_tribunal.generators.llm import LLMGenerator, OpenAIGenerator
+    from epistemic_tribunal.generators.llm_cot import CoTLLMGenerator
+    from epistemic_tribunal.generators.llm_codegen import CodeGenLLMGenerator
     from epistemic_tribunal.generators.synthesis import ProgramSynthesisGenerator
 
     REGISTRY: dict[str, type[BaseGenerator]] = {
@@ -89,6 +91,8 @@ def build_generators(
         "rule_first": RuleFirstGenerator,
         "minimal_description": MinimalDescriptionGenerator,
         "llm": LLMGenerator,
+        "llm_cot": CoTLLMGenerator,
+        "llm_codegen": CodeGenLLMGenerator,
         "openai": OpenAIGenerator,
         "synthesis": ProgramSynthesisGenerator,
     }

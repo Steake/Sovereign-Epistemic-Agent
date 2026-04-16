@@ -1,0 +1,80 @@
+# ============================================================================
+# Experiment M2 — Orthogonal LLM Cognitive Modes
+# ============================================================================
+# Goal: Achieve true intellectual plurality by forcing the LLM into distinct 
+# cognitive strategies. Instead of multiple instances doing the same thing, 
+# we deploy:
+#   1. llm (T=0.0): Raw deterministic spatial synthesis
+#   2. llm_cot: Demands explicit natural language Chain-of-Thought reasoning
+#   3. llm_codegen: Writes executable Python to algorithmically solve the grid
+#   4. greedy: Provides heuristic anchoring
+#
+# Finding a consensus across fundamentally different modes of reasoning is 
+# the strongest epistemic signal we can generate. A 2/4 coalition avoids
+# the M1 lockout because the generator identities are mathematically distinct.
+# ============================================================================
+
+tribunal:
+  adjudication_strategy: "standard"
+  selection_threshold: 0.30
+  resample_threshold: 0.10
+  max_resample_attempts: 1
+  diversity_floor: 0.45           # 2 out of 4 passing = 0.50
+  ledger_warmup_tasks: 0
+  guardrail_margin_threshold: 0.0   
+  guardrail_min_coalition_mass: 0.20 # 1 out of 4 agreeing = 0.25
+  weights:
+    uncertainty: 0.25
+    critic: 0.35
+    memory: 0.00
+    invariant: 0.40
+  structural_override:
+    enabled: true
+    v_threshold: 0.75
+    c_threshold: 0.70
+    margin_threshold: 0.03
+    confidence_cap: 0.72
+
+generators:
+  enabled: ["llm", "llm_cot", "llm_codegen", "greedy"]
+  seed: 42
+  configs:
+    llm:
+      model_name: "deepseek-chat"
+      temperature: 0.0            
+      max_new_tokens: 8192
+      top_p: 0.95
+      use_json_schema: false
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+      
+    llm_cot:
+      type: "llm_cot"
+      model_name: "deepseek-reasoner"
+      temperature: 0.1
+      max_new_tokens: 8192
+      top_p: 0.95
+      use_json_schema: false
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+      
+    llm_codegen:
+      type: "llm_codegen"
+      model_name: "deepseek-chat"
+      temperature: 0.2
+      max_new_tokens: 8192
+      top_p: 0.95
+      use_json_schema: false
+      api_base: "https://api.deepseek.com"
+      api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/tribunal_m2_ledger.db"
+
+metadata:
+  arm_name: "tribunal_m2"
+  experiment: "m2_orthogonal_llm_modes"
+  description: >
+    M2: Replaced the diverse heuristic and warm LLM with llm_cot and llm_codegen,
+    pitting spatial matching vs reasoning vs algorithmic synthesis against 
+    each other to test if true multi-modal LLM quorum can be achieved.

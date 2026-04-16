@@ -144,21 +144,31 @@ class LiveBenchmarkUI:
         return table
 
     def make_reasoning_panel(self) -> Panel:
-        # Support display logic for both reasoning and non-reasoning endpoints
+        from rich.markup import escape
+        
+        # Truncate raw strings before adding markup to prevent unclosed tags
+        reasoning_str = self.current_reasoning
+        content_str = self.current_content
+        
+        # Roughly truncate to last 1000 characters to prevent massive slowdowns
+        # and prevent splitting lines/tags awkwardly
+        if len(reasoning_str) > 1500:
+            reasoning_str = "...\n" + reasoning_str[-1500:]
+        if len(content_str) > 1500:
+            content_str = "...\n" + content_str[-1500:]
+            
         sections = []
-        if self.current_reasoning:
-            sections.append(f"[bold cyan]Reasoning Trace:[/]\n[dim]{escape(self.current_reasoning)}[/]\n")
-        if self.current_content:
-            sections.append(f"[bold green]LLM Content Stream:[/]\n{escape(self.current_content)}")
+        if reasoning_str:
+            sections.append(f"[bold cyan]Reasoning Trace:[/]\n[dim]{escape(reasoning_str)}[/]\n")
+        if content_str:
+            sections.append(f"[bold green]LLM Content Stream:[/]\n{escape(content_str)}")
             
         display_text = "\n".join(sections)
         if not display_text:
             display_text = "[italic dim]Awaiting LLM generation tokens...[/italic dim]"
             
-        # Limit display size gracefully avoiding massive terminal hang breaks
-        lines = display_text.splitlines()
-        if len(lines) > 30:
-            display_text = "...\n" + "\n".join(lines[-30:])
+        # We handle size via string slicing above instead of line slicing here
+        # which protects the markup bounding tags.
             
         return Panel(
             Text.from_markup(display_text),
