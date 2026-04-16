@@ -103,6 +103,7 @@ class LiveBenchmarkUI:
         self.tribunal_logs.append(text)
         if hasattr(self, 'layout'):
             self.layout["tribunal"].update(self.make_tribunal_panel())
+            self.layout["header"].update(self.make_header())
 
     def on_token(self, token_type: str, text: str):
         """Callback from Orchestrator/Generator."""
@@ -113,6 +114,7 @@ class LiveBenchmarkUI:
             
         if hasattr(self, 'layout'):
             self.layout["streaming"].update(self.make_reasoning_panel())
+            self.layout["header"].update(self.make_header())
 
     def make_header(self) -> Panel:
         grid = Table.grid(expand=True)

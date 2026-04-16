@@ -36,14 +36,13 @@ class CoTLLMGenerator(LLMGenerator):
             f"{template_str}\n\n"
             "=== RESPONSE FORMAT ===\n"
             "1. You MUST first reason explicitly about the transformations you observe.\n"
-            "Write your reasoning inside <think>...</think> XML tags.\n"
-            "Analyze colors, objects, spatial movements, and scaling rules.\n\n"
-            "2. After your <think> block, emit a JSON markdown block with your answer.\n"
+            "Analyze colors, objects, spatial movements, and scaling rules step-by-step.\n\n"
+            "2. After your reasoning, emit a JSON markdown block with your answer.\n"
             'Schema: {"answer": [[int, ...], ...]}\n'
             f"• Exactly {H} rows.\n"
             f"• Exactly {W} integers per row.\n"
             "• Every integer must be in range 0–9.\n"
-            "• Provide ONLY ONE JSON markdown block. Do not place reasoning inside the JSON.\n"
+            "• Provide ONLY ONE JSON markdown block at the very end.\n"
         )
 
         train_block = "\n".join(train_examples) if train_examples else "None"
