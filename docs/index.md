@@ -32,7 +32,7 @@ The central object is not "the answer." It is the governed conflict between cand
 
 ## Architecture
 
-```mermaid
+<div class="mermaid">
 flowchart TD
     Task[ARC Task Input] --> GB[Generator Bank]
     
@@ -57,7 +57,7 @@ flowchart TD
     
     TA --> FL[(Failure Ledger SQLite)]
     FL -.->|Future Penalisation| TC
-```
+</div>
 
 ## Links
 
