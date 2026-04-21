@@ -2,10 +2,11 @@
 
 Commands
 --------
-tribunal run       — evaluate a single task JSON file
-tribunal benchmark — run the tribunal over a dataset directory
-tribunal ledger stats   — show ledger statistics
-tribunal ledger inspect — show records for a specific task ID
+tribunal run                 — evaluate a single task JSON file
+tribunal benchmark           — run the tribunal over a dataset directory
+tribunal benchmark-usefulness — compare arms on annotated cohorts
+tribunal ledger stats        — show ledger statistics
+tribunal ledger inspect      — show records for a specific task ID
 """
 
 from __future__ import annotations
@@ -22,6 +23,15 @@ from epistemic_tribunal.config import load_config
 from epistemic_tribunal.evaluation import calibration
 from epistemic_tribunal.evaluation.benchmark import BenchmarkRunner
 from epistemic_tribunal.evaluation.benchmark import experiment_run_from_row
+from epistemic_tribunal.evaluation.benchmark_annotations import (
+    load_annotations,
+    load_oracle_metadata,
+)
+from epistemic_tribunal.evaluation.benchmark_report import (
+    build_report,
+    records_from_runs,
+)
+from epistemic_tribunal.evaluation.benchmark_spec import BenchmarkCohort
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
@@ -64,7 +74,16 @@ def run_task(
     orchestrator = Orchestrator(config)
 
     try:
-        task = load_task_from_file(task_path)
+        if task_path.suffix == ".jsonl":
+            from epistemic_tribunal.tasks.gsm8k import load_tasks_from_jsonl
+            tasks = load_tasks_from_jsonl(task_path)
+            if not tasks:
+                raise ValueError("JSONL file is empty.")
+            task = tasks[0]
+            if len(tasks) > 1:
+                log.warning("JSONL file has %d tasks, `run` will only process the first one. Use `benchmark` for all.", len(tasks))
+        else:
+            task = load_task_from_file(task_path)
     except (FileNotFoundError, ValueError) as exc:
         console.print(f"[red]Error loading task:[/red] {exc}")
         raise typer.Exit(1) from exc
@@ -100,6 +119,9 @@ def run_benchmark(
     ledger_path: Optional[str] = typer.Option(
         None, "--ledger", "-l", help="Override ledger DB path."
     ),
+    manifest_path: Optional[Path] = typer.Option(
+        None, "--manifest", "-m", help="Text file with task IDs (one per line) to run."
+    ),
     resume: bool = typer.Option(
         False,
         "--resume",
@@ -107,26 +129,28 @@ def run_benchmark(
     ),
     forensic: bool = typer.Option(False, "--forensic", help="Display detailed candidate score breakdown."),
     json_output: bool = typer.Option(False, "--json", help="Output metrics as JSON."),
+    limit: Optional[int] = typer.Option(None, "--limit", help="Cap the number of tasks to run."),
 ) -> None:
     """Run the tribunal over a directory of task JSON files."""
     config = load_config(config_path)
     if ledger_path:
         config.ledger.path = ledger_path
-
+    
     # Diagnostic Block
     log.info("CONFIG BOOT: Enabled Generators: %s", config.generators.enabled)
     log.info("CONFIG BOOT: Path B Enabled: %s", config.tribunal.structural_override.enabled)
 
     runner = BenchmarkRunner(config=config, ledger_path=ledger_path)
 
-    if not dataset_path.is_dir():
-        console.print(f"[red]Not a directory:[/red] {dataset_path}")
+    if not dataset_path.exists():
+        console.print(f"[red]Path not found:[/red] {dataset_path}")
         raise typer.Exit(1)
 
-    metrics = runner.run_and_report(dataset_path, resume=resume)
+    runs = runner.run(dataset_path, resume=resume, manifest_path=manifest_path, limit=limit)
+    metrics = runner.report(runs)
 
     if forensic:
-        _print_forensic_results(runner.last_runs)
+        _print_forensic_results(runner.last_runs, ledger_path=runner._config.ledger.path)
 
     if json_output:
         print(json.dumps(metrics, indent=2, default=str))
@@ -135,20 +159,145 @@ def run_benchmark(
 
 
 def _print_metrics(metrics: dict) -> None:
-    table = Table(title="Benchmark Metrics", show_header=True)
-    table.add_column("Metric", style="bold cyan")
-    table.add_column("Value", style="white")
-    for key, val in metrics.items():
-        if isinstance(val, dict):
-            for subkey, subval in val.items():
-                table.add_row(f"  {key}.{subkey}", str(subval))
-        else:
-            table.add_row(str(key), str(val))
-    console.print(table)
+    # 1. Main Performance Table
+    summary_table = Table(title="[bold blue]Benchmark Primary Performance[/bold blue]", show_header=True, box=None)
+    summary_table.add_column("Metric", style="cyan")
+    summary_table.add_column("Value", justify="right", style="bold white")
+    
+    summary_table.add_row("Total Runs", str(metrics["total_runs"]))
+    summary_table.add_row("Overall Accuracy", f"{metrics['overall_accuracy']:.4f}")
+    summary_table.add_row("Selective Accuracy", f"[bold green]{metrics['selective_accuracy']:.4f}[/bold green]")
+    summary_table.add_row("Coverage", f"{metrics['coverage']:.4f}")
+    summary_table.add_row("Wrong Picks", f"[bold red]{metrics['wrong_pick_count']}[/bold red]")
+    console.print(summary_table)
+    console.print()
+
+    # 2. Cohort Stratification Table
+    cohort_table = Table(title="[bold magenta]Cohort Stratification (Recoverable vs Contested)[/bold magenta]", show_header=True)
+    cohort_table.add_column("Cohort", style="bold cyan")
+    cohort_table.add_column("N", justify="right")
+    cohort_table.add_column("Selective Acc", justify="right", style="green")
+    cohort_table.add_column("Abstain Rate", justify="right", style="yellow")
+    cohort_table.add_column("Wrong Picks", justify="right", style="red")
+
+    cohort_map = {
+        "control-trivial": "[dim white]control-trivial[/dim white]",
+        "contested-recoverable": "[bold green]contested-recoverable[/bold green]",
+        "contested-unrecoverable": "[bold yellow]contested-unrecoverable[/bold yellow]",
+        "unknown": "[dim red]unknown[/dim red]"
+    }
+
+    cohort_metrics = metrics.get("cohort_metrics", {})
+    for name, display in cohort_map.items():
+        if name in cohort_metrics:
+            m = cohort_metrics[name]
+            cohort_table.add_row(
+                display,
+                str(m["n"]),
+                f"{m['selective_acc']:.4f}",
+                f"{m['abstain_rate']:.4f}",
+                str(m["wrong_picks"])
+            )
+    console.print(cohort_table)
+    console.print()
+
+    # 3. Abstention Quality Table
+    abstain_metrics = metrics.get("abstention_metrics", {})
+    if abstain_metrics:
+        abstain_table = Table(title="[bold yellow]Abstention Audit (Metacognitive Honesty)[/bold yellow]", show_header=True, box=None)
+        abstain_table.add_column("Abstention Type", style="cyan")
+        abstain_table.add_column("Count", justify="right")
+        abstain_table.add_column("Description", style="dim italic")
+
+        abstain_table.add_row(
+            "Good Abstentions", 
+            f"[bold green]{abstain_metrics['good_abstentions']}[/bold green]",
+            "Avoided unrecoverable errors"
+        )
+        abstain_table.add_row(
+            "Bad Abstentions", 
+            f"[bold red]{abstain_metrics['bad_abstentions']}[/bold red]",
+            "Missed recoverable solutions"
+        )
+        abstain_table.add_row(
+            "Efficiency", 
+            f"{abstain_metrics['abstention_efficiency']:.4f}",
+            "P(No Correct Answer | Abstain)"
+        )
+        console.print(abstain_table)
+        console.print()
+
+    # 3.5 Tribunal Usefulness Table
+    usefulness = metrics.get("tribunal_usefulness", {})
+    if usefulness:
+        usefulness_table = Table(title="[bold green]Tribunal Usefulness & Oracle Analysis[/bold green]", show_header=True, box=None)
+        usefulness_table.add_column("Metric", style="cyan")
+        usefulness_table.add_column("Value", justify="right", style="bold white")
+        usefulness_table.add_column("Description", style="dim italic")
+
+        usefulness_table.add_row(
+            "Best Candidate in Pool",
+            f"{usefulness['best_candidate_in_pool_accuracy']:.4f}",
+            "P(Correct | Oracle Selection)"
+        )
+        usefulness_table.add_row(
+            "Greedy Accuracy",
+            f"{usefulness['greedy_accuracy']:.4f}",
+            "Baseline LLM accuracy"
+        )
+        usefulness_table.add_row(
+            "Tribunal Lift",
+            f"[bold green]{usefulness['tribunal_lift_over_greedy']:+.4f}[/bold green]",
+            "Selective Acc - Greedy Acc"
+        )
+        usefulness_table.add_row(
+            "Lift on Contested-Recoverable",
+            f"[bold green]{usefulness['lift_on_contested_recoverable']:+.4f}[/bold green]",
+            "Tribunal value on hard-but-doable tasks"
+        )
+        console.print(usefulness_table)
+        console.print()
+
+    # 4. Diagnostics Table
+    diag = metrics.get("diagnostics", {})
+    if diag:
+        diag_table = Table(title="[bold dim]System Health & Diagnostics[/bold dim]", show_header=True, box=None)
+        diag_table.add_column("Metric", style="dim cyan")
+        diag_table.add_column("Value", justify="right", style="dim white")
+        
+        diag_table.add_row("Avg Duration (s)", f"{diag['avg_duration']:.2f}")
+        diag_table.add_row("Path B Overrides", str(diag['path_b_overrides']))
+        diag_table.add_row("Parse Failures", str(diag['parse_failures']))
+        diag_table.add_row("JSON Errors", str(diag['json_errors']))
+        diag_table.add_row("Truncations", str(diag['truncations']))
+        console.print(diag_table)
+
+    eqbsl_diag = metrics.get("eqbsl_diagnostics", {})
+    if eqbsl_diag:
+        console.print()
+        eqbsl_table = Table(title="[bold cyan]EQBSL Diagnostics[/bold cyan]", show_header=True, box=None)
+        eqbsl_table.add_column("Metric", style="cyan")
+        eqbsl_table.add_column("Value", justify="right", style="bold white")
+        for key, value in eqbsl_diag.items():
+            if isinstance(value, float):
+                eqbsl_table.add_row(key, f"{value:.4f}")
+            else:
+                eqbsl_table.add_row(key, str(value))
+        console.print(eqbsl_table)
 
 
-def _print_forensic_results(runs: list[ExperimentRun]) -> None:
+def _print_forensic_results(runs: list[ExperimentRun], ledger_path: Optional[str] = None) -> None:
     """Print a detailed candidate score breakdown for each task."""
+    coalition_rows_by_run: dict[str, list[dict]] = {}
+    if ledger_path is not None:
+        store = LedgerStore(ledger_path)
+        try:
+            rows = store.get_coalition_opinions(run_ids=[run.run_id for run in runs])
+            for row in rows:
+                coalition_rows_by_run.setdefault(row["run_id"], []).append(row)
+        finally:
+            store.close()
+
     for run in runs:
         forensic = run.metadata.get("forensic")
         if not forensic:
@@ -178,6 +327,35 @@ def _print_forensic_results(runs: list[ExperimentRun]) -> None:
             )
         console.print(table)
         console.print()
+
+        eqbsl_summary = run.metadata.get("eqbsl")
+        coalition_rows = coalition_rows_by_run.get(run.run_id, [])
+        if eqbsl_summary and coalition_rows:
+            coalition_table = Table(
+                title=f"EQBSL Coalition Forensic — Task: {run.task_id}",
+                show_header=True,
+                header_style="bold cyan",
+            )
+            coalition_table.add_column("Answer Signature", style="white")
+            coalition_table.add_column("Role", style="yellow")
+            coalition_table.add_column("Belief", justify="right")
+            coalition_table.add_column("Disbelief", justify="right")
+            coalition_table.add_column("Uncertainty", justify="right")
+            coalition_table.add_column("Expectation", justify="right", style="bold green")
+            coalition_table.add_column("Reason", style="dim")
+
+            for row in sorted(coalition_rows, key=lambda item: item["expectation"], reverse=True):
+                coalition_table.add_row(
+                    str(row["answer_signature"]),
+                    str(row["decision_role"]),
+                    f"{float(row['belief']):.3f}",
+                    f"{float(row['disbelief']):.3f}",
+                    f"{float(row['uncertainty']):.3f}",
+                    f"{float(row['expectation']):.3f}",
+                    str(row["decision_reason_code"]),
+                )
+            console.print(coalition_table)
+            console.print()
 
 
 def _load_runs_from_ledger(db_path: str) -> list[ExperimentRun]:
@@ -243,10 +421,10 @@ def calibrate_ledger(
     abstention = calibration.abstention_quality(runs)
     metrics_table.add_row("Abstention rate", _format_float(abstention["abstention_rate"]))
     metrics_table.add_row(
-        "Wrong abstention rate", _format_float(abstention["wrong_abstention_rate"])
+        "Bad abstention rate (Missed Solution)", _format_float(abstention["bad_abstention_rate"])
     )
     metrics_table.add_row(
-        "Correct abstention rate", _format_float(abstention["correct_abstention_rate"])
+        "Good abstention rate (Avoided Error)", _format_float(abstention["good_abstention_rate"])
     )
     console.print(metrics_table)
 
@@ -329,6 +507,259 @@ def ledger_inspect(
             console.print(f"\n[bold cyan]{section.title()} ({len(records)}):[/bold cyan]")
             for rec in records:
                 console.print(f"  {rec}")
+
+
+# ---------------------------------------------------------------------------
+# tribunal benchmark-usefulness
+# ---------------------------------------------------------------------------
+
+
+@app.command("benchmark-usefulness")
+def benchmark_usefulness(
+    runs_path: Optional[Path] = typer.Option(
+        None, "--runs", help="Path to a JSONL file of ExperimentRun records."
+    ),
+    ledger_path: Optional[str] = typer.Option(
+        None, "--ledger", "-l", help="Load runs from a ledger SQLite DB."
+    ),
+    annotations_path: Path = typer.Option(
+        ..., "--annotations", "-a", help="Path to task annotation JSON/JSONL file."
+    ),
+    oracle_path: Optional[Path] = typer.Option(
+        None, "--oracle", help="Path to oracle metadata JSON/JSONL file (optional)."
+    ),
+    greedy_arm: str = typer.Option(
+        "greedy", "--greedy-arm", help="Arm name to use as the greedy baseline."
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Output raw JSON report."),
+) -> None:
+    """Report tribunal usefulness across cohorts, comparing named arms.
+
+    Requires a runs source (--runs or --ledger) and an annotations file.
+    Each run must carry arm_name in its metadata field.
+    """
+    # --- Load runs ---
+    if runs_path is not None:
+        raw = runs_path.read_text(encoding="utf-8")
+        run_dicts = []
+        for line in raw.splitlines():
+            line = line.strip()
+            if line:
+                run_dicts.append(json.loads(line))
+        runs = [ExperimentRun.model_validate(d) for d in run_dicts]
+    elif ledger_path is not None:
+        runs = _load_runs_from_ledger(ledger_path)
+    else:
+        console.print("[red]Provide either --runs or --ledger.[/red]")
+        raise typer.Exit(1)
+
+    if not runs:
+        console.print("[yellow]No runs found. Nothing to report.[/yellow]")
+        raise typer.Exit(0)
+
+    # --- Load annotations ---
+    try:
+        annotations = load_annotations(annotations_path)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]Annotation load error:[/red] {exc}")
+        raise typer.Exit(1) from exc
+
+    # --- Load optional oracle metadata ---
+    oracle = None
+    if oracle_path is not None:
+        try:
+            oracle = load_oracle_metadata(oracle_path)
+        except (ValueError, FileNotFoundError) as exc:
+            console.print(f"[red]Oracle load error:[/red] {exc}")
+            raise typer.Exit(1) from exc
+
+    # --- Build records and report ---
+    records = records_from_runs(runs, annotations, oracle)
+    if not records:
+        console.print(
+            "[yellow]No runs matched annotation task IDs. "
+            "Check that task_id values align.[/yellow]"
+        )
+        raise typer.Exit(0)
+
+    report = build_report(records, greedy_arm=greedy_arm)
+
+    if json_output:
+        print(json.dumps(report, indent=2, default=str))
+        return
+
+    _print_usefulness_report(report, greedy_arm=greedy_arm)
+
+
+def _fmt_pct(v: float) -> str:
+    """Format a fraction as a percentage string."""
+    return f"{v * 100:.1f}%"
+
+
+def _fmt_opt(v: object) -> str:
+    """Format an optional numeric value for display."""
+    if v is None:
+        return "—"
+    if isinstance(v, float):
+        return f"{v * 100:.1f}%"
+    return str(v)
+
+
+def _print_usefulness_report(report: dict, *, greedy_arm: str) -> None:
+    """Render the benchmark usefulness report to the console."""
+    g = report["global"]
+    per_arm: dict = report["per_arm"]
+    lift_map: dict = report["tribunal_lift_over_greedy"]
+    interpretation: dict = report["interpretation"]
+
+    arm_names = g["arms"]
+    cohort_order = [
+        BenchmarkCohort.control_trivial,
+        BenchmarkCohort.contested_recoverable,
+        BenchmarkCohort.contested_unrecoverable,
+    ]
+    cohort_labels = {
+        BenchmarkCohort.control_trivial: "control-trivial",
+        BenchmarkCohort.contested_recoverable: "contested-recoverable",
+        BenchmarkCohort.contested_unrecoverable: "contested-unrecoverable",
+    }
+    cohort_colors = {
+        BenchmarkCohort.control_trivial: "dim",
+        BenchmarkCohort.contested_recoverable: "green",
+        BenchmarkCohort.contested_unrecoverable: "yellow",
+    }
+
+    # ---- Header ----
+    console.print()
+    console.print(
+        f"[bold blue]Tribunal Usefulness Benchmark[/bold blue]  "
+        f"[dim]{g['total_records']} records · {len(arm_names)} arm(s)[/dim]"
+    )
+    console.print()
+
+    # ---- Arm × Cohort selective accuracy matrix ----
+    # This is the primary decision-making table.
+    matrix = Table(
+        title="Selective Accuracy by Arm × Cohort",
+        show_header=True,
+        header_style="bold",
+        box=None,
+        pad_edge=False,
+    )
+    matrix.add_column("Cohort", style="bold", min_width=28)
+    for arm in arm_names:
+        style = "bold cyan" if arm != greedy_arm else "dim cyan"
+        matrix.add_column(arm, justify="right", style=style, min_width=12)
+
+    for cohort in cohort_order:
+        label = f"[{cohort_colors[cohort]}]{cohort_labels[cohort]}[/{cohort_colors[cohort]}]"
+        row = [label]
+        for arm in arm_names:
+            arm_data = per_arm.get(arm, {})
+            cm = arm_data.get(cohort.value, {})
+            sel_acc = cm.get("selective_accuracy")
+            n = cm.get("task_count", 0)
+            if sel_acc is None or n == 0:
+                row.append("—")
+            else:
+                row.append(f"{_fmt_pct(sel_acc)} ({n}n)")
+        matrix.add_row(*row)
+
+    console.print(matrix)
+    console.print()
+
+    # ---- Per-cohort detail per arm ----
+    for cohort in cohort_order:
+        cohort_label = cohort_labels[cohort]
+        color = cohort_colors[cohort]
+
+        detail = Table(
+            title=f"[{color}]{cohort_label}[/{color}] — detail per arm",
+            show_header=True,
+            box=None,
+            pad_edge=False,
+        )
+        detail.add_column("Metric", style="cyan", min_width=32)
+        for arm in arm_names:
+            detail.add_column(arm, justify="right", min_width=12)
+
+        metric_rows = [
+            ("Overall accuracy",    "overall_accuracy"),
+            ("Selective accuracy",   "selective_accuracy"),
+            ("Coverage",             "coverage"),
+            ("Wrong-pick rate ↓",    "wrong_pick_rate"),
+            ("Abstention rate",      "abstention_rate"),
+            ("Good abstention rate ↑", "good_abstention_rate"),
+            ("Bad abstention rate ↓",  "bad_abstention_rate"),
+        ]
+
+        for label, key in metric_rows:
+            row = [label]
+            for arm in arm_names:
+                cm = per_arm.get(arm, {}).get(cohort.value, {})
+                v = cm.get(key)
+                row.append(_fmt_opt(v) if v is not None else "—")
+            detail.add_row(*row)
+
+        console.print(detail)
+        console.print()
+
+    # ---- Lift table (non-greedy arms vs greedy) ----
+    if lift_map:
+        lift_table = Table(
+            title=f"Tribunal Lift over {greedy_arm!r} — contested-recoverable only",
+            show_header=True,
+            box=None,
+            pad_edge=False,
+        )
+        lift_table.add_column("Arm", style="cyan", min_width=20)
+        lift_table.add_column("Sel-Acc Lift", justify="right", min_width=14)
+        lift_table.add_column("Verdict", justify="left", min_width=20)
+
+        for arm, lift in lift_map.items():
+            if lift is None:
+                lift_str = "—"
+                verdict = "[dim]no data[/dim]"
+            elif lift > 0:
+                lift_str = f"[green]+{lift * 100:.1f}%[/green]"
+                verdict = "[green]↑ tribunal helps[/green]"
+            elif lift == 0:
+                lift_str = "0.0%"
+                verdict = "[dim]neutral[/dim]"
+            else:
+                lift_str = f"[red]{lift * 100:.1f}%[/red]"
+                verdict = "[red]↓ tribunal hurts[/red]"
+            lift_table.add_row(arm, lift_str, verdict)
+
+        console.print(lift_table)
+        console.print()
+
+    # ---- Interpretation flags ----
+    if interpretation:
+        flag_table = Table(
+            title="Benchmark Thesis — Interpretation Flags",
+            show_header=True,
+            box=None,
+            pad_edge=False,
+        )
+        flag_table.add_column("Arm", style="cyan", min_width=20)
+        flag_table.add_column("Useful on Recoverable?", justify="center", min_width=24)
+        flag_table.add_column("Honest on Unrecoverable?", justify="center", min_width=26)
+        flag_table.add_column("Lift", justify="right", min_width=10)
+
+        for arm, flags in interpretation.items():
+            useful = flags["tribunal_useful_on_contested_recoverable"]
+            honest = flags["tribunal_honest_on_contested_unrecoverable"]
+            lift = flags["tribunal_lift_over_greedy_on_contested_recoverable"]
+
+            useful_str = "[bold green]YES[/bold green]" if useful else "[bold red]NO[/bold red]"
+            honest_str = "[bold green]YES[/bold green]" if honest else "[bold red]NO[/bold red]"
+            lift_str = _fmt_opt(lift)
+
+            flag_table.add_row(arm, useful_str, honest_str, lift_str)
+
+        console.print(flag_table)
+        console.print()
 
 
 if __name__ == "__main__":

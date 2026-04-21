@@ -48,26 +48,18 @@ class UncertaintyAnalyzer(BaseUncertaintyAnalyzer):
         # ----------------------------------------------------------------
         # 1. Disagreement rate — fraction of unique pairs that disagree
         # ----------------------------------------------------------------
-        n = len(traces)
-        disagreements = 0
-        pairs = 0
-        for i in range(n):
-            for j in range(i + 1, n):
-                pairs += 1
-                if not grids_equal(traces[i].answer, traces[j].answer):
-                    disagreements += 1
-        disagreement_rate = disagreements / pairs if pairs > 0 else 0.0
+        from epistemic_tribunal.domains.factory import get_adapter
+        adapter = get_adapter(task.domain)
+        
+        disagreement_rate = adapter.compute_disagreement(traces)
 
         # ----------------------------------------------------------------
-        # 2. Cluster answers (by exact equality) to compute a distribution
+        # 2. Cluster answers (by equality) to compute a distribution
         # ----------------------------------------------------------------
-        # Map each trace to a cluster key (tuple-of-tuples for hashability)
-        def to_key(grid: list[list[int]]) -> tuple:
-            return tuple(tuple(row) for row in grid)
-
-        cluster_counts: Counter = Counter(to_key(t.answer) for t in traces)
+        cluster_counts: Counter = Counter(adapter.get_cluster_key(t.answer) for t in traces)
         total = sum(cluster_counts.values())
         probs = [c / total for c in cluster_counts.values()]
+
 
         # ----------------------------------------------------------------
         # 3. Entropy
@@ -93,20 +85,24 @@ class UncertaintyAnalyzer(BaseUncertaintyAnalyzer):
         coalition_mass = cluster_counts[top_key] / total
 
         # ----------------------------------------------------------------
-        # 6. Per-trace quality score (proxy using confidence + coalition)
+        # 6. Per-trace quality score — candidate-specific by answer cluster
+        #
+        # Each trace receives the fraction of pool generators that produced
+        # the same answer as it.  This makes U candidate-discriminating:
+        #   - majority-coalition trace (2/3 agree): quality = 2/3 ≈ 0.667
+        #   - minority trace (1/3):                 quality = 1/3 ≈ 0.333
+        #
+        # This ensures structural_margin > 0 on every contested task where
+        # generators disagree but a plurality answer exists.
         # ----------------------------------------------------------------
         per_trace_quality: dict[str, float] = {}
-        top_list = list(top_key)
         for trace in traces:
-            conf = trace.confidence_score or 0.5
-            # Boost if the trace is in the coalition
-            is_coalition = to_key(trace.answer) == top_key
-            coalition_bonus = 0.2 if is_coalition else 0.0
-            quality = min(1.0, conf + coalition_bonus)
-            per_trace_quality[trace.trace_id] = round(quality, 4)
+            trace_cluster = adapter.get_cluster_key(trace.answer)
+            cluster_fraction = cluster_counts[trace_cluster] / total
+            per_trace_quality[trace.trace_id] = round(cluster_fraction, 4)
 
         notes = (
-            f"n_traces={n}, "
+            f"n_traces={len(traces)}, "
             f"clusters={len(cluster_counts)}, "
             f"entropy={entropy:.3f}, "
             f"margin={margin:.3f}, "

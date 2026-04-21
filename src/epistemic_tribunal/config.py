@@ -47,15 +47,63 @@ class StructuralOverrideConfig(BaseModel):
     confidence_cap: float = Field(default=0.70, ge=0.0, le=1.0)
 
 
+class EqbslSourceTrustConfig(BaseModel):
+    """Trust weights for EQBSL evidence sources."""
+
+    u: float = Field(default=1.0, ge=0.0)
+    c: float = Field(default=1.0, ge=0.0)
+    m: float = Field(default=1.0, ge=0.0)
+    v: float = Field(default=1.0, ge=0.0)
+    verification: float = Field(default=0.9, ge=0.0)
+    generator_trust: float = Field(default=0.8, ge=0.0)
+
+
+class EqbslVerificationConfig(BaseModel):
+    """Configuration for the optional answer-conditioned verification source."""
+
+    enabled: bool = Field(default=False)
+    model_name: str = Field(default="deepseek-chat")
+    api_base: str = Field(default="https://api.deepseek.com")
+    api_key: Optional[str] = Field(default_factory=lambda: os.environ.get("DEEPSEEK_API_KEY"))
+    temperature: float = Field(default=0.0, ge=0.0, le=1.0)
+    max_tokens: int = Field(default=256, ge=1)
+    enable_decision_semantics: bool = Field(default=False)
+    contradiction_abstain_confidence_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    support_select_confidence_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    support_advantage_margin: float = Field(default=0.05, ge=0.0, le=1.0)
+
+
+class EQBSLConfig(BaseModel):
+    """Configuration for the additive EQBSL coalition-opinion layer."""
+
+    enabled: bool = Field(default=False)
+    k: float = Field(default=2.0, gt=0.0)
+    default_base_rate: float = Field(default=0.25, ge=0.0, le=0.5)
+    selection_expectation_threshold: float = Field(default=0.52, ge=0.0, le=1.0)
+    resample_expectation_threshold: float = Field(default=0.38, ge=0.0, le=1.0)
+    max_select_uncertainty: float = Field(default=0.55, ge=0.0, le=1.0)
+    abstain_uncertainty_threshold: float = Field(default=0.72, ge=0.0, le=1.0)
+    distinct_answer_gap_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
+    enable_generator_trust: bool = Field(default=True)
+    source_trust: EqbslSourceTrustConfig = Field(default_factory=EqbslSourceTrustConfig)
+    verification: EqbslVerificationConfig = Field(default_factory=EqbslVerificationConfig)
+
+
 class TribunalConfig(BaseModel):
     adjudication_strategy: str = Field(
         default="standard",
         description="standard | greedy — greedy bypasses tribunal entirely",
     )
+    fusion_mode: str = Field(
+        default="weighted_sum",
+        description="weighted_sum | eqbsl",
+    )
     weights: TribunalWeights = Field(default_factory=TribunalWeights)
     selection_threshold: float = Field(default=0.40, ge=0.0, le=1.0)
     resample_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
     max_resample_attempts: int = Field(default=2, ge=0)
+    single_source_resampling_mode: bool = Field(default=False)
+    resample_temperature_schedule: list[float] = Field(default_factory=lambda: [0.1, 0.4, 0.7])
     diversity_floor: float = Field(default=0.90, ge=0.0, le=1.0)
     ledger_warmup_tasks: int = Field(default=150, ge=0)
     # Discordant-resample guardrail parameters (FIX B)
@@ -130,11 +178,25 @@ class CriticConfig(BaseModel):
     consistency_weight: float = Field(default=0.30, ge=0.0, le=1.0)
     rule_coherence_weight: float = Field(default=0.25, ge=0.0, le=1.0)
     morphology_weight: float = Field(default=0.25, ge=0.0, le=1.0)
+    use_llm_judge_for_math: bool = Field(default=False)
 
 
 class UncertaintyConfig(BaseModel):
     entropy_bins: int = Field(default=10, ge=1)
     min_coalition_mass: float = Field(default=0.6, ge=0.0, le=1.0)
+
+
+class FailureMemoryConfig(BaseModel):
+    """Configuration for the metacognitive failure-memory layer."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable failure-memory lookup during adjudication.",
+    )
+    penalty_scale: float = Field(
+        default=0.3, ge=0.0, le=1.0,
+        description="Maximum penalty from a single failure-memory match.",
+    )
 
 
 class LedgerConfig(BaseModel):
@@ -164,6 +226,8 @@ class TribunalSettings(BaseModel):
     invariants: InvariantsConfig = Field(default_factory=InvariantsConfig)
     critic: CriticConfig = Field(default_factory=CriticConfig)
     uncertainty: UncertaintyConfig = Field(default_factory=UncertaintyConfig)
+    failure_memory: FailureMemoryConfig = Field(default_factory=FailureMemoryConfig)
+    eqbsl: EQBSLConfig = Field(default_factory=EQBSLConfig)
     ledger: LedgerConfig = Field(default_factory=LedgerConfig)
     benchmark: BenchmarkConfig = Field(default_factory=BenchmarkConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)

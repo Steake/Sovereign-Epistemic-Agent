@@ -14,18 +14,21 @@ Pipeline stages
 
 from __future__ import annotations
 
-import json
+
 import time
 import uuid
-from typing import Optional
+from typing import Any, Callable, Optional
 
 from epistemic_tribunal.config import TribunalSettings, load_config
 from epistemic_tribunal.critics.trace_critic import TraceCritic
+from epistemic_tribunal.failure_memory.extractor import FailureSignatureExtractor
+from epistemic_tribunal.failure_memory.query import FailureMemoryQuery
+from epistemic_tribunal.failure_memory.store import FailureMemoryStore
 from epistemic_tribunal.generators.base import build_generators
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.ledger.writer import LedgerWriter
-from epistemic_tribunal.tasks.base import grids_equal
+
 from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
 from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
@@ -89,11 +92,28 @@ class Orchestrator:
             rule_coherence_weight=self._config.critic.rule_coherence_weight,
             morphology_weight=self._config.critic.morphology_weight,
             failure_similarity_weight=self._config.critic.failure_similarity_weight,
+            use_llm_judge_for_math=getattr(self._config.critic, "use_llm_judge_for_math", False),
         )
         self._uncertainty = UncertaintyAnalyzer(
             min_coalition_mass=self._config.uncertainty.min_coalition_mass
         )
-        self._tribunal = TribunalAggregator(config=self._config.tribunal)
+        self._tribunal = TribunalAggregator(
+            config=self._config.tribunal,
+            eqbsl_config=self._config.eqbsl,
+            ledger_store=self._store,
+        )
+
+        # Failure-memory layer
+        fm_cfg = self._config.failure_memory
+        self._failure_memory_store = FailureMemoryStore(
+            path=self._config.ledger.path
+        )
+        self._failure_extractor = FailureSignatureExtractor()
+        self._failure_query = FailureMemoryQuery(
+            store=self._failure_memory_store,
+            penalty_scale=fm_cfg.penalty_scale,
+        ) if fm_cfg.enabled else None
+        self._failure_memory_enabled = fm_cfg.enabled
 
     # ------------------------------------------------------------------
     # Public API
@@ -109,20 +129,7 @@ class Orchestrator:
         task: Task, 
         on_token: Optional[Callable[[str, str], None]] = None
     ) -> ExperimentRun:
-        """Execute the full tribunal pipeline for *task*.
-
-        Parameters
-        ----------
-        task:
-            The task to solve.
-        on_token:
-            Optional callback for streaming tokens from generators.
-
-        Returns
-        -------
-        ExperimentRun
-            Structured record of the run including the final decision.
-        """
+        """Execute the full tribunal pipeline for *task*."""
         start_time = time.monotonic()
         run_id = str(uuid.uuid4())
         completed_runs_before = self._store.get_stats()["experiment_runs"]
@@ -132,11 +139,7 @@ class Orchestrator:
         # Persist task record
         self._writer.write_task(task)
 
-        # 1. Generate candidates
-        traces = self._generate(task, on_token=on_token)
-        self._writer.write_traces(task, traces)
-
-        # 2. Extract invariants
+        # 2. Extract invariants (only needed once)
         invariant_set = self._extractor.extract(task)
         log.info(
             "Extracted %d invariant(s) for task %s",
@@ -146,80 +149,260 @@ class Orchestrator:
         # 3. Retrieve past failure patterns from ledger
         failure_patterns = self._store.get_failure_patterns(task.task_id)
 
-        # 4. Critique each trace
-        critiques = self._critique(task, traces, invariant_set, failure_patterns)
-
-        # 5. Analyse uncertainty
-        uncertainty_report = self._uncertainty.analyze(task, traces)
-        log.info("Uncertainty: %s", uncertainty_report.notes)
-
-        # 6. Adjudication
-        adjudication_strategy = self._config.tribunal.adjudication_strategy
-        if adjudication_strategy == "greedy":
-            # Explicitly select the greedy trace (bypass tribunal logic)
-            greedy_traces = [t for t in traces if t.generator_name == "greedy"]
-            if not greedy_traces:
-                raise ValueError("Adjudication strategy set to 'greedy', but no trace from 'greedy' generator found.")
-            
-            selected_trace = greedy_traces[0]
-            decision = TribunalDecision(
-                task_id=task.task_id,
-                decision=DecisionKind.SELECT,
-                selected_trace_id=selected_trace.trace_id,
-                selected_answer=selected_trace.answer,
-                confidence=selected_trace.confidence_score or 1.0,
-                reasoning="Bypassing tribunal: Forced greedy selection.",
-                metadata={
-                    "forced_greedy": True,
-                    "arm_name": self._config.metadata.get("arm_name", "greedy_baseline"),
-                    "candidate_count": len(traces)
-                }
-            )
-            log.info("Adjudication strategy is 'greedy': Forced selection of greedy trace.")
-        else:
-            tribunal = self._tribunal
-            if warmup_threshold > 0 and completed_runs_before < warmup_threshold:
-                warmup_config = self._config.tribunal.model_copy(deep=True)
-                warmup_config.weights.memory = 0.0
-                tribunal = TribunalAggregator(config=warmup_config)
-                log.info(
-                    "Failure-ledger warmup active (%d/%d completed); setting memory weight gamma to 0.0.",
-                    completed_runs_before,
-                    warmup_threshold,
-                )
-
-            decision = tribunal.adjudicate(
-                task, traces, critiques, uncertainty_report, invariant_set
-            )
+        all_traces: list[CandidateTrace] = []
+        all_critiques: list[CritiqueResult] = []
         
-        log.info("Decision: %s (confidence=%.3f)", decision.decision.value, decision.confidence)
+        is_single_source_mode = getattr(self._config.tribunal, "single_source_resampling_mode", False)
+        max_attempts = self._config.tribunal.max_resample_attempts if is_single_source_mode else 0
+        schedule = getattr(self._config.tribunal, "resample_temperature_schedule", [0.1, 0.4, 0.7])
+        
+        decision = None
+        uncertainty_report = None
+        
+        # We loop max_attempts + 1 times (attempt 0 is the initial run)
+        for attempt in range(max_attempts + 1):
+            is_resample = attempt > 0
+            
+            if is_resample:
+                temp = schedule[min(attempt, len(schedule) - 1)]
+                for g in self._generators:
+                    if hasattr(g, "temperature"):
+                        g.temperature = temp
+                log.info("Resampling task %s (attempt %d) with temperature %.2f", task.task_id, attempt, temp)
+                
+            # 1. Generate candidates
+            new_traces = self._generate(task, on_token=on_token)
+            
+            # Inject explicit metadata
+            for t in new_traces:
+                t.metadata["resample_attempt"] = attempt
+                t.metadata["source_mode"] = "resample" if is_resample else "initial"
+                t.metadata["generator_family"] = t.generator_name.split("_")[0]
+                gen_temp = next((getattr(g, "temperature", None) for g in self._generators if g.name == t.generator_name), None)
+                if gen_temp is not None:
+                    t.metadata["temperature"] = gen_temp
+                    
+            self._writer.write_traces(task, new_traces)
+            all_traces.extend(new_traces)
+
+            # 4. Critique new traces
+            new_critiques = self._critique(task, new_traces, invariant_set, failure_patterns)
+            all_critiques.extend(new_critiques)
+
+            # 5. Analyse uncertainty over ALL traces
+            uncertainty_report = self._uncertainty.analyze(task, all_traces)
+
+            # 5b. Failure-memory lookup — inject per-trace penalties into M channel
+            fm_metadata: dict[str, Any] = {}
+            if self._failure_memory_enabled and self._failure_query is not None:
+                fm_penalties, fm_metadata = self._failure_query.query_with_metadata(
+                    task, all_traces, all_critiques, uncertainty_report
+                )
+                # Inject penalties into critique objects for scoring via M weight
+                for critique in all_critiques:
+                    old_penalty = critique.failure_similarity_penalty
+                    mem_penalty = fm_penalties.get(critique.trace_id, 0.0)
+                    # Take the max of existing (trivial) penalty and memory penalty
+                    critique.failure_similarity_penalty = max(old_penalty, mem_penalty)
+                if fm_metadata.get("failure_memory_candidates_penalised", 0) > 0:
+                    log.info(
+                        "Failure memory injected penalties for task %s: %s",
+                        task.task_id,
+                        fm_metadata.get("failure_memory_penalties", {}),
+                    )
+            
+            # 6. Adjudication
+            adjudication_strategy = self._config.tribunal.adjudication_strategy
+            if adjudication_strategy == "greedy":
+                greedy_traces = [t for t in all_traces if t.generator_name == "greedy"]
+                if not greedy_traces:
+                    raise ValueError("Adjudication strategy set to 'greedy', but no trace from 'greedy' generator found.")
+                selected_trace = greedy_traces[0]
+                decision = TribunalDecision(
+                    task_id=task.task_id,
+                    decision=DecisionKind.SELECT,
+                    selected_trace_id=selected_trace.trace_id,
+                    selected_answer=selected_trace.answer,
+                    confidence=selected_trace.confidence_score or 1.0,
+                    reasoning="Bypassing tribunal: Forced greedy selection.",
+                    metadata={
+                        "forced_greedy": True,
+                        "arm_name": self._config.metadata.get("arm_name", "greedy_baseline"),
+                        "candidate_count": len(all_traces)
+                    }
+                )
+                log.info("Adjudication strategy is 'greedy': Forced selection of greedy trace.")
+                break
+            else:
+                tribunal = self._tribunal
+                if warmup_threshold > 0 and completed_runs_before < warmup_threshold:
+                    warmup_config = self._config.tribunal.model_copy(deep=True)
+                    warmup_config.weights.memory = 0.0
+                    tribunal = TribunalAggregator(
+                        config=warmup_config,
+                        eqbsl_config=self._config.eqbsl,
+                        ledger_store=self._store,
+                    )
+                    
+                decision = tribunal.adjudicate(
+                    task, all_traces, all_critiques, uncertainty_report, invariant_set,
+                    is_single_source_mode=is_single_source_mode,
+                    attempt=attempt,
+                    failure_memory_metadata=fm_metadata,
+                )
+                
+            if decision.decision in (DecisionKind.SELECT, DecisionKind.ABSTAIN):
+                break
+                
+        # End of resample loop
+        if decision.decision == DecisionKind.RESAMPLE:
+            decision.decision = DecisionKind.ABSTAIN
+            decision.reasoning += f" Coerced to ABSTAIN after exhausting {max_attempts} resample attempts."
+            log.info("Coerced decision to ABSTAIN (exhausted %d resample attempts)", max_attempts)
+
+        log.info("Final Decision: %s (confidence=%.3f)", decision.decision.value, decision.confidence)
         self._writer.write_decision(decision)
 
-        # 7. Evaluate against ground truth
+        # 7. Evaluate against ground truth and determine cohort
         ground_truth_match: Optional[bool] = None
-        if task.ground_truth is not None and decision.selected_answer is not None:
-            ground_truth_match = grids_equal(decision.selected_answer, task.ground_truth)
-            log.info("Ground-truth match: %s", ground_truth_match)
+        any_correct: Optional[bool] = None
+        
+        if task.ground_truth is not None:
+            from epistemic_tribunal.domains.factory import get_adapter
+            adapter = get_adapter(task.domain)
+            any_correct = any(adapter.answers_equal(t.answer, task.ground_truth) for t in all_traces)
+            
+            greedy_traces = [t for t in all_traces if t.generator_name == "llm"]
+            if greedy_traces:
+                greedy_correct = adapter.answers_equal(greedy_traces[0].answer, task.ground_truth)
+            else:
+                greedy_correct = False
+
+            decision.metadata["any_correct"] = any_correct
+            decision.metadata["greedy_correct"] = greedy_correct
+
+            if decision.selected_answer is not None:
+                ground_truth_match = adapter.answers_equal(decision.selected_answer, task.ground_truth)
+                decision.metadata["ground_truth_match"] = ground_truth_match
+
+            cluster_sizes: dict[str, int] = {}
+            for trace in all_traces:
+                key = str(adapter.get_cluster_key(trace.answer))
+                cluster_sizes[key] = cluster_sizes.get(key, 0) + 1
+            max_cluster_size = max(cluster_sizes.values()) if cluster_sizes else 0
+            selected_trace_id = decision.selected_trace_id
+            generator_outcomes = []
+            for trace in all_traces:
+                answer_signature = str(adapter.get_cluster_key(trace.answer))
+                coalition_size = cluster_sizes.get(answer_signature, 1)
+                is_majority = coalition_size == max_cluster_size
+                is_correct = adapter.answers_equal(trace.answer, task.ground_truth)
+                generator_outcomes.append(
+                    {
+                        "trace_id": trace.trace_id,
+                        "generator_name": trace.generator_name,
+                        "answer_signature": answer_signature,
+                        "coalition_size": coalition_size,
+                        "coalition_mass": round(coalition_size / max(len(all_traces), 1), 4),
+                        "is_majority": is_majority,
+                        "rationale_present": bool(trace.reasoning_steps),
+                        "reasoning_step_count": len(trace.reasoning_steps),
+                        "is_correct": is_correct,
+                        "was_selected": trace.trace_id == selected_trace_id,
+                        "ground_truth_match": ground_truth_match,
+                    }
+                )
+            decision.metadata["generator_outcomes"] = generator_outcomes
+        else:
+            decision.metadata["any_correct"] = None
+            decision.metadata["greedy_correct"] = None
+
+        is_contested = uncertainty_report.disagreement_rate > 0
+        if not is_contested:
+            cohort = "control-trivial"
+        elif any_correct is True:
+            cohort = "contested-recoverable"
+        elif any_correct is False:
+            cohort = "contested-unrecoverable"
+        else:
+            cohort = "unknown"
+
+        decision.metadata["cohort"] = cohort
+        decision.metadata["any_correct"] = any_correct
+        decision.metadata["disagreement_rate"] = uncertainty_report.disagreement_rate
+
+        # Attach failure-memory metadata
+        if fm_metadata:
+            decision.metadata["failure_memory"] = fm_metadata
+
+        eqbsl_coalitions = decision.metadata.pop("_eqbsl_coalitions", [])
+        if eqbsl_coalitions:
+            self._writer.write_coalition_opinions(
+                run_id=run_id,
+                task_id=task.task_id,
+                coalition_rows=eqbsl_coalitions,
+            )
+            if "eqbsl" in decision.metadata:
+                decision.metadata["eqbsl"]["persisted_coalition_count"] = len(eqbsl_coalitions)
 
         # 8. Write failure records
         self._persist_failures(
-            task, traces, critiques, decision, uncertainty_report, ground_truth_match
+            task, all_traces, all_critiques, decision, uncertainty_report, ground_truth_match
         )
+
+        # 8b. Extract and store failure signature (retrospective)
+        if self._failure_memory_enabled:
+            sig = self._failure_extractor.extract(
+                task, all_traces, all_critiques, decision,
+                uncertainty_report, ground_truth_match, any_correct,
+            )
+            if sig is not None:
+                # Track whether memory changed the selection
+                sig.domain_features["selection_changed_by_memory"] = (
+                    fm_metadata.get("failure_memory_candidates_penalised", 0) > 0
+                )
+                self._failure_memory_store.store(sig)
+                log.debug(
+                    "Stored failure signature %s (type=%s) for task %s",
+                    sig.signature_id[:8], sig.failure_type.value, task.task_id,
+                )
 
         duration = time.monotonic() - start_time
         decision.metadata["generation_stats"] = getattr(self, "last_generation_stats", {})
-        
-        # Determine budget from generators
+
+        # Aggregate LLM judge rubric scores from all traces (average per dimension)
+        judge_keys = (
+            "llm_judge_arithmetic_consistency",
+            "llm_judge_logical_consistency",
+            "llm_judge_answer_trace_alignment",
+            "llm_judge_final_rule_coherence",
+        )
+        judge_agg: dict[str, list[float]] = {k: [] for k in judge_keys}
+        judge_rationale = ""
+        for t in all_traces:
+            for k in judge_keys:
+                if k in t.metadata:
+                    judge_agg[k].append(float(t.metadata[k]))
+            if not judge_rationale and "llm_judge_rationale" in t.metadata:
+                judge_rationale = str(t.metadata["llm_judge_rationale"])
+        if any(judge_agg[k] for k in judge_keys):
+            decision.metadata["judge_rubric"] = {
+                k.replace("llm_judge_", ""): round(sum(v) / len(v), 4)
+                for k, v in judge_agg.items() if v
+            }
+            if judge_rationale:
+                decision.metadata["judge_rubric"]["rationale"] = judge_rationale
+
         budget = next((getattr(g, "max_new_tokens", None) for g in self._generators if hasattr(g, "max_new_tokens")), None)
         if budget is not None:
             decision.metadata["budget"] = budget
             
-        # Determine arm_name from ledger path structure (e.g. data/arm1_greedy.db -> arm1_greedy)
         if self._config.ledger.path:
             from pathlib import Path
             decision.metadata["arm_name"] = Path(self._config.ledger.path).stem
         else:
             decision.metadata["arm_name"] = "unknown"
+
 
         run = ExperimentRun(
             run_id=run_id,
@@ -234,6 +417,8 @@ class Orchestrator:
                 "selection_threshold": self._config.tribunal.selection_threshold,
                 "resample_threshold": self._config.tribunal.resample_threshold,
                 "generators": self._config.generators.enabled,
+                "fusion_mode": self._config.tribunal.fusion_mode,
+                "eqbsl_base_rate": self._config.eqbsl.default_base_rate,
             },
             metadata=decision.metadata
         )
@@ -286,6 +471,8 @@ class Orchestrator:
         }
         for gen in self._generators:
             try:
+                if on_token:
+                    on_token("generator_start", gen.name)
                 trace = gen.generate(task, on_token=on_token)
                 traces.append(trace)
                 log.debug("Generator %r produced trace %s", gen.name, trace.trace_id[:8])
@@ -333,7 +520,7 @@ class Orchestrator:
     ) -> None:
         """Write failure record and invariant violations when appropriate."""
         # Persist invariant violations for all traces
-        critique_by_id = {c.trace_id: c for c in critiques}
+
         trace_by_id = {t.trace_id: t for t in traces}
         for critique in critiques:
             trace = trace_by_id.get(critique.trace_id)
@@ -361,9 +548,11 @@ class Orchestrator:
         )
 
         # Disagreement pattern summary
+        from epistemic_tribunal.domains.factory import get_adapter
+        adapter = get_adapter(task.domain)
         unique_answers = len(
             {
-                tuple(tuple(row) for row in t.answer)
+                adapter.get_cluster_key(t.answer)
                 for t in traces
             }
         )

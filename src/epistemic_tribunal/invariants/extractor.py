@@ -276,6 +276,10 @@ class InvariantExtractor:
 
     def extract(self, task: Task) -> InvariantSet:
         """Run all enabled checkers and return an :class:`InvariantSet`."""
+        from epistemic_tribunal.tribunal_types import TaskDomain
+        if task.domain == TaskDomain.GSM8K_MATH:
+            return InvariantSet(task_id=task.task_id, invariants=[], extraction_notes="Skipped for math domain.")
+
         invariants: list[Invariant] = []
         notes_parts: list[str] = []
 

@@ -8,7 +8,7 @@ from epistemic_tribunal.critics.trace_critic import TraceCritic
 from epistemic_tribunal.generators.greedy import GreedyGenerator
 from epistemic_tribunal.generators.adversarial import AdversarialGenerator
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
-from epistemic_tribunal.types import CandidateTrace, CritiqueResult, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, CritiqueResult, Task
 
 
 # ---------------------------------------------------------------------------

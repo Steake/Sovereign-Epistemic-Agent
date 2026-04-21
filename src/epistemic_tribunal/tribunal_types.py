@@ -9,9 +9,16 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field
+
+
+# ---------------------------------------------------------------------------
+# Type Aliases
+# ---------------------------------------------------------------------------
+
+AnswerType = Union[list[list[int]], str, float, int]
 
 
 # ---------------------------------------------------------------------------
@@ -32,6 +39,7 @@ class TaskDomain(str, Enum):
 
     ARC_LIKE = "arc_like"
     GENERIC = "generic"
+    GSM8K_MATH = "gsm8k_math"
 
 
 # ---------------------------------------------------------------------------
@@ -53,8 +61,8 @@ class Task(BaseModel):
     domain: TaskDomain = Field(default=TaskDomain.ARC_LIKE)
     description: str = Field(default="", description="Human-readable task description")
     train: list[GridExample] = Field(default_factory=list)
-    test_input: list[list[int]] = Field(..., description="Test grid input")
-    ground_truth: Optional[list[list[int]]] = Field(
+    test_input: Any = Field(..., description="Test grid input or question text")
+    ground_truth: Optional[AnswerType] = Field(
         default=None, description="Expected output (may be absent)"
     )
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -70,7 +78,7 @@ class CandidateTrace(BaseModel):
 
     trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     generator_name: str
-    answer: list[list[int]] = Field(description="Predicted output grid")
+    answer: AnswerType = Field(description="Predicted output grid or scalar answer")
     reasoning_steps: list[str] = Field(default_factory=list)
     raw_trace: str = Field(default="")
     token_count: Optional[int] = None
@@ -164,7 +172,7 @@ class TribunalDecision(BaseModel):
     task_id: str
     decision: DecisionKind
     selected_trace_id: Optional[str] = None
-    selected_answer: Optional[list[list[int]]] = None
+    selected_answer: Optional[AnswerType] = None
     scores: dict[str, float] = Field(
         default_factory=dict, description="Per-trace aggregate scores"
     )

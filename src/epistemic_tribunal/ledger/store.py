@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from epistemic_tribunal.ledger.models import (
+    CoalitionOpinionRecord,
     DecisionRecord,
     ExperimentRunRecord,
     FailureRecordRow,
@@ -92,6 +93,33 @@ CREATE TABLE IF NOT EXISTS experiment_runs (
     metadata_json TEXT DEFAULT '{}',
     created_at TEXT,
     FOREIGN KEY (task_id) REFERENCES tasks(task_id)
+);
+
+CREATE TABLE IF NOT EXISTS coalition_opinions (
+    run_id TEXT,
+    task_id TEXT,
+    answer_signature TEXT,
+    coalition_member_trace_ids_json TEXT DEFAULT '[]',
+    coalition_member_generators_json TEXT DEFAULT '[]',
+    representative_trace_id TEXT,
+    representative_generator TEXT,
+    source_opinions_json TEXT DEFAULT '{}',
+    generator_trust_opinion_json TEXT DEFAULT '{}',
+    fused_opinion_json TEXT DEFAULT '{}',
+    belief REAL DEFAULT 0.0,
+    disbelief REAL DEFAULT 0.0,
+    uncertainty REAL DEFAULT 1.0,
+    base_rate REAL DEFAULT 0.25,
+    expectation REAL DEFAULT 0.0,
+    base_rate_contribution REAL DEFAULT 0.0,
+    decision_role TEXT DEFAULT 'other',
+    decision_reason_code TEXT DEFAULT '',
+    decision_reason_text TEXT DEFAULT '',
+    explanation_metadata_json TEXT DEFAULT '{}',
+    created_at TEXT,
+    PRIMARY KEY (run_id, answer_signature),
+    FOREIGN KEY (task_id) REFERENCES tasks(task_id),
+    FOREIGN KEY (run_id) REFERENCES experiment_runs(run_id)
 );
 """
 
@@ -283,6 +311,43 @@ class LedgerStore:
         )
         self._conn.commit()
 
+    def insert_coalition_opinion(self, rec: CoalitionOpinionRecord) -> None:
+        self._conn.execute(
+            """INSERT OR REPLACE INTO coalition_opinions
+               (run_id, task_id, answer_signature, coalition_member_trace_ids_json,
+                coalition_member_generators_json, representative_trace_id,
+                representative_generator, source_opinions_json,
+                generator_trust_opinion_json, fused_opinion_json, belief, disbelief,
+                uncertainty, base_rate, expectation, base_rate_contribution,
+                decision_role, decision_reason_code, decision_reason_text,
+                explanation_metadata_json, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                rec.run_id,
+                rec.task_id,
+                rec.answer_signature,
+                rec.coalition_member_trace_ids_json,
+                rec.coalition_member_generators_json,
+                rec.representative_trace_id,
+                rec.representative_generator,
+                rec.source_opinions_json,
+                rec.generator_trust_opinion_json,
+                rec.fused_opinion_json,
+                rec.belief,
+                rec.disbelief,
+                rec.uncertainty,
+                rec.base_rate,
+                rec.expectation,
+                rec.base_rate_contribution,
+                rec.decision_role,
+                rec.decision_reason_code,
+                rec.decision_reason_text,
+                rec.explanation_metadata_json,
+                rec.created_at.isoformat(),
+            ),
+        )
+        self._conn.commit()
+
     # ------------------------------------------------------------------
     # Query helpers
     # ------------------------------------------------------------------
@@ -305,7 +370,7 @@ class LedgerStore:
         stats: dict[str, Any] = {}
         for table in (
             "tasks", "traces", "decisions", "failures",
-            "invariant_violations", "experiment_runs"
+            "invariant_violations", "experiment_runs", "coalition_opinions"
         ):
             count = self._conn.execute(
                 f"SELECT COUNT(*) as c FROM {table}"  # noqa: S608
@@ -337,12 +402,17 @@ class LedgerStore:
         runs = self._conn.execute(
             "SELECT * FROM experiment_runs WHERE task_id = ?", (task_id,)
         ).fetchall()
+        coalition_opinions = self._conn.execute(
+            "SELECT * FROM coalition_opinions WHERE task_id = ? ORDER BY created_at ASC",
+            (task_id,),
+        ).fetchall()
 
         return {
             "task": dict(task_row),
             "failures": [dict(r) for r in failures],
             "decisions": [dict(r) for r in decisions],
             "runs": [dict(r) for r in runs],
+            "coalition_opinions": [dict(r) for r in coalition_opinions],
         }
 
     def get_experiment_runs(
@@ -364,4 +434,36 @@ class LedgerStore:
                 f"WHERE task_id IN ({placeholders}) ORDER BY created_at ASC"
             )
             rows = self._conn.execute(query, tuple(task_ids)).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_coalition_opinions(
+        self,
+        *,
+        run_ids: Optional[list[str] | set[str]] = None,
+        task_ids: Optional[list[str] | set[str]] = None,
+    ) -> list[dict[str, Any]]:
+        """Return persisted coalition-opinion rows."""
+        if run_ids is not None:
+            if not run_ids:
+                return []
+            placeholders = ",".join("?" for _ in run_ids)
+            query = (
+                "SELECT * FROM coalition_opinions "
+                f"WHERE run_id IN ({placeholders}) ORDER BY created_at ASC"
+            )
+            rows = self._conn.execute(query, tuple(run_ids)).fetchall()
+            return [dict(r) for r in rows]
+        if task_ids is not None:
+            if not task_ids:
+                return []
+            placeholders = ",".join("?" for _ in task_ids)
+            query = (
+                "SELECT * FROM coalition_opinions "
+                f"WHERE task_id IN ({placeholders}) ORDER BY created_at ASC"
+            )
+            rows = self._conn.execute(query, tuple(task_ids)).fetchall()
+            return [dict(r) for r in rows]
+        rows = self._conn.execute(
+            "SELECT * FROM coalition_opinions ORDER BY created_at ASC"
+        ).fetchall()
         return [dict(r) for r in rows]

@@ -12,7 +12,7 @@ from epistemic_tribunal.evaluation.benchmark import BenchmarkRunner
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
 from epistemic_tribunal.tasks.arc_like import load_task_from_file
-from epistemic_tribunal.types import DecisionKind, ExperimentRun
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ def test_benchmark_over_examples_dir(tmp_path: Path) -> None:
 
     assert metrics["total_runs"] == 5
     assert 0.0 <= metrics["coverage"] <= 1.0
-    assert 0.0 <= metrics["accuracy"] <= 1.0
+    assert 0.0 <= metrics["overall_accuracy"] <= 1.0
 
 
 # ---------------------------------------------------------------------------

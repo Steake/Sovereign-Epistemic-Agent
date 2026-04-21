@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Optional
 
 from epistemic_tribunal.ledger.models import (
+    CoalitionOpinionRecord,
     DecisionRecord,
     ExperimentRunRecord,
     FailureRecordRow,
@@ -140,3 +141,36 @@ class LedgerWriter:
             metadata_json=json.dumps(run.metadata),
         )
         self._store.insert_run(rec)
+
+    def write_coalition_opinions(
+        self,
+        *,
+        run_id: str,
+        task_id: str,
+        coalition_rows: list[dict],
+    ) -> None:
+        """Persist EQBSL coalition-opinion forensic rows."""
+        for row in coalition_rows:
+            rec = CoalitionOpinionRecord(
+                run_id=run_id,
+                task_id=task_id,
+                answer_signature=row["answer_signature"],
+                coalition_member_trace_ids_json=json.dumps(row.get("coalition_member_trace_ids", [])),
+                coalition_member_generators_json=json.dumps(row.get("coalition_member_generators", [])),
+                representative_trace_id=row.get("representative_trace_id"),
+                representative_generator=row.get("representative_generator"),
+                source_opinions_json=json.dumps(row.get("source_opinions", {})),
+                generator_trust_opinion_json=json.dumps(row.get("generator_trust_opinion")),
+                fused_opinion_json=json.dumps(row.get("fused_opinion", {})),
+                belief=float(row.get("fused_opinion", {}).get("belief", 0.0)),
+                disbelief=float(row.get("fused_opinion", {}).get("disbelief", 0.0)),
+                uncertainty=float(row.get("fused_opinion", {}).get("uncertainty", 1.0)),
+                base_rate=float(row.get("fused_opinion", {}).get("base_rate", 0.25)),
+                expectation=float(row.get("final_expectation", 0.0)),
+                base_rate_contribution=float(row.get("base_rate_contribution", 0.0)),
+                decision_role=row.get("decision_role", "other"),
+                decision_reason_code=row.get("decision_reason_code", ""),
+                decision_reason_text=row.get("decision_reason_text", ""),
+                explanation_metadata_json=json.dumps(row.get("explanation_metadata", {})),
+            )
+            self._store.insert_coalition_opinion(rec)

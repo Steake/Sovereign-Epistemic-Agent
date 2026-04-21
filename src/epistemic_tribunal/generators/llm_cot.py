@@ -58,3 +58,19 @@ class CoTLLMGenerator(LLMGenerator):
         # For CoT, we don't force JSON mode on the API layer because we want the <think> text first.
         # We pass an empty schema dict which the base class respects by simply passing the prompt as-is.
         return prompt, {}
+
+    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+        main_prompt = (
+            "Solve the following math word problem.\n"
+            "1. You MUST first reason explicitly step-by-step.\n"
+            "2. After your reasoning, emit a JSON markdown block with your answer.\n"
+            'Schema: {"answer": 123}\n'
+            "Provide ONLY ONE JSON markdown block at the very end."
+        )
+        prompt = (
+            f"{main_prompt}\n\n"
+            f"Question:\n{task.test_input}\n\n"
+            "Reasoning and JSON output:"
+        )
+        return prompt, {}
+

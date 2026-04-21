@@ -71,8 +71,15 @@ class LLMGenerator(BaseGenerator):
         task: Task, 
         on_token: Optional[Callable[[str, str], None]] = None
     ) -> CandidateTrace:
-        expected_shape = grid_shape(task.test_input)
-        prompt, schema = self._build_prompt(task, expected_shape)
+        from epistemic_tribunal.tribunal_types import TaskDomain
+        
+        is_math = task.domain == TaskDomain.GSM8K_MATH
+        expected_shape = grid_shape(task.test_input) if not is_math else None
+        
+        if is_math:
+            prompt, schema = self._build_math_prompt(task)
+        else:
+            prompt, schema = self._build_prompt(task, expected_shape)
         
         response, finish_reason = self._complete(prompt, schema, on_token=on_token)
         self.last_finish_reason = finish_reason
@@ -82,7 +89,12 @@ class LLMGenerator(BaseGenerator):
         if finish_reason == "length":
             raise ValueError(f"[length] LLM hit max_tokens={self.max_new_tokens}")
 
-        reasoning_steps = []  # Explicitly disabled per Sprint A
+        reasoning_steps: list[str] = []
+        if is_math:
+            # Always extract reasoning for math tasks — parses <think> blocks, JSON
+            # reasoning_steps fields, and pre-JSON prose. Populates the judge rubric.
+            reasoning_steps = self._extract_reasoning_steps(response)
+
         confidence = 1.0      # Hardcoded default since unprompted
 
         payload = self._extract_payload(response, finish_reason=finish_reason)
@@ -94,26 +106,29 @@ class LLMGenerator(BaseGenerator):
 
         answer_raw = payload.get("answer")
         
-        if self._contains_reasoning_text(answer_raw, reasoning_steps):
-            raise ValueError("[reasoning_bleed] Rejected LLM answer because reasoning text bled into the answer grid.")
-            
-        answer = self._validate_answer(answer_raw, expected_shape=expected_shape)
-        if answer is None:
-            # Attempt shape-clamp rescue before hard-failing:
-            # If the grid has valid cell values but wrong dimensions, try cropping/padding
-            clamped = self._clamp_to_shape(answer_raw, expected_shape)
-            if clamped is not None:
-                log.info(
-                    "Shape-clamp rescue succeeded for task %s: clamped to %dx%d.",
-                    task.task_id, *expected_shape
-                )
-                answer = clamped
-            else:
-                raise ValueError(
-                    f"[grid_shape_invalid] LLM response grid did not match "
-                    f"exact {expected_shape[0]}x{expected_shape[1]} dimensionality "
-                    "or contained invalid tokens (clamp rescue also failed)."
-                )
+        if is_math:
+            # We don't validate shape or bleed for math in the same way
+            answer = answer_raw
+        else:
+            if self._contains_reasoning_text(answer_raw, reasoning_steps):
+                raise ValueError("[reasoning_bleed] Rejected LLM answer because reasoning text bled into the answer grid.")
+                
+            answer = self._validate_answer(answer_raw, expected_shape=expected_shape)
+            if answer is None:
+                # Attempt shape-clamp rescue before hard-failing:
+                clamped = self._clamp_to_shape(answer_raw, expected_shape)
+                if clamped is not None:
+                    log.info(
+                        "Shape-clamp rescue succeeded for task %s: clamped to %dx%d.",
+                        task.task_id, *expected_shape
+                    )
+                    answer = clamped
+                else:
+                    raise ValueError(
+                        f"[grid_shape_invalid] LLM response grid did not match "
+                        f"exact {expected_shape[0]}x{expected_shape[1]} dimensionality "
+                        "or contained invalid tokens (clamp rescue also failed)."
+                    )
 
         return CandidateTrace(
             generator_name=self.name,
@@ -133,6 +148,30 @@ class LLMGenerator(BaseGenerator):
                 "raw_response": response
             }
         )
+
+    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+        main_prompt = (
+            "Solve the following math word problem. Show your reasoning, then provide the final scalar answer.\n"
+            "Return ONLY a JSON object containing your final numerical answer.\n"
+            "Schema: {\"answer\": \"123.45\"}\n"
+            "You may return it as a string, integer, or float, but it must be under the key 'answer'."
+        )
+        prompt = (
+            f"{main_prompt}\n\n"
+            f"Question:\n{task.test_input}\n\n"
+            "JSON answer:"
+        )
+        schema = {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": ["string", "number", "integer"]
+                }
+            },
+            "required": ["answer"],
+            "additionalProperties": False
+        }
+        return prompt, schema
 
     def _build_prompt(self, task: Task, expected_shape: tuple[int, int]) -> tuple[str, dict]:
         H, W = expected_shape
@@ -668,3 +707,144 @@ class OpenAIGenerator(LLMGenerator):
                 time.sleep(wait_time)
         
         return "", "error"
+
+
+class LLMWarmGenerator(LLMGenerator):
+    """Generates an LLM trace with a higher temperature for diversity."""
+    name = "llm_warm"
+
+    def __init__(self, seed: int = 42, **kwargs: Any) -> None:
+        kwargs["temperature"] = kwargs.get("temperature", 0.7)
+        super().__init__(seed=seed, **kwargs)
+
+
+class LLMConciseGenerator(LLMGenerator):
+    """Generates a concise answer trace, demanding zero reasoning."""
+    name = "llm_concise"
+
+    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+        main_prompt = (
+            "Solve the following math word problem. DO NOT EXPLAIN. DO NOT SHOW REASONING.\n"
+            "Return ONLY a JSON object containing your final numerical answer.\n"
+            "Schema: {\"answer\": \"123.45\"}\n"
+            "You may return it as a string, integer, or float, but it must be under the key 'answer'."
+        )
+        prompt = (
+            f"{main_prompt}\n\n"
+            f"Question:\n{task.test_input}\n\n"
+            "JSON answer:"
+        )
+        schema = {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": ["string", "number", "integer"]
+                }
+            },
+            "required": ["answer"],
+            "additionalProperties": False
+        }
+        return prompt, schema
+
+
+class LLMVerifyGenerator(LLMGenerator):
+    """Generates a verified answer trace with an explicit draft/check/revise contract."""
+
+    name = "llm_verify"
+
+    def __init__(self, seed: int = 42, **kwargs: Any) -> None:
+        kwargs["temperature"] = kwargs.get("temperature", 0.0)
+        super().__init__(seed=seed, **kwargs)
+
+    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+        main_prompt = (
+            "Solve the following math word problem.\n"
+            "Use this exact workflow:\n"
+            "1. Compute a draft answer.\n"
+            "2. Verify the arithmetic and units with a second pass.\n"
+            "3. If the verification disagrees, revise the draft before finalising.\n"
+            "4. After verification, emit ONE JSON markdown block with the final answer.\n"
+            'Schema: {"answer": 123}\n'
+            "Do not emit multiple candidate answers. The JSON block must be the final thing in the response."
+        )
+        prompt = (
+            f"{main_prompt}\n\n"
+            f"Question:\n{task.test_input}\n\n"
+            "Verified reasoning and JSON output:"
+        )
+        return prompt, {}
+
+
+class LLMSelfCheckGenerator(LLMGenerator):
+    """Runs one draft answer followed by one lightweight verification pass."""
+
+    name = "llm_selfcheck"
+
+    def __init__(self, seed: int = 42, **kwargs: Any) -> None:
+        kwargs["temperature"] = kwargs.get("temperature", 0.1)
+        super().__init__(seed=seed, **kwargs)
+
+    def generate(
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+    ) -> CandidateTrace:
+        from epistemic_tribunal.tribunal_types import TaskDomain
+
+        if task.domain != TaskDomain.GSM8K_MATH:
+            return super().generate(task, on_token=on_token)
+
+        draft_prompt, draft_schema = LLMGenerator._build_math_prompt(self, task)
+        draft_response, draft_finish = self._complete(draft_prompt, draft_schema, on_token=None)
+        if draft_finish == "length":
+            raise ValueError(f"[length] LLM self-check draft hit max_tokens={self.max_new_tokens}")
+
+        draft_payload = self._extract_payload(draft_response, finish_reason=draft_finish)
+        draft_answer = draft_payload.get("answer") if isinstance(draft_payload, dict) else None
+
+        verify_prompt = (
+            "Re-check the proposed answer to the math word problem.\n"
+            "If the proposed answer is wrong, correct it.\n"
+            "Return ONLY a JSON object with the final numerical answer.\n"
+            'Schema: {"answer": 123}\n\n'
+            f"Question:\n{task.test_input}\n\n"
+            f"Proposed answer to verify: {draft_answer}\n\n"
+            "Final JSON answer:"
+        )
+        verify_schema = {
+            "type": "object",
+            "properties": {"answer": {"type": ["string", "number", "integer"]}},
+            "required": ["answer"],
+            "additionalProperties": False,
+        }
+        final_response, final_finish = self._complete(verify_prompt, verify_schema, on_token=on_token)
+        if final_finish == "length":
+            raise ValueError(f"[length] LLM self-check verify hit max_tokens={self.max_new_tokens}")
+
+        reasoning_steps = self._extract_reasoning_steps(draft_response) + self._extract_reasoning_steps(final_response)
+        payload = self._extract_payload(final_response, finish_reason=final_finish)
+        if payload is None or "answer" not in payload:
+            raise ValueError("[json_not_found] LLM self-check verify response contained no parsable answer JSON.")
+
+        answer = payload.get("answer")
+        return CandidateTrace(
+            generator_name=self.name,
+            answer=answer,
+            reasoning_steps=reasoning_steps,
+            raw_trace=f"{draft_response}\n\n<self_check>\n{final_response}\n</self_check>",
+            token_count=len((draft_response + ' ' + final_response).split()),
+            confidence_score=1.0,
+            derived_features={
+                "model_name": self.model_name,
+                "self_check": True,
+                "draft_finish_reason": draft_finish,
+                "verify_finish_reason": final_finish,
+            },
+            metadata={
+                "model": self.model_name,
+                "finish_reason": final_finish,
+                "draft_answer": draft_answer,
+                "draft_response": draft_response,
+                "verify_response": final_response,
+            },
+        )

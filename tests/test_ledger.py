@@ -18,7 +18,7 @@ from epistemic_tribunal.ledger.models import (
 )
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.ledger.writer import LedgerWriter
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     DecisionKind,

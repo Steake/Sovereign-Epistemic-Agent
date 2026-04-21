@@ -120,13 +120,16 @@ class BenchmarkRunner:
             # Map IDs to local files (preserving order)
             task_files = []
             for tid in task_ids:
-                matches = list(dataset_path.glob(f"**/{tid}.json"))
+                matches = list(dataset_path.glob(f"**/{tid}.json")) + list(dataset_path.glob(f"**/{tid}.jsonl"))
                 if matches:
                     task_files.append(matches[0])
                 else:
                     log.warning("Task %s from manifest not found in %s.", tid, dataset_path)
         else:
-            task_files = sorted(dataset_path.glob("*.json"))
+            if dataset_path.is_file():
+                task_files = [dataset_path]
+            else:
+                task_files = sorted(dataset_path.glob("*.json")) + sorted(dataset_path.glob("*.jsonl"))
 
         # Apply limit if specified
         if limit:
@@ -139,29 +142,42 @@ class BenchmarkRunner:
         elapsed_before_resume = float(prior_progress.get("elapsed_time_seconds", 0.0))
 
         if not task_files:
-            log.warning("No *.json task files found in %s", dataset_path)
+            log.warning("No *.json or *.jsonl task files found in %s", dataset_path)
             return []
 
         runs: list[ExperimentRun] = list(prior_runs)
         processed_since_checkpoint = 0
+        # Count tasks already loaded from resume so limit is relative to fresh work
+        fresh_task_count = 0
         for task_file in task_files:
+            if limit is not None and fresh_task_count >= limit:
+                break
             try:
-                task = load_task_from_file(task_file)
-                if task.task_id in completed_task_ids:
-                    log.info("Skipping completed task %s due to resume state.", task.task_id)
-                    continue
-                log.info("Running tribunal on task %s", task.task_id)
-                run = self._orchestrator.run(task)
-                runs.append(run)
-                completed_task_ids.add(task.task_id)
-                processed_since_checkpoint += 1
-                if self._should_checkpoint(processed_since_checkpoint):
-                    self._checkpoint_progress(
-                        completed_task_ids=completed_task_ids,
-                        runs=runs,
-                        elapsed_time_seconds=elapsed_before_resume + (time.monotonic() - start_time),
-                    )
-                    processed_since_checkpoint = 0
+                if task_file.suffix == ".jsonl":
+                    from epistemic_tribunal.tasks.gsm8k import load_tasks_from_jsonl
+                    tasks_to_run = load_tasks_from_jsonl(task_file)
+                else:
+                    tasks_to_run = [load_task_from_file(task_file)]
+
+                for task in tasks_to_run:
+                    if limit is not None and fresh_task_count >= limit:
+                        break
+                    if task.task_id in completed_task_ids:
+                        log.info("Skipping completed task %s due to resume state.", task.task_id)
+                        continue
+                    log.info("Running tribunal on task %s", task.task_id)
+                    run = self._orchestrator.run(task)
+                    runs.append(run)
+                    completed_task_ids.add(task.task_id)
+                    fresh_task_count += 1
+                    processed_since_checkpoint += 1
+                    if self._should_checkpoint(processed_since_checkpoint):
+                        self._checkpoint_progress(
+                            completed_task_ids=completed_task_ids,
+                            runs=runs,
+                            elapsed_time_seconds=elapsed_before_resume + (time.monotonic() - start_time),
+                        )
+                        processed_since_checkpoint = 0
             except Exception as exc:
                 log.error("Failed to process %s: %s", task_file.name, exc)
 
@@ -176,11 +192,20 @@ class BenchmarkRunner:
 
     def report(self, runs: list[ExperimentRun]) -> dict:
         """Compute and return summary metrics for a list of runs."""
-        return summary_report(runs)
+        coalition_rows = self._store.get_coalition_opinions(
+            run_ids=[run.run_id for run in runs]
+        )
+        return summary_report(runs, coalition_rows=coalition_rows)
 
-    def run_and_report(self, dataset_path: Path | str, *, resume: bool = False) -> dict:
+    def run_and_report(
+        self,
+        dataset_path: Path | str,
+        *,
+        resume: bool = False,
+        manifest_path: Optional[str | Path] = None,
+    ) -> dict:
         """Convenience: run the full benchmark and return the metrics dict."""
-        runs = self.run(dataset_path, resume=resume)
+        runs = self.run(dataset_path, resume=resume, manifest_path=manifest_path)
         metrics = self.report(runs)
         log.info("Benchmark complete: %s", metrics)
         return metrics

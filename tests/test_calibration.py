@@ -24,7 +24,7 @@ from epistemic_tribunal.evaluation.metrics import summary_report
 from epistemic_tribunal.ledger.models import TaskRecord
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.ledger.writer import LedgerWriter
-from epistemic_tribunal.types import DecisionKind, ExperimentRun, Task
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun, Task
 
 runner = CliRunner()
 
@@ -108,13 +108,13 @@ def test_all_abstentions_and_empty_inputs() -> None:
     }
     assert abstention_quality(abstain_runs) == {
         "abstention_rate": 1.0,
-        "wrong_abstention_rate": 0.5,
-        "correct_abstention_rate": 0.5,
+        "good_abstention_rate": 0.0,
+        "bad_abstention_rate": 0.0,
     }
     assert abstention_quality([]) == {
         "abstention_rate": 0.0,
-        "wrong_abstention_rate": 0.0,
-        "correct_abstention_rate": 0.0,
+        "good_abstention_rate": 0.0,
+        "bad_abstention_rate": 0.0,
     }
 
 
@@ -145,9 +145,10 @@ def test_summary_report_gates_on_real_confidence_values() -> None:
 
     assert "ece" not in old_report
     assert "brier_score" not in old_report
-    assert mixed_report["ece"] == pytest.approx(0.2)
-    assert mixed_report["brier_score"] == pytest.approx(0.04)
-    assert mixed_report["selective_accuracy_90"]["threshold"] == pytest.approx(0.8)
+    assert old_report.get("calibration") is None
+    assert mixed_report["calibration"]["ece"] == pytest.approx(0.2)
+    assert mixed_report["calibration"]["brier"] == pytest.approx(0.04)
+    assert mixed_report["calibration"]["acc_at_90_cov"] == pytest.approx(1.0)
 
 
 def test_confidence_persists_and_reads_back(in_memory_store: LedgerStore, simple_task: Task) -> None:

@@ -57,9 +57,14 @@ def compute_trace_score(
     alpha, beta, gamma, delta:
         Pre-normalised weights for U, C, M, V respectively.
     """
-    # U: uncertainty quality — high coalition + margin, low entropy
+    # U: uncertainty quality — fraction of pool that agrees with this candidate's answer.
+    # per_trace_quality is now candidate-specific (set in UncertaintyAnalyzer).
+    # Majority-coalition trace: u_quality ≈ 0.667 (2/3 agree)
+    # Minority trace:           u_quality ≈ 0.333 (1/3 agree)
+    # We preserve the pool-level margin as a secondary boost but do not multiply
+    # it in a way that collapses all candidates to the same value.
     u_quality = uncertainty.per_trace_quality.get(trace.trace_id, 0.5)
-    U = u_quality * (0.5 + 0.5 * uncertainty.margin)
+    U = u_quality
 
     # C: critic aggregate
     C = critique.aggregate_score

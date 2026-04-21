@@ -1,0 +1,45 @@
+# Advanced GSM8K Tribunal Configuration
+# This exercises multi-regime plurality and LLM trace grading.
+
+run:
+  seed: 42
+  max_parallel: 5
+  persist_to_ledger: true
+  max_tasks: 20
+
+ledger:
+  path: data/gsm8k_advanced_ledger.db
+
+generators:
+  llm:
+    enabled: true
+    count: 2
+    max_new_tokens: 1024
+    temperature: 0.1
+  llm_warm:
+    enabled: true
+    count: 2
+    max_new_tokens: 1024
+    temperature: 0.7
+  llm_cot:
+    enabled: true
+    count: 2
+    max_new_tokens: 2048
+    temperature: 0.2
+  llm_concise:
+    enabled: true
+    count: 1
+    max_new_tokens: 512
+    temperature: 0.0
+
+critic:
+  consistency_weight: 0.2
+  rule_coherence_weight: 0.3
+  morphology_weight: 0.1
+  failure_similarity_weight: 0.4
+  use_llm_judge_for_math: true
+
+tribunal:
+  strategy: threshold
+  threshold_aggregate: 0.85
+  resample_on_abstain: false

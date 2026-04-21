@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
-from epistemic_tribunal.types import GridExample, InvariantSet, Task, TaskDomain
+from epistemic_tribunal.tribunal_types import GridExample, InvariantSet, Task, TaskDomain
 
 
 # ---------------------------------------------------------------------------

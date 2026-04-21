@@ -1,0 +1,48 @@
+# ============================================================================
+# Epistemic ARC — Full Tribunal: Validation Set (Tribunal-Tuned Tasks)
+# ============================================================================
+# Same generator pool and adjudication settings as tribunal_full_experiment.yaml
+# but targeting the 50-task Tribunal-tuned validation set in data/validation_set/
+# with a dedicated ledger for clean comparison.
+# ============================================================================
+
+tribunal:
+  adjudication_strategy: "standard"
+  selection_threshold: 0.35
+  resample_threshold: 0.15
+  max_resample_attempts: 1
+  diversity_floor: 0.60
+  ledger_warmup_tasks: 0
+  weights:
+    uncertainty: 0.25
+    critic: 0.35
+    memory: 0.00
+    invariant: 0.40
+  structural_override:
+    enabled: true
+    v_threshold: 0.80
+    c_threshold: 0.75
+    margin_threshold: 0.04
+    confidence_cap: 0.72
+
+generators:
+  enabled: ["llm", "greedy", "diverse"]
+  seed: 42
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 8192
+    temperature: 0.0
+    top_p: 0.95
+    use_json_schema: false
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+
+ledger:
+  path: "data/tribunal_valset_ledger.db"
+
+metadata:
+  arm_name: "tribunal_valset_3gen"
+  experiment: "tribunal_tuned_validation_v1"
+  description: >
+    Full tribunal (LLM + Greedy + Diverse) against the 50-task
+    Tribunal-tuned validation set in data/validation_set/tasks/.

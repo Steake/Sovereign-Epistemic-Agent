@@ -6,10 +6,26 @@ after running the tribunal over a dataset.
 
 from __future__ import annotations
 
+import json
 from collections import Counter
+from typing import Any, Optional
 
 from epistemic_tribunal.evaluation import calibration
 from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun
+
+def best_in_pool_accuracy(runs: list[ExperimentRun]) -> float:
+    """Fraction of runs where at least one candidate trace matched the ground truth."""
+    if not runs:
+        return 0.0
+    correct = sum(1 for r in runs if r.metadata.get("any_correct") is True)
+    return correct / len(runs)
+
+def greedy_accuracy(runs: list[ExperimentRun]) -> float:
+    """Fraction of runs where the 'llm' (greedy) baseline generator matched the ground truth."""
+    if not runs:
+        return 0.0
+    correct = sum(1 for r in runs if r.metadata.get("greedy_correct") is True)
+    return correct / len(runs)
 
 
 def resolved_accuracy(runs: list[ExperimentRun]) -> float:
@@ -117,47 +133,154 @@ def path_b_failed_margin(runs: list[ExperimentRun]) -> int:
 def path_b_failed_violations(runs: list[ExperimentRun]) -> int:
     return sum(1 for r in runs if r.metadata.get("path_b_stats", {}).get("failed_violations", False))
 
-def summary_report(runs: list[ExperimentRun]) -> dict[str, float | int | dict]:
-    """Produce a full summary metrics dictionary."""
+def _parse_json_field(raw: Any, default: Any) -> Any:
+    if raw is None:
+        return default
+    if isinstance(raw, (dict, list)):
+        return raw
+    try:
+        return json.loads(raw)
+    except Exception:
+        return default
+
+
+def summary_report(
+    runs: list[ExperimentRun],
+    coalition_rows: Optional[list[dict[str, Any]]] = None,
+) -> dict[str, float | int | dict]:
+    """Produce a full summary metrics dictionary with cohort stratification."""
+    
+    # 1. Base Accuracy & Coverage
+    total = len(runs)
+    selected = [r for r in runs if r.decision == DecisionKind.SELECT]
+    not_selected = [r for r in runs if r.decision != DecisionKind.SELECT]
+    
     report: dict[str, float | int | dict] = {
-        "total_runs": len(runs),
+        "total_runs": total,
         "overall_accuracy": round(overall_accuracy(runs), 4),
-        "resolved_accuracy": round(resolved_accuracy(runs), 4),
+        "selective_accuracy": round(resolved_accuracy(runs), 4),
         "coverage": round(coverage(runs), 4),
-        "abstention_rate": round(abstention_rate(runs), 4),
-        "resample_rate": round(resample_rate(runs), 4),
         "wrong_pick_count": wrong_pick_count(runs),
-        "override_count": override_count(runs),
-        "truncation_count": truncation_count(runs),
-        "json_not_found_count": json_not_found_count(runs),
-        "json_invalid_count": json_invalid_count(runs),
-        "grid_shape_invalid_count": grid_shape_invalid_count(runs),
-        "reasoning_bleed_count": reasoning_bleed_count(runs),
-        "parse_failure_count": parse_failure_count(runs),
-        "path_b_met_gate": path_b_met_gate(runs),
-        "path_b_failed_v": path_b_failed_v(runs),
-        "path_b_failed_c": path_b_failed_c(runs),
-        "path_b_failed_margin": path_b_failed_margin(runs),
-        "path_b_failed_violations": path_b_failed_violations(runs),
-        "mean_confidence": round(mean_confidence(runs), 4),
-        "decision_distribution": decision_distribution(runs),
-        "avg_duration_seconds": round(average_duration(runs), 4),
     }
+
+    # 2. Cohort Stratification
+    cohort_stats = {}
+    for c_name in ["control-trivial", "contested-recoverable", "contested-unrecoverable", "unknown"]:
+        c_runs = [r for r in runs if r.metadata.get("cohort") == c_name]
+        if not c_runs:
+            continue
+            
+        c_sel = [r for r in c_runs if r.decision == DecisionKind.SELECT]
+        c_acc = sum(1 for r in c_sel if r.ground_truth_match) / len(c_sel) if c_sel else 0.0
+        
+        cohort_stats[c_name] = {
+            "n": len(c_runs),
+            "selective_acc": round(c_acc, 4),
+            "abstain_rate": round(sum(1 for r in c_runs if r.decision != DecisionKind.SELECT) / len(c_runs), 4),
+            "wrong_picks": sum(1 for r in c_sel if r.ground_truth_match is False),
+        }
+    report["cohort_metrics"] = cohort_stats
+
+    # 3. Abstention Quality (Impossible to misread)
+    # Good Abstention: System avoided a task where NO candidate was correct.
+    # Bad Abstention: System avoided a task where AT LEAST ONE candidate was correct.
+    good_abstains = sum(1 for r in not_selected if r.metadata.get("any_correct") is False)
+    bad_abstains = sum(1 for r in not_selected if r.metadata.get("any_correct") is True)
+    
+    report["abstention_metrics"] = {
+        "total_abstentions": len(not_selected),
+        "good_abstentions": good_abstains,  # Avoided unrecoverable errors
+        "bad_abstentions": bad_abstains,    # Missed recoverable solutions
+        "abstention_efficiency": round(good_abstains / len(not_selected), 4) if not_selected else 0.0,
+    }
+
+    # 4. Calibration & Quality
     eligible_with_confidence = [
-        run for run in runs
-        if run.decision == DecisionKind.SELECT
-        and run.ground_truth_match is not None
+        run for run in selected
+        if run.ground_truth_match is not None
         and run.confidence > 0.0
     ]
     if eligible_with_confidence:
-        report["ece"] = round(calibration.expected_calibration_error(eligible_with_confidence), 4)
-        report["brier_score"] = round(calibration.brier_score(eligible_with_confidence), 4)
-        report["selective_accuracy_90"] = {
-            key: round(value, 4)
-            for key, value in calibration.accuracy_at_coverage(eligible_with_confidence, 0.9).items()
+        report["calibration"] = {
+            "ece": round(calibration.expected_calibration_error(eligible_with_confidence), 4),
+            "brier": round(calibration.brier_score(eligible_with_confidence), 4),
+            "acc_at_90_cov": round(calibration.accuracy_at_coverage(eligible_with_confidence, 0.9)["accuracy"], 4),
         }
-        report["abstention_quality"] = {
-            key: round(value, 4)
-            for key, value in calibration.abstention_quality(runs).items()
+
+    # 5. Diagnostics & Infrastructure
+    report["diagnostics"] = {
+        "avg_duration": round(average_duration(runs), 4),
+        "parse_failures": parse_failure_count(runs),
+        "path_b_overrides": override_count(runs),
+        "truncations": truncation_count(runs),
+        "json_errors": json_invalid_count(runs) + json_not_found_count(runs),
+    }
+
+    # 6. Tribunal Usefulness & Oracle Analysis
+    bip_acc = best_in_pool_accuracy(runs)
+    gre_acc = greedy_accuracy(runs)
+    cr_runs = [r for r in runs if r.metadata.get("cohort") == "contested-recoverable"]
+    
+    if cr_runs:
+        cr_sel = [r for r in cr_runs if r.decision == DecisionKind.SELECT]
+        cr_tribunal_acc = sum(1 for r in cr_sel if r.ground_truth_match) / len(cr_sel) if cr_sel else 0.0
+        cr_greedy_acc = greedy_accuracy(cr_runs)
+        lift_cr = cr_tribunal_acc - cr_greedy_acc
+    else:
+        lift_cr = 0.0
+
+    report["tribunal_usefulness"] = {
+        "best_candidate_in_pool_accuracy": round(bip_acc, 4),
+        "greedy_accuracy": round(gre_acc, 4),
+        "good_abstention_rate": round(good_abstains / len(not_selected), 4) if not_selected else 0.0,
+        "bad_abstention_rate": round(bad_abstains / len(not_selected), 4) if not_selected else 0.0,
+        "tribunal_lift_over_greedy": round((resolved_accuracy(runs) - gre_acc), 4),
+        "lift_on_contested_recoverable": round(lift_cr, 4),
+    }
+
+    if coalition_rows:
+        mean_belief = sum(float(row.get("belief", 0.0)) for row in coalition_rows) / len(coalition_rows)
+        mean_disbelief = sum(float(row.get("disbelief", 0.0)) for row in coalition_rows) / len(coalition_rows)
+        mean_uncertainty = sum(float(row.get("uncertainty", 0.0)) for row in coalition_rows) / len(coalition_rows)
+
+        high_uncertainty_abstains = 0
+        same_answer_tie_selected = 0
+        structural_uncertainty_cases = 0
+        exact_memory_changed_winner = 0
+
+        run_by_id = {run.run_id: run for run in runs}
+        winner_rows = [row for row in coalition_rows if row.get("decision_role") == "winner"]
+        for row in winner_rows:
+            run = run_by_id.get(row.get("run_id"))
+            if run is not None:
+                eqbsl_meta = run.metadata.get("eqbsl", {})
+                reason = eqbsl_meta.get("task_reason", {})
+                if reason.get("reason_code") == "abstain_high_uncertainty":
+                    high_uncertainty_abstains += 1
+                if eqbsl_meta.get("exact_memory_changed_winner") is True:
+                    exact_memory_changed_winner += 1
+                if eqbsl_meta.get("same_answer_tie_case") and run.decision == DecisionKind.SELECT:
+                    same_answer_tie_selected += 1
+
+            source_opinions = _parse_json_field(row.get("source_opinions_json"), {})
+            memory_source = source_opinions.get("M", {})
+            memory_opinion = memory_source.get("opinion", {})
+            memory_meta = memory_opinion.get("metadata", {})
+            if (
+                memory_meta.get("structural_hits", 0) > 0
+                and memory_meta.get("exact_hits", 0) == 0
+                and float(memory_opinion.get("uncertainty", 0.0)) > float(memory_opinion.get("disbelief", 0.0))
+            ):
+                structural_uncertainty_cases += 1
+
+        report["eqbsl_diagnostics"] = {
+            "mean_coalition_belief": round(mean_belief, 4),
+            "mean_coalition_disbelief": round(mean_disbelief, 4),
+            "mean_coalition_uncertainty": round(mean_uncertainty, 4),
+            "abstentions_caused_by_high_uncertainty": high_uncertainty_abstains,
+            "same_answer_tie_cases_correctly_selected": same_answer_tie_selected,
+            "structural_evidence_uncertainty_without_disbelief": structural_uncertainty_cases,
+            "exact_answer_failure_changed_winner": exact_memory_changed_winner,
         }
+
     return report

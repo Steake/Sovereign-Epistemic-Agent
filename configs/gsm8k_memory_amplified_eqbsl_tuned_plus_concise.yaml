@@ -1,0 +1,93 @@
+tribunal:
+  adjudication_strategy: "standard"
+  fusion_mode: "eqbsl"
+  selection_threshold: 0.30
+  resample_threshold: 0.15
+  max_resample_attempts: 2
+  single_source_resampling_mode: false
+  resample_temperature_schedule: [0.1, 0.4, 0.7]
+  diversity_floor: 0.50
+  ledger_warmup_tasks: 0
+  weights:
+    uncertainty: 0.45
+    critic: 0.25
+    memory: 0.30
+    invariant: 0.00
+  structural_override:
+    enabled: true
+    v_threshold: 0.80
+    c_threshold: 0.75
+    margin_threshold: 0.04
+    confidence_cap: 0.72
+
+critic:
+  use_llm_judge_for_math: true
+
+generators:
+  enabled: ["llm", "llm_cot", "llm_warm", "llm_concise"]
+  seed: 42
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 2048
+    temperature: 0.1
+    top_p: 0.95
+    use_json_schema: false
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+  configs:
+    llm:
+      model_name: "deepseek-chat"
+      temperature: 0.1
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+    llm_cot:
+      type: "llm_cot"
+      model_name: "deepseek-chat"
+      max_new_tokens: 4096
+      temperature: 0.2
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+    llm_warm:
+      type: "llm_warm"
+      model_name: "deepseek-chat"
+      temperature: 0.7
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+    llm_concise:
+      type: "llm_concise"
+      model_name: "deepseek-chat"
+      max_new_tokens: 1024
+      temperature: 0.0
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+
+failure_memory:
+  enabled: true
+  penalty_scale: 0.5
+
+eqbsl:
+  enabled: true
+  k: 2.0
+  default_base_rate: 0.25
+  selection_expectation_threshold: 0.52
+  resample_expectation_threshold: 0.38
+  max_select_uncertainty: 0.55
+  abstain_uncertainty_threshold: 0.72
+  distinct_answer_gap_threshold: 0.04
+  enable_generator_trust: true
+  source_trust:
+    u: 1.0
+    c: 1.0
+    m: 1.0
+    v: 1.0
+    generator_trust: 0.8
+
+ledger:
+  path: "data/gsm8k/ledger_multi_regime.db"
+
+metadata:
+  arm_name: "gsm8k_multi_regime_plus_concise"
+  experiment: "gsm8k_contested_recoverable_benchmark"
+  description: >
+    Tuned EQBSL selector with one additional concise DeepSeek regime for
+    blocker-slice pool-quality evaluation. Selector logic is unchanged.

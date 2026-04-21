@@ -7,7 +7,7 @@ import pytest
 from epistemic_tribunal.config import TribunalSettings, TribunalConfig
 from epistemic_tribunal.ledger.store import LedgerStore
 from epistemic_tribunal.orchestrator import Orchestrator
-from epistemic_tribunal.types import DecisionKind, ExperimentRun, Task
+from epistemic_tribunal.tribunal_types import DecisionKind, ExperimentRun, Task
 
 
 # ---------------------------------------------------------------------------
@@ -137,10 +137,13 @@ def test_orchestrator_with_single_generator() -> None:
     config.tribunal.selection_threshold = 0.0
     config.tribunal.resample_threshold = 0.0
     config.tribunal.diversity_floor = 1.0
+    # Disable guardrails — with one trace the margin is necessarily 0.
+    config.tribunal.guardrail_margin_threshold = 0.0
+    config.tribunal.guardrail_min_coalition_mass = 0.0
     store = LedgerStore(":memory:")
     orch = Orchestrator(config=config, ledger_store=store)
 
-    from epistemic_tribunal.types import GridExample, Task, TaskDomain
+    from epistemic_tribunal.tribunal_types import GridExample, Task, TaskDomain
     task = Task(
         task_id="single_gen_test",
         domain=TaskDomain.ARC_LIKE,

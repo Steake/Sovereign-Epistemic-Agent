@@ -10,7 +10,7 @@ from epistemic_tribunal.generators.base import build_generators
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
 from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
 from epistemic_tribunal.tribunal.scoring import compute_trace_score, normalise_weights
-from epistemic_tribunal.types import (
+from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
     DecisionKind,

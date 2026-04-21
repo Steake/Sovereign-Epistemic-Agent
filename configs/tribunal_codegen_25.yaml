@@ -10,7 +10,7 @@ tribunal:
   selection_threshold: 0.30
   resample_threshold: 0.10
   max_resample_attempts: 1
-  diversity_floor: 0.0          # Allow single-generator decisions if confident
+  diversity_floor: 1.0          # Allow single-generator decisions if confident
   ledger_warmup_tasks: 0
   guardrail_margin_threshold: 0.0   
   guardrail_min_coalition_mass: 0.20

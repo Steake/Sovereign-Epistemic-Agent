@@ -14,10 +14,15 @@ from structural features of the trace and answer grid.
 
 from __future__ import annotations
 
+import json
+import os
 from typing import Optional
+
+from openai import OpenAI
 
 from epistemic_tribunal.critics.base import BaseCritic
 from epistemic_tribunal.invariants.extractor import InvariantExtractor
+from epistemic_tribunal.utils.logging import get_logger
 from epistemic_tribunal.tasks.base import (
     colour_counts,
     grid_shape,
@@ -34,6 +39,9 @@ from epistemic_tribunal.tribunal_types import (
 )
 
 
+log = get_logger(__name__)
+
+
 class TraceCritic(BaseCritic):
     """Heuristic trace critic for ARC-like tasks."""
 
@@ -45,12 +53,14 @@ class TraceCritic(BaseCritic):
         rule_coherence_weight: float = 0.25,
         morphology_weight: float = 0.25,
         failure_similarity_weight: float = 0.20,
+        use_llm_judge_for_math: bool = False,
     ) -> None:
         total = consistency_weight + rule_coherence_weight + morphology_weight + failure_similarity_weight
         self._w_cons = consistency_weight / total
         self._w_rule = rule_coherence_weight / total
         self._w_morph = morphology_weight / total
         self._w_fail = failure_similarity_weight / total
+        self._use_llm_judge = use_llm_judge_for_math
         self._extractor = InvariantExtractor()
 
     # ------------------------------------------------------------------
@@ -100,6 +110,9 @@ class TraceCritic(BaseCritic):
         aggregate = (aggregate * 4 + invariant_score) / 5.0
         aggregate = max(0.0, min(1.0, aggregate))
 
+        # Apply a sharpening transform (exponentiation) to combat critic flatness
+        aggregate = aggregate ** 3.0
+
         notes = (
             f"consistency={consistency:.3f}, "
             f"rule_coherence={rule_coherence:.3f}, "
@@ -108,6 +121,14 @@ class TraceCritic(BaseCritic):
             f"invariant={invariant_score:.3f}, "
             f"violated={violated}"
         )
+        if "llm_judge_final_rule_coherence" in trace.metadata:
+            notes += (
+                f", llm_judge("
+                f"arith={trace.metadata.get('llm_judge_arithmetic_consistency', '?'):.3f}, "
+                f"logic={trace.metadata.get('llm_judge_logical_consistency', '?'):.3f}, "
+                f"align={trace.metadata.get('llm_judge_answer_trace_alignment', '?'):.3f}, "
+                f"coherence={trace.metadata.get('llm_judge_final_rule_coherence', '?'):.3f})"
+            )
 
         return CritiqueResult(
             trace_id=trace.trace_id,
@@ -137,6 +158,12 @@ class TraceCritic(BaseCritic):
 
         Proxy: similarity between the candidate answer and the closest training output.
         """
+        from epistemic_tribunal.tribunal_types import TaskDomain
+        if task.domain == TaskDomain.GSM8K_MATH:
+            if self._use_llm_judge:
+                return self._score_rule_coherence_llm(task, trace)
+            return 1.0
+
         if not task.train:
             return 0.5  # no signal
 
@@ -146,6 +173,65 @@ class TraceCritic(BaseCritic):
         ]
         return round(max(similarities), 4)
 
+    def _score_rule_coherence_llm(self, task: Task, trace: CandidateTrace) -> float:
+        """Uses an LLM to judge the coherence of a math reasoning trace."""
+        api_key = os.environ.get("DEEPSEEK_API_KEY")
+        if not api_key:
+            log.warning("DEEPSEEK_API_KEY not set. Cannot run LLM judge. Defaulting to 1.0")
+            return 1.0
+            
+        client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+        
+        reasoning_text = "\n".join(trace.reasoning_steps) if trace.reasoning_steps else "No reasoning provided."
+        
+        prompt = f"""Evaluate the following mathematical reasoning trace and extract the specified scores as strict JSON.
+Scores must be floats between 0.0 and 1.0.
+
+Question: {task.test_input}
+Reasoning Steps:
+{reasoning_text}
+Proposed Answer: {trace.answer}
+
+Return ONLY strict JSON matching this exact structure, with no markdown formatting or extra text:
+{{
+  "arithmetic_consistency": 0.0,
+  "logical_consistency": 0.0,
+  "answer_trace_alignment": 0.0,
+  "final_rule_coherence": 0.0,
+  "brief_rationale": "..."
+}}
+"""
+        try:
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": "You are a strict, objective mathematical reasoning critic. You only output valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.0,
+                response_format={"type": "json_object"}
+            )
+            
+            result_text = response.choices[0].message.content
+            if not result_text:
+                return 0.5
+                
+            data = json.loads(result_text)
+            
+            # Persist all rubric dimensions to metadata for downstream analysis
+            if "brief_rationale" in data:
+                trace.metadata["llm_judge_rationale"] = data["brief_rationale"]
+            for key in ("arithmetic_consistency", "logical_consistency", "answer_trace_alignment", "final_rule_coherence"):
+                if key in data:
+                    trace.metadata[f"llm_judge_{key}"] = float(data[key])
+                
+            score = float(data.get("final_rule_coherence", 0.5))
+            return round(max(0.0, min(1.0, score)), 4)
+            
+        except Exception as e:
+            log.warning("LLM judge failed: %s. Defaulting to 0.5", str(e))
+            return 0.5
+
     def _score_morphology(self, task: Task, trace: CandidateTrace) -> float:
         """Is the answer grid structurally plausible?
 
@@ -154,6 +240,19 @@ class TraceCritic(BaseCritic):
         - Shape matches test input (if training consistently preserves shape).
         - Colour range is bounded (0–9).
         """
+        from epistemic_tribunal.tribunal_types import TaskDomain
+        if task.domain == TaskDomain.GSM8K_MATH:
+            if trace.answer is None or not str(trace.answer).strip():
+                return 0.0
+            
+            # If they provided reasoning, verify the answer actually appears in it
+            if trace.reasoning_steps:
+                full_text = " ".join(trace.reasoning_steps)
+                if str(trace.answer) in full_text:
+                    return 1.0
+                return 0.5  # Answer doesn't appear in their reasoning
+            return 1.0
+
         answer = trace.answer
         if not answer or not answer[0]:
             return 0.0

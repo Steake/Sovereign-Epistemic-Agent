@@ -1,0 +1,192 @@
+[
+  {
+    "task_id": "auto_refinement_composition_53903c59",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_d82f4f85",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_78fdae13",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_c7fd3acb",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_2387060f",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_afa80243",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "refinement_composition_rotate180_crop_g",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_b509f69a",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "diversity_sensitive_crop_consensus_l",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_c15d81cb",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_401cfb85",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "diversity_sensitive_crop_consensus_k",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_a7855b4f",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_15cf3c10",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_5f6e3ff8",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_ce8d25af",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "control_tile_2x2_b",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_bde7f3f1",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "refinement_composition_rotate270_crop_e",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "task_id": "colour_swap_001",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 3,
+    "structural_separability": 4,
+    "plausible_hypotheses": ["swap blue and red"],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "test"
+  },
+  {
+    "task_id": "fill_background_002",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 3,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "test"
+  },
+  {
+    "task_id": "copy_identity_003",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "test"
+  },
+  {
+    "task_id": "horizontal_flip_004",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 2,
+    "structural_separability": 3,
+    "plausible_hypotheses": [],
+    "recoverability_status": "near_miss_candidate_present",
+    "annotation_notes": "test"
+  },
+  {
+    "task_id": "vertical_flip_005",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 3,
+    "recoverability_index": 0,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "test"
+  }
+]

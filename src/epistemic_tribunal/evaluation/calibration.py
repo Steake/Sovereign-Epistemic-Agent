@@ -117,25 +117,28 @@ def abstention_quality(runs: list[ExperimentRun]) -> dict:
     if not evaluable_runs:
         return {
             "abstention_rate": 0.0,
-            "wrong_abstention_rate": 0.0,
-            "correct_abstention_rate": 0.0,
+            "good_abstention_rate": 0.0,
+            "bad_abstention_rate": 0.0,
         }
 
     abstentions = [
-        run for run in evaluable_runs if run.decision == DecisionKind.ABSTAIN
+        run for run in evaluable_runs if run.decision != DecisionKind.SELECT
     ]
     abstention_rate = len(abstentions) / len(evaluable_runs)
     if not abstentions:
         return {
             "abstention_rate": abstention_rate,
-            "wrong_abstention_rate": 0.0,
-            "correct_abstention_rate": 0.0,
+            "good_abstention_rate": 0.0,
+            "bad_abstention_rate": 0.0,
         }
 
-    wrong_abstentions = sum(1 for run in abstentions if run.ground_truth_match is False)
-    correct_abstentions = sum(1 for run in abstentions if run.ground_truth_match is True)
+    # Good: avoided error on unrecoverable task
+    good_count = sum(1 for r in abstentions if r.metadata.get("any_correct") is False)
+    # Bad: missed solution on recoverable task
+    bad_count = sum(1 for r in abstentions if r.metadata.get("any_correct") is True)
+    
     return {
         "abstention_rate": abstention_rate,
-        "wrong_abstention_rate": wrong_abstentions / len(abstentions),
-        "correct_abstention_rate": correct_abstentions / len(abstentions),
+        "good_abstention_rate": good_count / len(abstentions),
+        "bad_abstention_rate": bad_count / len(abstentions),
     }

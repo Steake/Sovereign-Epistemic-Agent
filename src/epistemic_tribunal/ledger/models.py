@@ -79,3 +79,28 @@ class ExperimentRunRecord:
     config_snapshot_json: str
     metadata_json: str = "{}"
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass
+class CoalitionOpinionRecord:
+    run_id: str
+    task_id: str
+    answer_signature: str
+    coalition_member_trace_ids_json: str
+    coalition_member_generators_json: str
+    representative_trace_id: str | None
+    representative_generator: str | None
+    source_opinions_json: str
+    generator_trust_opinion_json: str
+    fused_opinion_json: str
+    belief: float
+    disbelief: float
+    uncertainty: float
+    base_rate: float
+    expectation: float
+    base_rate_contribution: float
+    decision_role: str
+    decision_reason_code: str
+    decision_reason_text: str
+    explanation_metadata_json: str = "{}"
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

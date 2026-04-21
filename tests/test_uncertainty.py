@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from epistemic_tribunal.generators.base import build_generators
-from epistemic_tribunal.types import CandidateTrace, UncertaintyReport
+from epistemic_tribunal.tribunal_types import CandidateTrace, UncertaintyReport
 from epistemic_tribunal.uncertainty.analyzer import UncertaintyAnalyzer
 
 

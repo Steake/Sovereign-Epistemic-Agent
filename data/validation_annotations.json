@@ -1,0 +1,502 @@
+[
+  {
+    "task_id": "auto_control_0a7d41f9",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_10a8c371",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_22ae2e50",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_2387060f",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_2670f740",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_26d0e348",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_26f31f37",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_38d9fdef",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_3ad13935",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_control_3dd4f01e",
+    "cohort": "control_trivial",
+    "contestability_index": 0,
+    "recoverability_index": 4,
+    "structural_separability": 4,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_02587caa",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_037e2453",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_038c9007",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_0b8af6a4",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_1152c977",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_15cf3c10",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_17a8c07d",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_18d4664f",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_206dd33a",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_3849eb30",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_3c266c89",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_491f8005",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_8109887c",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_838ea6d1",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_8ce7727d",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_1419bfb8",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_19d85e36",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_1b0f0222",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_2012f8de",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_223385f0",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_2403f0a9",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_35f6757c",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_3ed8c295",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_400f66fd",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_4da2fe3a",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_53903c59",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_6ab0387a",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_7132b1e5",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_78f717af",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_refinement_composition_80a2167e",
+    "cohort": "contested_unrecoverable",
+    "contestability_index": 4,
+    "recoverability_index": 1,
+    "structural_separability": 1,
+    "plausible_hypotheses": [],
+    "recoverability_status": "no_viable_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_078c9def",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_0b3745a0",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_0d07756c",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_1a3302c3",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_1e2d6ff0",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_1e4cf123",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_24f5495f",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_2932fe83",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_2ef7ff5d",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  },
+  {
+    "task_id": "auto_selector_divergence_312f815c",
+    "cohort": "contested_recoverable",
+    "contestability_index": 2,
+    "recoverability_index": 4,
+    "structural_separability": 2,
+    "plausible_hypotheses": [],
+    "recoverability_status": "exact_candidate_present",
+    "annotation_notes": "auto-generated"
+  }
+]

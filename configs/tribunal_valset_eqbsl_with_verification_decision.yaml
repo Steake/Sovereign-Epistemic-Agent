@@ -1,0 +1,70 @@
+tribunal:
+  adjudication_strategy: "standard"
+  fusion_mode: "eqbsl"
+  selection_threshold: 0.35
+  resample_threshold: 0.15
+  max_resample_attempts: 1
+  diversity_floor: 0.60
+  ledger_warmup_tasks: 0
+  weights:
+    uncertainty: 0.25
+    critic: 0.35
+    memory: 0.00
+    invariant: 0.40
+  structural_override:
+    enabled: true
+    v_threshold: 0.80
+    c_threshold: 0.75
+    margin_threshold: 0.04
+    confidence_cap: 0.72
+
+generators:
+  enabled: ["llm", "greedy", "diverse"]
+  seed: 42
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 8192
+    temperature: 0.0
+    top_p: 0.95
+    use_json_schema: false
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+
+eqbsl:
+  enabled: true
+  k: 2.0
+  default_base_rate: 0.25
+  selection_expectation_threshold: 0.52
+  resample_expectation_threshold: 0.38
+  max_select_uncertainty: 0.55
+  abstain_uncertainty_threshold: 0.72
+  distinct_answer_gap_threshold: 0.05
+  enable_generator_trust: true
+  source_trust:
+    u: 1.0
+    c: 1.0
+    m: 1.0
+    v: 1.0
+    verification: 0.9
+    generator_trust: 0.8
+  verification:
+    enabled: true
+    model_name: "deepseek-chat"
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+    temperature: 0.0
+    max_tokens: 256
+    enable_decision_semantics: true
+    contradiction_abstain_confidence_threshold: 0.85
+    support_select_confidence_threshold: 0.85
+    support_advantage_margin: 0.05
+
+ledger:
+  path: "data/tribunal_valset_ledger.db"
+
+metadata:
+  arm_name: "tribunal_valset_eqbsl_verification_decision"
+  experiment: "tribunal_tuned_validation_v1"
+  description: >
+    EQBSL replay candidate with one answer-conditioned verification source and
+    verification-aware decision semantics.

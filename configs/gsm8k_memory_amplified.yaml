@@ -1,0 +1,72 @@
+tribunal:
+  adjudication_strategy: "standard"
+  selection_threshold: 0.30
+  resample_threshold: 0.15
+  max_resample_attempts: 2
+  single_source_resampling_mode: false
+  resample_temperature_schedule: [0.1, 0.4, 0.7]
+  diversity_floor: 0.50
+  ledger_warmup_tasks: 0
+  weights:
+    uncertainty: 0.45
+    critic: 0.25
+    memory: 0.30
+    invariant: 0.00
+  structural_override:
+    enabled: true
+    v_threshold: 0.80
+    c_threshold: 0.75
+    margin_threshold: 0.04
+    confidence_cap: 0.72
+
+critic:
+  use_llm_judge_for_math: true
+
+generators:
+  enabled: ["llm", "llm_cot", "llm_warm"]
+  seed: 42
+  # Global default for all LLM-based generators
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 2048
+    temperature: 0.1
+    top_p: 0.95
+    use_json_schema: false
+    api_base: "https://api.deepseek.com"
+    api_key: "${DEEPSEEK_API_KEY}"
+  
+  # Specific overrides for multi-regime names
+  configs:
+    llm:
+      model_name: "deepseek-chat"
+      temperature: 0.1
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+    llm_cot:
+      type: "llm_cot"
+      model_name: "deepseek-chat"
+      max_new_tokens: 4096
+      temperature: 0.2
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+    llm_warm:
+      type: "llm_warm"
+      model_name: "deepseek-chat"
+      temperature: 0.7
+      use_json_schema: false
+      api_key: "${DEEPSEEK_API_KEY}"
+
+failure_memory:
+  enabled: true
+  penalty_scale: 0.5
+
+ledger:
+  path: "data/gsm8k/ledger_multi_regime.db"
+
+metadata:
+  arm_name: "gsm8k_multi_regime"
+  experiment: "gsm8k_contested_recoverable_benchmark"
+  description: >
+    Multi-regime tribunal benchmark targeting contested-recoverable cohort.
+    Three generators (standard, cot, warm) compete; inter-generator disagreement
+    drives abstention on genuinely hard questions and validates tribunal lift.

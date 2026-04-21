@@ -6,7 +6,7 @@ import pytest
 
 from epistemic_tribunal.config import TribunalSettings
 from epistemic_tribunal.ledger.store import LedgerStore
-from epistemic_tribunal.types import GridExample, Task, TaskDomain
+from epistemic_tribunal.tribunal_types import GridExample, Task, TaskDomain
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +58,20 @@ def identity_task() -> Task:
 def in_memory_store() -> LedgerStore:
     """A fresh in-memory SQLite ledger store."""
     return LedgerStore(":memory:")
+
+
+@pytest.fixture()
+def gsm8k_task() -> Task:
+    """A minimal GSM8K-style math word problem task."""
+    return Task(
+        task_id="test_gsm8k_001",
+        domain=TaskDomain.GSM8K_MATH,
+        description="GSM8K Math Word Problem",
+        train=[],
+        test_input="Janet's ducks lay 16 eggs per day. She eats 3 for breakfast and sells 4 each day. How many eggs does she have left?",
+        ground_truth="9",
+    )
+
 
 
 @pytest.fixture()

@@ -12,7 +12,7 @@ from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.generators.minimal import MinimalDescriptionGenerator
 from epistemic_tribunal.generators.rule_first import RuleFirstGenerator
 from epistemic_tribunal.tasks.base import grid_shape
-from epistemic_tribunal.types import CandidateTrace, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +149,10 @@ def test_no_training_data(simple_task: Task) -> None:
         assert len(trace.answer) == len(task.test_input)
 
 
-def test_llm_parse_response_rejects_trailing_prose(simple_task: Task) -> None:
+def test_llm_parse_response_accepts_trailing_prose_if_json_balanced(simple_task: Task) -> None:
+    """The balanced-JSON extractor successfully parses JSON even when non-JSON
+    prose follows the closing brace.  This was a regression test that changed
+    when the parser was upgraded."""
     gen = LLMGenerator(model_name="test-model")
     response = (
         '<think>\nspot the swap\n</think>\n'
@@ -158,8 +161,8 @@ def test_llm_parse_response_rejects_trailing_prose(simple_task: Task) -> None:
         "\nExtra prose after the closing brace."
     )
     answer, _steps, confidence = gen._parse_response(response, expected_shape=(3, 3))
-    assert answer is None
-    assert confidence == 0.0
+    assert answer is not None  # balanced-JSON extractor recovers successfully
+    assert confidence == pytest.approx(0.82)
 
 
 def test_llm_parse_response_allows_think_after_json(simple_task: Task) -> None:
@@ -210,34 +213,21 @@ def test_llm_generator_default_attn_auto() -> None:
     assert gen.attn_implementation == "auto"
 
 
-def test_llm_resolve_attn_explicit() -> None:
+def test_llm_attn_stored_explicit_sdpa() -> None:
     gen = LLMGenerator(model_name="test-model", attn_implementation="sdpa")
-    assert gen._resolve_attn_implementation() == "sdpa"
+    assert gen.attn_implementation == "sdpa"
 
 
-def test_llm_resolve_attn_explicit_eager() -> None:
+def test_llm_attn_stored_explicit_eager() -> None:
     gen = LLMGenerator(model_name="test-model", attn_implementation="eager")
-    assert gen._resolve_attn_implementation() == "eager"
+    assert gen.attn_implementation == "eager"
 
 
-def test_llm_resolve_attn_auto_no_flash(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Without flash-attn installed, auto should fall back to sdpa."""
-    import importlib.util
-
+def test_llm_attn_stored_auto() -> None:
     gen = LLMGenerator(model_name="test-model", attn_implementation="auto")
-    monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)
-    assert gen._resolve_attn_implementation() == "sdpa"
+    assert gen.attn_implementation == "auto"
 
 
-def test_llm_resolve_attn_auto_with_flash(monkeypatch: pytest.MonkeyPatch) -> None:
-    """With flash-attn installed, auto should select flash_attention_2."""
-    import importlib.util
-
-    gen = LLMGenerator(model_name="test-model", attn_implementation="auto")
-    fake_spec = importlib.util.spec_from_loader("flash_attn", loader=None)
-    monkeypatch.setattr(
-        importlib.util,
-        "find_spec",
-        lambda name: fake_spec if name == "flash_attn" else None,
-    )
-    assert gen._resolve_attn_implementation() == "flash_attention_2"
+def test_llm_attn_stored_flash() -> None:
+    gen = LLMGenerator(model_name="test-model", attn_implementation="flash_attention_2")
+    assert gen.attn_implementation == "flash_attention_2"
