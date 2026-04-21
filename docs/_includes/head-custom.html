@@ -3,14 +3,24 @@
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
   
-  // Determine initial theme for Mermaid
   const savedTheme = localStorage.getItem('theme');
   const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-  const initialTheme = (savedTheme === 'light' || (!savedTheme && prefersLight)) ? 'default' : 'dark';
+  const isDark = !(savedTheme === 'light' || (!savedTheme && prefersLight));
 
   mermaid.initialize({ 
     startOnLoad: false, 
-    theme: initialTheme,
+    theme: isDark ? 'base' : 'default',
+    themeVariables: isDark ? {
+      primaryColor: '#0a0e17',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#4facfe',
+      lineColor: '#00f2fe',
+      secondaryColor: '#121626',
+      tertiaryColor: '#1a1f35',
+      clusterBkg: '#06080d',
+      clusterBorder: '#8a2be2',
+      edgeLabelBackground: '#0a0e17'
+    } : {},
     securityLevel: 'loose'
   });
 

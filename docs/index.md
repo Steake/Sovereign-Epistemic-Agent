@@ -6,10 +6,13 @@ title: Sovereign Epistemic
 <section class="hero">
   <h1>Reasoned<br>Dialectic</h1>
   <p>The Epistemic Tribunal is a metacognitive adjudication stack for reasoning tasks. It stages a governed contest between competing internal accounts of a problem, refusing to treat the first plausible answer as sovereign.</p>
+  <div style="margin-top: 2rem;">
+    <button class="hero-cta" onclick="document.getElementById('explore').scrollIntoView({behavior: 'smooth'})">Explore the Logic</button>
+  </div>
 </section>
 
-<div class="tabs-container">
-  <div class="tabs-header">
+<div class="tabs-container" id="explore">
+  <div class="segmented-control">
     <button class="tab-btn active" data-target="tab-reports">Research Reports</button>
     <button class="tab-btn" data-target="tab-architecture">System Architecture</button>
     <button class="tab-btn" data-target="tab-about">About</button>
