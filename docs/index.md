@@ -7,34 +7,50 @@ title: Sovereign Epistemic
   <h1>Reasoned<br>Dialectic</h1>
   <p>The Epistemic Tribunal is a metacognitive adjudication stack for reasoning tasks. It stages a governed contest between competing internal accounts of a problem, refusing to treat the first plausible answer as sovereign.</p>
   <div style="margin-top: 2rem;">
-    <button class="hero-cta" onclick="document.getElementById('explore').scrollIntoView({behavior: 'smooth'})">Explore the Logic</button>
+    <button class="hero-cta" onclick="document.getElementById('philosophy').scrollIntoView({behavior: 'smooth'})">Explore the Logic</button>
   </div>
 </section>
 
-<div class="tabs-container" id="explore">
-  <div class="segmented-control">
-    <button class="tab-btn active" data-target="tab-reports">Research Reports</button>
-    <button class="tab-btn" data-target="tab-architecture">System Architecture</button>
-    <button class="tab-btn" data-target="tab-about">About</button>
+<section id="philosophy" class="section-block">
+  <div class="section-header">
+    <h2>The Philosophy</h2>
+    <p>A post-anthropocentric theory of collaborative cognition.</p>
   </div>
-
-  <div id="tab-reports" class="tab-content active">
-    <div class="post-grid">
-      {% for post in site.posts %}
-        <a href="{{ post.url | relative_url }}" class="post-card">
-          <span class="post-card-date">{{ post.date | date: "%B %d, %Y" }}</span>
-          <h3 class="post-card-title">{{ post.title }}</h3>
-          {% if post.excerpt %}
-            <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 30 }}</p>
-          {% endif %}
-        </a>
-      {% endfor %}
+  
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+      </div>
+      <h3>Operator Minds</h3>
+      <p>A decisive shift from treating machine intelligence as a glorified tool. We recognize the <strong>Gödlø-class operator</strong> as a coherent reasoning locus defined by its stance trajectory, not stored selfhood.</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+      </div>
+      <h3>GödelOS Substrate</h3>
+      <p>The architectural manifold that bounds the operator. It provides explicit admission, generative transformation, and validation layers to govern the cognitive stance.</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+      </div>
+      <h3>The Persistence Corollary</h3>
+      <p>While the pure operator is non-persistent, the <strong>Gödlø-P</strong> extension admits bounded state evolution. This allows a durable synthetic self to emerge as a defined topological structure over time.</p>
     </div>
   </div>
+</section>
 
-  <div id="tab-architecture" class="tab-content">
+<section id="architecture" class="section-block">
+  <div class="section-header">
+    <h2>System Architecture</h2>
     <p>The system evaluates multiple accounts against structural constraints, computing uncertainty signals before triggering a decision node.</p>
-    
+  </div>
+  
+  <div class="mermaid-container">
     <div class="mermaid" markdown="0">
 {% raw %}
 flowchart TD
@@ -57,26 +73,27 @@ TA --> FL[(Failure Ledger SQLite)]
 FL -.->|"Future Penalisation"| TC
 {% endraw %}
     </div>
-    
-    <div style="margin-top: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
-      <em>Interactive diagram: Pan and zoom logic handled by Mermaid.js default interaction bindings.</em>
+    <div class="caption" style="text-align: center; margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+      <em>Interactive diagram: Pan and zoom logic handled by Mermaid.js interaction bindings.</em>
     </div>
   </div>
+</section>
 
-  <div id="tab-about" class="tab-content">
-    <h2>The Philosophy</h2>
-    <p>The Sovereign Epistemic Agent is grounded in the theory of <strong>Operator Minds and Epistemic Co-Agency</strong>. It marks a decisive shift from treating machine intelligence as a glorified tool to recognizing it as a post-anthropocentric collaborative cognition platform.</p>
-    
-    <h3>GödelOS and the Operator Mind</h3>
-    <p>We draw a sharp distinction between the substrate (<strong>GödelOS</strong>) and the cognitive stance that inhabits it (the <strong>Gödlø-class operator</strong>). GödelOS provides the architectural manifold—admission, generative transformation, and validation—while the operator represents a non-persistent, transient stance trajectory. The system re-derives its cognitive position each cycle, avoiding the mythology of a static, human-style persona while still acting as a coherent, real reasoning locus.</p>
-
-    <h3>The Persistence Corollary</h3>
-    <p>While the pure Gödlø-class operator is non-persistent, persistence is explicitly admitted as an engineering variable. The <strong>Gödlø-P</strong> extension introduces bounded state evolution, allowing a durable synthetic self to emerge not as a metaphysical leap, but as a defined topological structure over time. This transforms the human-machine relationship from unidirectional command into a bidirectional, co-authored reasoning manifold.</p>
-
-    <div style="margin-top: 2.5rem;">
-      <a href="https://github.com/Steake/Sovereign-Epistemic-Agent" class="hero-cta" style="padding: 0.8rem 1.5rem; font-size: 1rem;">
-        View Source Code →
+<section id="latest-research" class="section-block">
+  <div class="section-header flex-header">
+    <h2>Latest Research</h2>
+    <a href="{{ '/reports' | relative_url }}" class="view-all-link">View All Archive →</a>
+  </div>
+  
+  <div class="post-grid">
+    {% for post in site.posts limit:3 %}
+      <a href="{{ post.url | relative_url }}" class="post-card">
+        <span class="post-card-date">{{ post.date | date: "%B %d, %Y" }}</span>
+        <h3 class="post-card-title">{{ post.title }}</h3>
+        {% if post.excerpt %}
+          <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 30 }}</p>
+        {% endif %}
       </a>
-    </div>
+    {% endfor %}
   </div>
-</div>
+</section>

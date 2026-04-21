@@ -21,7 +21,9 @@
       } else {
         document.documentElement.setAttribute('data-theme', 'dark');
       }
+      window.SITE_BASE_URL = "{{ site.baseurl }}";
     </script>
+    <script src="{{ '/assets/js/search.js' | relative_url }}"></script>
   </head>
   <body>
     <!-- Background elements for visual flair -->
@@ -30,13 +32,26 @@
     
     <div class="container">
       <nav class="site-nav">
-        <a href="{{ '/' | relative_url }}" class="nav-logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 22 22 22"></polygon>
-          </svg>
-          Sovereign Epistemic
-        </a>
+        <div class="nav-left">
+          <a href="{{ '/' | relative_url }}" class="nav-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 22 22 22"></polygon>
+            </svg>
+            Sovereign Epistemic
+          </a>
+          <div class="nav-links">
+            <a href="{{ '/' | relative_url }}">Home</a>
+            <a href="{{ '/reports' | relative_url }}">Research</a>
+          </div>
+        </div>
+        
         <div class="nav-actions">
+          <div class="search-container">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="search-input" placeholder="Search research...">
+            <div id="search-results" class="search-results-dropdown"></div>
+          </div>
+          
           <button id="theme-toggle" class="icon-btn" aria-label="Toggle Dark/Light Mode">
             <!-- Moon icon (default visible in light mode) -->
             <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
