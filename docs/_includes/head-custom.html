@@ -1,4 +1,28 @@
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Find all Jekyll-rendered mermaid code blocks
+    const mermaidBlocks = document.querySelectorAll('.language-mermaid');
+    
+    mermaidBlocks.forEach((block, index) => {
+      // Extract the raw text from the code element inside
+      const codeElement = block.querySelector('code');
+      if (!codeElement) return;
+      
+      const graphDefinition = codeElement.textContent;
+      
+      // Create a replacement div for Mermaid to target
+      const mermaidDiv = document.createElement('div');
+      mermaidDiv.className = 'mermaid';
+      mermaidDiv.textContent = graphDefinition;
+      
+      // Replace the highligher block with our mermaid div
+      block.parentNode.replaceChild(mermaidDiv, block);
+    });
+
+    // Now render them
+    await mermaid.run();
+  });
 </script>
