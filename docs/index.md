@@ -32,14 +32,31 @@ The central object is not "the answer." It is the governed conflict between cand
 
 ## Architecture
 
-```
-Task
- → Generator Bank (competing strategies: LLM, LLM-CoT, Greedy, Diverse)
- → Invariant Extractor (structural constraints from training pairs)
- → Trace Critic (consistency, rule coherence, morphology, failure memory)
- → Uncertainty Analyzer (entropy, margin, coalition mass, disagreement)
- → Tribunal Aggregator (weighted_sum or EQBSL fusion → SELECT / RESAMPLE / ABSTAIN)
- → Failure Ledger (SQLite persistence for post-hoc analysis and future penalisation)
+```mermaid
+flowchart TD
+    Task[ARC Task Input] --> GB[Generator Bank]
+    
+    subgraph Generators
+        GB --> LLM[LLM / LLM-CoT]
+        GB --> GR[Greedy Heuristic]
+        GB --> DIV[Diverse Perturbation]
+    end
+    
+    LLM --> IE[Invariant Extractor]
+    GR --> IE
+    DIV --> IE
+    
+    IE --> TC[Trace Critic]
+    TC --> UA[Uncertainty Analyzer]
+    UA --> TA[Tribunal Aggregator]
+    
+    TA -->|weighted_sum or EQBSL| DEC{Decision}
+    
+    DEC -->|SELECT| OUT[Final Output]
+    DEC -->|RESAMPLE| RET[Retry/Abstain]
+    
+    TA --> FL[(Failure Ledger SQLite)]
+    FL -.->|Future Penalisation| TC
 ```
 
 ## Links
