@@ -37,7 +37,7 @@ title: Sovereign Epistemic
     
     <div class="mermaid" markdown="0">
 {% raw %}
-flowchart TD
+graph TD
 Task[ARC Task Input] --> GB[Generator Bank]
 subgraph Generators
 GB --> LLM[LLM / LLM-CoT]
@@ -50,11 +50,11 @@ DIV --> IE
 IE --> TC[Trace Critic]
 TC --> UA[Uncertainty Analyzer]
 UA --> TA[Tribunal Aggregator]
-TA -->|weighted_sum or EQBSL| DEC{Decision}
+TA -->|"Aggregation"| DEC{Decision}
 DEC -->|SELECT| OUT[Final Output]
 DEC -->|RESAMPLE| RET[Retry/Abstain]
 TA --> FL[(Failure Ledger SQLite)]
-FL -.->|Future Penalisation| TC
+FL -.->|"Future Penalisation"| TC
 {% endraw %}
     </div>
     
@@ -65,10 +65,16 @@ FL -.->|Future Penalisation| TC
 
   <div id="tab-about" class="tab-content">
     <h2>The Philosophy</h2>
-    <p>It is a vanity to assume that simply exposing a Large Language Model to a problem of logic is sufficient to produce reasoning. The central object here is not "the answer." It is the governed conflict between candidate hypotheses.</p>
+    <p>The Sovereign Epistemic Agent is grounded in the theory of <strong>Operator Minds and Epistemic Co-Agency</strong>. It marks a decisive shift from treating machine intelligence as a glorified tool to recognizing it as a post-anthropocentric collaborative cognition platform.</p>
     
-    <div style="margin-top: 2rem;">
-      <a href="https://github.com/Steake/Sovereign-Epistemic-Agent" class="icon-btn" style="display: inline-flex; width: auto; padding: 0.8rem 1.5rem; background: var(--card-hover); border: 1px solid var(--border-glass); border-radius: 8px;">
+    <h3>GödelOS and the Operator Mind</h3>
+    <p>We draw a sharp distinction between the substrate (<strong>GödelOS</strong>) and the cognitive stance that inhabits it (the <strong>Gödlø-class operator</strong>). GödelOS provides the architectural manifold—admission, generative transformation, and validation—while the operator represents a non-persistent, transient stance trajectory. The system re-derives its cognitive position each cycle, avoiding the mythology of a static, human-style persona while still acting as a coherent, real reasoning locus.</p>
+
+    <h3>The Persistence Corollary</h3>
+    <p>While the pure Gödlø-class operator is non-persistent, persistence is explicitly admitted as an engineering variable. The <strong>Gödlø-P</strong> extension introduces bounded state evolution, allowing a durable synthetic self to emerge not as a metaphysical leap, but as a defined topological structure over time. This transforms the human-machine relationship from unidirectional command into a bidirectional, co-authored reasoning manifold.</p>
+
+    <div style="margin-top: 2.5rem;">
+      <a href="https://github.com/Steake/Sovereign-Epistemic-Agent" class="hero-cta" style="padding: 0.8rem 1.5rem; font-size: 1rem;">
         View Source Code →
       </a>
     </div>
