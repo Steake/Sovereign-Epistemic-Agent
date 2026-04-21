@@ -32,31 +32,27 @@ title: Sovereign Epistemic
   <div id="tab-architecture" class="tab-content">
     <p>The system evaluates multiple accounts against structural constraints, computing uncertainty signals before triggering a decision node.</p>
     
-    <div class="mermaid">
-      flowchart TD
-          Task[ARC Task Input] --> GB[Generator Bank]
-          
-          subgraph Generators
-              GB --> LLM[LLM / LLM-CoT]
-              GB --> GR[Greedy Heuristic]
-              GB --> DIV[Diverse Perturbation]
-          end
-          
-          LLM --> IE[Invariant Extractor]
-          GR --> IE
-          DIV --> IE
-          
-          IE --> TC[Trace Critic]
-          TC --> UA[Uncertainty Analyzer]
-          UA --> TA[Tribunal Aggregator]
-          
-          TA -->|weighted_sum or EQBSL| DEC{Decision}
-          
-          DEC -->|SELECT| OUT[Final Output]
-          DEC -->|RESAMPLE| RET[Retry/Abstain]
-          
-          TA --> FL[(Failure Ledger SQLite)]
-          FL -.->|Future Penalisation| TC
+    <div class="mermaid" markdown="0">
+{% raw %}
+flowchart TD
+Task[ARC Task Input] --> GB[Generator Bank]
+subgraph Generators
+GB --> LLM[LLM / LLM-CoT]
+GB --> GR[Greedy Heuristic]
+GB --> DIV[Diverse Perturbation]
+end
+LLM --> IE[Invariant Extractor]
+GR --> IE
+DIV --> IE
+IE --> TC[Trace Critic]
+TC --> UA[Uncertainty Analyzer]
+UA --> TA[Tribunal Aggregator]
+TA -->|weighted_sum or EQBSL| DEC{Decision}
+DEC -->|SELECT| OUT[Final Output]
+DEC -->|RESAMPLE| RET[Retry/Abstain]
+TA --> FL[(Failure Ledger SQLite)]
+FL -.->|Future Penalisation| TC
+{% endraw %}
     </div>
     
     <div style="margin-top: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
