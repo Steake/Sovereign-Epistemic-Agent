@@ -40,7 +40,7 @@ def audit_v4():
         any_correct = any(adapter.answers_equal(json.loads(t["answer_json"]), gt) for t in trace_rows)
         
         if decision == "select":
-            selected_answer = json.loads(row["scores_json"]).get("selected_answer")
+            json.loads(row["scores_json"]).get("selected_answer")
             # Wait, scores_json might not have it. selected_trace_id?
             sel_trace_id = row["selected_trace_id"]
             if sel_trace_id:

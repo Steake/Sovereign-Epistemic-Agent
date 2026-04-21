@@ -2,7 +2,6 @@
 import re
 import csv
 from pathlib import Path
-from collections import defaultdict
 
 def main():
     log_path = Path("data/sweep_run2.log")

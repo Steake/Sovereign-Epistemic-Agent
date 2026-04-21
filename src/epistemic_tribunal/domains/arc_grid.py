@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import cast
 
 from epistemic_tribunal.tasks.base import grids_equal
 from epistemic_tribunal.tribunal_types import AnswerType, CandidateTrace

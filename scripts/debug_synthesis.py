@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 from pathlib import Path
 
 # Ensure src/ is in PYTHONPATH
@@ -52,7 +51,7 @@ def dry_run():
         print(f"Reasoning Steps: {len(trace.reasoning_steps)}")
         print(f"Code Found:\n{trace.metadata.get('code')}")
         print("Answer Grid Shape:", len(trace.answer), "x", len(trace.answer[0]) if trace.answer else 0)
-    except Exception as e:
+    except Exception:
         print("\n\n--- FAILED ---")
         import traceback
         traceback.print_exc()

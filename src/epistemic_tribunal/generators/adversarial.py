@@ -7,6 +7,7 @@ Mock logic:
 """
 
 from __future__ import annotations
+from typing import Callable, Optional
 
 import random
 

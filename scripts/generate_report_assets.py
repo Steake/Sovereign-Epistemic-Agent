@@ -1,12 +1,10 @@
 import sqlite3
 import json
 import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 from pathlib import Path
 from datetime import datetime
 from epistemic_tribunal.evaluation.metrics import summary_report
-from epistemic_tribunal.tribunal_types import ExperimentRun, DecisionKind
+from epistemic_tribunal.tribunal_types import ExperimentRun
 
 def load_latest_runs(db_path, count=50):
     conn = sqlite3.connect(db_path)

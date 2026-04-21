@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from epistemic_tribunal.config import load_config
 from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
-from epistemic_tribunal.tribunal_types import CandidateTrace, CritiqueResult, Task, TribunalDecision
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.uncertainty.analyzer import UncertaintyAnalyzer
 from epistemic_tribunal.failure_memory.store import FailureMemoryStore
 from epistemic_tribunal.failure_memory.query import FailureMemoryQuery
@@ -82,7 +82,8 @@ def audit():
     tasks = load_tasks_from_ledger(source_db, gsm8k_path, limit=26)
     task_ids = list(tasks.keys())
     
-    import tempfile, os
+    import tempfile
+    import os
     tmp_db = tempfile.mktemp(suffix="_forensic_match.db")
     fm_store = FailureMemoryStore(tmp_db)
     

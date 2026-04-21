@@ -57,7 +57,6 @@ if str(_SRC) not in sys.path:
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.rule import Rule
 from rich.text import Text
 from rich import box
 
@@ -69,7 +68,6 @@ _console = Console()
 
 def cmd_run(args: argparse.Namespace) -> None:
     """Launch the live benchmark TUI, then optionally open the inspector."""
-    import subprocess
     from live_benchmark import LiveBenchmarkUI
 
     dataset = args.dataset or os.environ.get("ARC_DATASET_PATH", "")
@@ -167,7 +165,6 @@ def cmd_list(args: argparse.Namespace) -> None:
     t.add_column("Modified",   justify="right",   style="dim",        min_width=20)
 
     from datetime import datetime
-    import stat
 
     def _pct_text(v: float, good: bool = True) -> Text:
         if v >= 0.7 and good:
@@ -203,8 +200,8 @@ def cmd_list(args: argparse.Namespace) -> None:
     _console.print()
     _console.print(t)
     _console.print()
-    _console.print(f"[dim]Inspect with:[/]  [bold]python3 scripts/arc.py inspect data/<file>[/]")
-    _console.print(f"[dim]Compare with:[/]  [bold]python3 scripts/arc.py compare data/a.json data/b.json[/]")
+    _console.print("[dim]Inspect with:[/]  [bold]python3 scripts/arc.py inspect data/<file>[/]")
+    _console.print("[dim]Compare with:[/]  [bold]python3 scripts/arc.py compare data/a.json data/b.json[/]")
     _console.print()
 
 

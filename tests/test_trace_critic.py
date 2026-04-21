@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from epistemic_tribunal.critics.trace_critic import TraceCritic
 from epistemic_tribunal.generators.greedy import GreedyGenerator

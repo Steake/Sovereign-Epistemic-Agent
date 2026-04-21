@@ -1,5 +1,4 @@
 import os
-import json
 import time
 from pathlib import Path
 from rich.console import Console

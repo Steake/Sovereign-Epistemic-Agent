@@ -118,7 +118,7 @@ def reconstruct_signature(run: dict) -> FailureSignature | None:
 
 
 def run_smoke_test(db_path: str) -> None:
-    print(f"\n=== Failure-Memory Smoke Test ===")
+    print("\n=== Failure-Memory Smoke Test ===")
     print(f"Ledger: {db_path}\n")
 
     # Step 1: Open store
@@ -163,7 +163,7 @@ def run_smoke_test(db_path: str) -> None:
         structural_margin=0.0,
     )
     matches = store.query_similar(probe, limit=5)
-    print(f"\n[4] Query with false-majority probe:")
+    print("\n[4] Query with false-majority probe:")
     print(f"    Matches returned: {len(matches)}")
     if matches:
         top = matches[0]
@@ -174,7 +174,7 @@ def run_smoke_test(db_path: str) -> None:
         print("    No matches — store may be empty or probe is too narrow.")
 
     # Step 5: Summary verdict
-    print(f"\n[5] VERDICT:")
+    print("\n[5] VERDICT:")
     if seeded > 0 and len(matches) >= 0:
         print("    ✓ PASS — failure signatures written and queried without errors.")
         print("    The plumbing works. Proceed to the two-pass experiment.")

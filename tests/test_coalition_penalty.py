@@ -14,11 +14,9 @@ import pytest
 from epistemic_tribunal.failure_memory.models import FailureSignature, FailureType
 from epistemic_tribunal.failure_memory.query import FailureMemoryQuery
 from epistemic_tribunal.failure_memory.store import FailureMemoryStore
-from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
 from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
-    DecisionKind,
     Task,
     TaskDomain,
     UncertaintyReport,

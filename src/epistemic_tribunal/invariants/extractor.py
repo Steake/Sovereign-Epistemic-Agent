@@ -12,7 +12,6 @@ from typing import Optional
 from epistemic_tribunal.invariants.base import BaseInvariantChecker
 from epistemic_tribunal.tasks.base import (
     Grid,
-    colour_counts,
     has_any_symmetry,
     object_count,
     unique_colours,

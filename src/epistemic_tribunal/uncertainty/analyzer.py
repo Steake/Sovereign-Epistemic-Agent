@@ -9,9 +9,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter
-from typing import Optional
 
-from epistemic_tribunal.tasks.base import grid_similarity, grids_equal, grid_shape
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task, UncertaintyReport
 from epistemic_tribunal.uncertainty.base import BaseUncertaintyAnalyzer
 

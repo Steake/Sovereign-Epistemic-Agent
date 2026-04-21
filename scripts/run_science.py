@@ -2,7 +2,6 @@
 This simulates two arms (greedy and tribunal) across the example tasks,
 injecting the `arm_name` into the metadata, and saving to JSONL.
 """
-import json
 from pathlib import Path
 from rich.console import Console
 

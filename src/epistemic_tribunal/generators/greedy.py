@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import random
 from collections import Counter
-from typing import Any
+from typing import Callable, Optional
 
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.tasks.base import colour_counts, grid_shape, object_count

@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from epistemic_tribunal.tribunal_types import (
     CandidateTrace,
     CritiqueResult,
-    InvariantSet,
     UncertaintyReport,
 )
 

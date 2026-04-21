@@ -13,7 +13,6 @@ Covers:
 from __future__ import annotations
 
 import json
-import textwrap
 from pathlib import Path
 from typing import Optional
 
@@ -24,9 +23,6 @@ from epistemic_tribunal.cli import app
 from epistemic_tribunal.evaluation.benchmark_report import (
     _bad_abstention_rate,
     _good_abstention_rate,
-    _overall_accuracy,
-    _selective_accuracy,
-    _wrong_pick_rate,
     build_report,
     cohort_metrics,
     tribunal_honest_on_contested_unrecoverable,

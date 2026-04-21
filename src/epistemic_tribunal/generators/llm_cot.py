@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.tribunal_types import Task

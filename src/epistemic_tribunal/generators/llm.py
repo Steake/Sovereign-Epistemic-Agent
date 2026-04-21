@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ast
-import importlib.util
 import json
 import re
 import time
@@ -255,7 +254,7 @@ class LLMGenerator(BaseGenerator):
         schema: dict, 
         on_token: Optional[Callable[[str, str], None]] = None
     ) -> tuple[str, str]:
-        pipeline = self._load_pipeline()
+        self._load_pipeline()
 
         messages = []
         if self.system_prompt:

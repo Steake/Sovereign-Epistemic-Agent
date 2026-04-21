@@ -14,14 +14,14 @@ import sys
 import argparse
 import itertools
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 
 # Ensure src/ is on path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from epistemic_tribunal.config import load_config
 from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
-from epistemic_tribunal.tribunal_types import CandidateTrace, CritiqueResult, Task, TribunalDecision
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.uncertainty.analyzer import UncertaintyAnalyzer
 from epistemic_tribunal.failure_memory.store import FailureMemoryStore
 from epistemic_tribunal.failure_memory.query import FailureMemoryQuery
@@ -104,7 +104,8 @@ def sweep():
     print(f"Sweep starting (n={args.limit}, {len(penalty_scales)*len(fm_weights)} configs)...")
 
     for ps, fm_w in itertools.product(penalty_scales, fm_weights):
-        import tempfile, os
+        import tempfile
+        import os
         tmp_db = tempfile.mktemp(suffix="_fuzz.db")
         fm_store = FailureMemoryStore(tmp_db)
         

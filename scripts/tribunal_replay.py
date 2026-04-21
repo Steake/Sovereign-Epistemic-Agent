@@ -208,7 +208,7 @@ def print_stats(results: list[dict], label: str) -> dict:
     coverage = len(selected) / total if total else 0
     precision = len(correct) / len(selected) if selected else 0
 
-    contested = [r for r in results if r.get("any_correct") is True and
+    [r for r in results if r.get("any_correct") is True and
                  len(set()) > 0]  # approximate: tasks where disagreement occurred
     # Better: contested = tasks where not all traces agree
     # We track this via any_correct + wrong picks
@@ -301,7 +301,7 @@ def main():
             extractor = FailureSignatureExtractor()
             pass1_results = []
 
-            print(f"\n--- Pass 1 (no memory) ---")
+            print("\n--- Pass 1 (no memory) ---")
             for i, tid in enumerate(task_ids):
                 task = tasks[tid]
                 traces = traces_by_task.get(tid, [])
@@ -364,7 +364,7 @@ def main():
                 compare_results = []
                 compare_aggregator = _build_aggregator(args.compare_config, args.source)
 
-                print(f"\n--- Pass 2A (baseline config) ---")
+                print("\n--- Pass 2A (baseline config) ---")
                 for i, tid in enumerate(task_ids):
                     task = tasks[tid]
                     traces = traces_by_task.get(tid, [])
@@ -377,7 +377,7 @@ def main():
                     )
                     weighted_results.append(result)
 
-                print(f"\n--- Pass 2B (compare config) ---")
+                print("\n--- Pass 2B (compare config) ---")
                 for i, tid in enumerate(task_ids):
                     task = tasks[tid]
                     traces = traces_by_task.get(tid, [])
@@ -458,7 +458,7 @@ def main():
                 )
                 pass2_results = []
 
-                print(f"\n--- Pass 2 (memory active) ---")
+                print("\n--- Pass 2 (memory active) ---")
                 for i, tid in enumerate(task_ids):
                     task = tasks[tid]
                     traces = traces_by_task.get(tid, [])
@@ -474,7 +474,7 @@ def main():
                 p2_stats = print_stats(pass2_results, "Pass 2 — Memory Active")
 
                 print(f"\n{'─'*65}")
-                print(f"  Trajectories: tasks that changed between passes")
+                print("  Trajectories: tasks that changed between passes")
                 print(f"{'─'*65}")
                 p1_map = {r["task_id"]: r for r in pass1_results}
                 changed = 0
@@ -508,7 +508,7 @@ def main():
     else:
         # Single pass, no memory
         results = []
-        print(f"\n--- Single Pass (no memory) ---")
+        print("\n--- Single Pass (no memory) ---")
         for tid in task_ids:
             task = tasks[tid]
             traces = traces_by_task.get(tid, [])

@@ -12,9 +12,7 @@ Covers:
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -373,7 +371,6 @@ def _make_run(
     cohort: str = "control-trivial",
     greedy_correct: bool | None = None,
 ) -> ExperimentRun:
-    from datetime import datetime, timezone
     meta: dict = {"any_correct": any_correct, "cohort": cohort}
     if greedy_correct is not None:
         meta["greedy_correct"] = greedy_correct
@@ -488,7 +485,6 @@ class TestMultiRegimeDisagreementSignal:
         ground_truth_match: bool | None = True,
         cohort: str = "contested-recoverable",
     ) -> ExperimentRun:
-        from datetime import datetime, timezone
         return ExperimentRun(
             run_id="r1",
             task_id="t1",

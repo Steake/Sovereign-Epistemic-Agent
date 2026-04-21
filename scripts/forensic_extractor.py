@@ -1,10 +1,9 @@
 import sqlite3
 import json
 import os
-import sys
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import List
 
 @dataclass
 class CandidateInfo:

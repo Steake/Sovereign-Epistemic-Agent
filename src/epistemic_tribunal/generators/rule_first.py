@@ -11,7 +11,7 @@ Mock logic:
 from __future__ import annotations
 
 import random
-from typing import Callable
+from typing import Optional, Callable
 
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.tasks.base import (

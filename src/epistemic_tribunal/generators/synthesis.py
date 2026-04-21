@@ -1,16 +1,14 @@
 """Programmatic ARC Solver using LLM-based code synthesis."""
 from __future__ import annotations
 
-import json
 import re
-import traceback
 from typing import Any, Optional, Callable
 
 from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.utils.execution import execute_transformation, get_sandbox_docs
 from epistemic_tribunal.utils.logging import get_logger
-from epistemic_tribunal.tasks.base import grid_shape, grids_equal
+from epistemic_tribunal.tasks.base import grids_equal
 
 log = get_logger(__name__)
 

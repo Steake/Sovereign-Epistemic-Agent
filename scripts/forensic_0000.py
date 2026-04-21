@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from epistemic_tribunal.config import load_config
 from epistemic_tribunal.tribunal.aggregator import TribunalAggregator
-from epistemic_tribunal.tribunal_types import CandidateTrace, CritiqueResult, Task, TribunalDecision
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.uncertainty.analyzer import UncertaintyAnalyzer
 from epistemic_tribunal.failure_memory.store import FailureMemoryStore
 from epistemic_tribunal.failure_memory.query import FailureMemoryQuery
@@ -100,18 +100,19 @@ def audit():
     aggregator = TribunalAggregator(config.tribunal)
     decision1, res1 = replay_task(task, traces, aggregator, analyzer, critic, invariant_extractor, None)
     
-    print(f"\nPASS 1 RESULT:")
+    print("\nPASS 1 RESULT:")
     print(f"  Decision: {decision1.decision.value}")
     print(f"  Selected: {decision1.selected_trace_id} (Answer: {decision1.selected_answer})")
     print(f"  Confidence: {decision1.confidence:.4f}")
     print(f"  GT Match: {res1['gt_match']}")
     
-    import tempfile, os
+    import tempfile
+    import os
     tmp_db = tempfile.mktemp(suffix="_0000.db")
     fm_store = FailureMemoryStore(tmp_db)
     sig = extractor.extract(task, traces, [], decision1, analyzer.analyze(task, traces), res1["gt_match"], res1["any_correct"])
     if sig:
-        print(f"\nStored Signature in Memory:")
+        print("\nStored Signature in Memory:")
         print(f"  Signature Answer: {sig.answer_signature}")
         print(f"  Outcome: {sig.failure_type}")
         fm_store.store(sig)
@@ -119,14 +120,14 @@ def audit():
     fm_query = FailureMemoryQuery(fm_store, penalty_scale=penalty_scale)
     decision2, res2 = replay_task(task, traces, aggregator, analyzer, critic, invariant_extractor, fm_query)
     
-    print(f"\nPASS 2 RESULT (with memory):")
+    print("\nPASS 2 RESULT (with memory):")
     print(f"  Decision: {decision2.decision.value}")
     print(f"  Selected: {decision2.selected_trace_id} (Answer: {decision2.selected_answer})")
     print(f"  Confidence: {decision2.confidence:.4f}")
     print(f"  GT Match: {res2['gt_match']}")
     
     forensic = decision2.metadata.get("forensic", [])
-    print(f"\nForensic Breakdown (Pass 2):")
+    print("\nForensic Breakdown (Pass 2):")
     for f in forensic:
         print(f"  Trace {f['generator']}: Total={f['total']:.4f}")
         print(f"    U: {f['U']:.4f} (Uncertainty)")
@@ -137,7 +138,7 @@ def audit():
         # New decomposition metadata
         fm_meta = decision2.metadata.get("failure_memory_decomposition", {}).get(f['generator'], {})
         if fm_meta:
-            print(f"    --- Memory Decomposition ---")
+            print("    --- Memory Decomposition ---")
             print(f"    Exact Penalty: {fm_meta.get('exact_penalty', 0.0):.4f} (Matches: {fm_meta.get('n_exact_matches', 0)})")
             print(f"    Structural Penalty: {fm_meta.get('structural_penalty', 0.0):.4f} (Matches: {fm_meta.get('n_structural_matches', 0)})")
             print(f"    Top Structural Similarity: {fm_meta.get('top_structural_similarity', 0.0):.4f}")

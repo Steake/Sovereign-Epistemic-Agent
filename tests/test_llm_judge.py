@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from epistemic_tribunal.critics.trace_critic import TraceCritic
-from epistemic_tribunal.tribunal_types import CandidateTrace, CritiqueResult, Task
+from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
 
 # ---------------------------------------------------------------------------

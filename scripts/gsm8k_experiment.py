@@ -36,9 +36,7 @@ from textual.widgets import (
     DataTable,
     Footer,
     Header,
-    Label,
     RichLog,
-    Rule,
     Static,
 )
 
@@ -583,7 +581,6 @@ def main() -> None:
     result_path = app.run()
 
     if result_path:
-        import os
         from rich.console import Console
         from rich.table import Table
         c = Console()

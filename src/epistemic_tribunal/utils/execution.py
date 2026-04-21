@@ -1,7 +1,6 @@
 """Execution sandbox for synthesized ARC transformation programs."""
-import sys
 import traceback
-from typing import Any, Optional, Callable
+from typing import Any
 
 from epistemic_tribunal.tasks.base import Grid, grid_shape, crop_to_content, rotate_90, flip_h, flip_v
 import math

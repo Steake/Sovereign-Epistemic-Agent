@@ -56,7 +56,6 @@ def run_validation():
     console = Console()
     console.print("[bold blue]Starting Full 50-Task Validation Sweep (4 Arms)...[/bold blue]")
 
-    import sys
     manifest_path = sys.argv[1] if len(sys.argv) > 1 else "data/validation_manifest_v1.txt"
     dataset_path = _resolve_dataset_path()
     console.print(f"[dim]Dataset: {dataset_path}[/dim]")
