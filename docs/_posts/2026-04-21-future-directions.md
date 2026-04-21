@@ -4,7 +4,7 @@ title: "Future Directions"
 excerpt: "Strategic engineering path for the Epistemic Tribunal following the 8-cycle EQBSL tuning campaign."
 ---
 
-This document outlines the strategic engineering path for the Epistemic Tribunal following the 8-cycle EQBSL (Evidential Quantum Belief State Logic) tuning campaign. 
+This document outlines the strategic engineering path for the Epistemic Tribunal following the 8-cycle EQBSL (Evidence Quantified Belief Subjective Logic) tuning campaign. 
 
 ## 1. The Evidence Ceiling (Pool & Oracle Limitations)
 

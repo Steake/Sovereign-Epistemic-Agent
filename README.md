@@ -43,7 +43,7 @@ The architecture is entirely domain-agnostic, though it was hardened in the cruc
 
 ## Latest Experimental Findings & Next Steps
 
-Our recent 8-cycle EQBSL (Evidential Quantum Belief State Logic) tuning campaign yielded a bracing conclusion: the tribunal's adjudication logic is highly mature, but it is entirely bottlenecked by the intellectual poverty of its external evidence sources.
+Our recent 8-cycle EQBSL (Evidence Quantified Belief Subjective Logic) tuning campaign yielded a bracing conclusion: the tribunal's adjudication logic is highly mature, but it is entirely bottlenecked by the intellectual poverty of its external evidence sources.
 
 **Findings:**
 1. **The Evidence Ceiling:** The system correctly abstains from selecting false answers, functioning as an exceptional error gate. However, when the Trace Critic confidently hallucinates a contradiction against the ground truth, the Tribunal—behaving flawlessly according to its charter—rejects the correct answer. The bottleneck is *oracle-limited*, not selector-limited.
