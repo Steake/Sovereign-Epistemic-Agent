@@ -74,7 +74,7 @@ Invariant:    0.40  │  Shape, colour, object count checks
 
 ### 3.2 Decision Distribution
 
-![Tribunal Decision Distribution](chart_decisions.png)
+![Tribunal Decision Distribution]({{ "/assets/images/chart_decisions.png" | relative_url }})
 
 The overwhelming majority of tasks resulted in **RESAMPLE** (77%), indicating the tribunal's diversity gate consistently detected that generators were not producing convergent solutions. Only 23% of tasks crossed the selection threshold.
 
@@ -83,7 +83,7 @@ The overwhelming majority of tasks resulted in **RESAMPLE** (77%), indicating th
 
 ### 3.3 Metacognitive Quality (Abstention Analysis)
 
-![Metacognitive Quality](chart_abstention_quality.png)
+![Metacognitive Quality]({{ "/assets/images/chart_abstention_quality.png" | relative_url }})
 
 This is the most important chart in the report. It answers: **"When the tribunal refused to answer, was it right to do so?"**
 
@@ -101,7 +101,7 @@ This is the most important chart in the report. It answers: **"When the tribunal
 
 ### 3.4 Confidence Distribution
 
-![Confidence Distribution](chart_confidence_dist.png)
+![Confidence Distribution]({{ "/assets/images/chart_confidence_dist.png" | relative_url }})
 
 The confidence distributions for RESAMPLE and SELECT decisions heavily overlap in the 0.33–0.45 range. This narrow band indicates:
 
@@ -118,7 +118,7 @@ The confidence distributions for RESAMPLE and SELECT decisions heavily overlap i
 
 ### 3.5 Generator Performance Comparison
 
-![Generator Scores](chart_generator_scores.png)
+![Generator Scores]({{ "/assets/images/chart_generator_scores.png" | relative_url }})
 
 All three generators performed similarly, with the `greedy` heuristic slightly outscoring the LLM on aggregate tribunal scores. This is a counterintuitive but important finding:
 
@@ -132,7 +132,7 @@ The `diverse` generator consistently scored lowest due to its stochastic cell pe
 
 ### 3.6 Disagreement–Confidence Landscape
 
-![Disagreement vs Confidence](chart_scatter_disagree.png)
+![Disagreement vs Confidence]({{ "/assets/images/chart_scatter_disagree.png" | relative_url }})
 
 This scatter plot reveals the decision landscape:
 

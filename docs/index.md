@@ -1,34 +1,48 @@
 ---
 layout: default
-title: Sovereign Epistemic Agent — Research Blog
+title: Home
 ---
 
 # Sovereign Epistemic Agent
 
-Research dispatches from the **Epistemic Tribunal**—a metacognitive adjudication stack built on the unapologetic premise that the first plausible utterance of a machine is rarely the truth. Here, we stage a governed, dialectical conflict between competing hypotheses.
+**Research blog for the Epistemic Tribunal project.**
+
+The Epistemic Tribunal is a metacognitive adjudication stack for reasoning tasks. It stages a governed contest between competing internal accounts of a problem, scores those accounts against structural constraints and prior failure patterns, and decides whether any candidate deserves selection.
+
+The central object is not "the answer." It is the governed conflict between candidate hypotheses.
 
 ---
 
-## Posts
+## Experiment Reports
 
 <ul>
   {% for post in site.posts %}
     <li>
-      <strong>{{ post.date | date: "%Y-%m-%d" }}</strong> —
-      <a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-      <br><em>{{ post.excerpt | strip_html | truncatewords: 30 }}</em>
+      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      <br>
+      <small>{{ post.date | date: "%B %d, %Y" }}</small>
+      {% if post.excerpt %}
+        <p>{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
+      {% endif %}
     </li>
   {% endfor %}
 </ul>
 
 ---
 
-## About the Project
+## Architecture
 
-It is a peculiarly modern vanity to assume that simply exposing a model to a problem of logic is sufficient to produce reasoning. The **Epistemic Tribunal** refuses to treat the initial, uncalibrated guess as sovereign. Instead, it marshals a chorus of competing internal accounts, subjects them to the ruthless cross-examination of structural constraints and prior failures, and insists on knowing whether any candidate has actually earned the right to be selected.
+```
+Task
+ → Generator Bank (competing strategies: LLM, LLM-CoT, Greedy, Diverse)
+ → Invariant Extractor (structural constraints from training pairs)
+ → Trace Critic (consistency, rule coherence, morphology, failure memory)
+ → Uncertainty Analyzer (entropy, margin, coalition mass, disagreement)
+ → Tribunal Aggregator (weighted_sum or EQBSL fusion → SELECT / RESAMPLE / ABSTAIN)
+ → Failure Ledger (SQLite persistence for post-hoc analysis and future penalisation)
+```
 
-The central object of this architecture is not the naive pursuit of "the answer." It is the **governed conflict between hypotheses**—an intellectual friction without which true reasoning cannot exist.
+## Links
 
-- **[Source Code](https://github.com/Steake/Sovereign-Epistemic-Agent)**
-- **[Architecture & README](https://github.com/Steake/Sovereign-Epistemic-Agent#architecture-overview)**
-- **[Roadmap](https://github.com/Steake/Sovereign-Epistemic-Agent/blob/main/docs/roadmap.md)**
+- [Source Code](https://github.com/Steake/Sovereign-Epistemic-Agent)
+- [Roadmap](https://github.com/Steake/Sovereign-Epistemic-Agent/blob/main/docs/roadmap.md)
