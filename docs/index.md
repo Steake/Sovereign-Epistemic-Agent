@@ -37,7 +37,7 @@ title: Sovereign Epistemic
     
     <div class="mermaid" markdown="0">
 {% raw %}
-graph TD
+flowchart TD
 Task[ARC Task Input] --> GB[Generator Bank]
 subgraph Generators
 GB --> LLM[LLM / LLM-CoT]

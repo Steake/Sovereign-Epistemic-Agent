@@ -263,17 +263,22 @@ body {
 }
 
 .tab-content {
-  display: none;
+  position: absolute;
+  left: -9999px;
+  visibility: hidden;
+  width: 100%;
   background: var(--card-bg);
   border: 1px solid var(--border-glass);
   border-radius: 24px;
   padding: 2.5rem;
-  animation: fadeIn 0.4s ease;
   box-shadow: var(--shadow);
 }
 
 .tab-content.active {
-  display: block;
+  position: relative;
+  left: 0;
+  visibility: visible;
+  animation: fadeIn 0.4s ease;
 }
 
 @keyframes fadeIn {
