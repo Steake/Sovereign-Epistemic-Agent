@@ -1,4 +1,8 @@
-# The Crucible of Reason: An Audit of the Epistemic Tribunal
+---
+layout: post
+title: "The Crucible of Reason"
+excerpt: "An Audit of the Epistemic Tribunal and the pathology of the misshapen grid."
+---
 
 It is a vanity, and a particularly modern one at that, to assume that simply exposing a Large Language Model to a problem of logic is sufficient to produce reasoning. In our initial excursions into the ARC benchmark—a domain that ruthlessly punishes the approximation of intelligence in favor of its actual, hard-won exercise—we found our sovereign agent behaving less like a geometer and more like a spectacularly confident somnambulist. It would spit out grids that were violently mismatched in proportion to reality, and when confronted by the quiet, inexorable logic of the heuristics, it offered nothing but a babel of discordant guesses. 
 

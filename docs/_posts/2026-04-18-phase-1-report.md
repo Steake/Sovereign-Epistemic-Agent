@@ -1,4 +1,9 @@
-# Phase 1 Experiment Report
+---
+layout: post
+title: "Phase 1 Experiment Report"
+excerpt: "First complete end-to-end validation of the Epistemic Tribunal stack."
+---
+
 ## Epistemic Tribunal — ARC-AGI Scaling Study
 **Period:** March – April 2026  
 **Platform:** NVIDIA H100 / H200 (Scale-up Pod)  

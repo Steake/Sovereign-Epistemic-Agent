@@ -6,7 +6,7 @@ This repository is the home of the **Sovereign Epistemic Agent** project. Its fi
 
 The system does not treat the first plausible answer as sovereign. It stages a contest between competing internal accounts of the task, scores those accounts against structural constraints and prior failure patterns, and then decides whether any candidate deserves selection. The central object here is not "the answer." It is the governed conflict between candidate hypotheses.
 
-**Read the final experimental audit:** [The Crucible of Reason: An Audit of the Epistemic Tribunal](docs/experiment_report_final.md)
+**Read our research blog:** [Sovereign Epistemic Agent Blog](docs/index.md)
 
 ---
 
@@ -55,17 +55,17 @@ The architecture is domain-agnostic. ARC-like grid tasks are the reference domai
 
 ## Latest Experimental Findings & Next Steps
 
-Our most recent 3-arm DeepSeek experiment resolved the core "paralysis of entropy" that was forcing the Tribunal to constantly abstain during multi-generator consensus building.
+Following the 8-cycle EQBSL (Evidential Quantum Belief State Logic) tuning campaign, the tribunal's core adjudication logic (`weighted_sum` and `EQBSL`) is now highly mature. However, the system has hit an **evidence ceiling** bottlenecked by the quality of its external evidence sources rather than its fusion policy.
 
 **Findings:**
-1. **The Pathology of the Misshapen Grid is Cured:** By enforcing rigid visual prompt boundaries and a programmatic `shape-clamp` sequence, we successfully reduced LLM spatial hallucinations from an 80% failure rate to 0%. The LLMs now reliably communicate valid ARC grids.
-2. **Margin Guardrails and Fiat (M0):** Stripping the Tribunal of its guardrails in our M0 configuration dramatically forced action (90% coverage) but degraded into a system running on fiat. It led to 8 wrong picks, demonstrating that forcing consensus on high-entropy states yields fiction, not truth.
-3. **Intellectual Plurality (M1):** In M1, we retained basic coalition margins and injected diversity via a "warm" stochastic LLM (0.7 temp). M1 diagnosed hypotheses independently, broke the gridlock, and doubled resolved accuracy to 20%. The true measure of success here was not coverage, but candidate quality and coalition diversity correctly filtering false positives.
+1. **Verification Hallucinations:** The current Trace Critic frequently hallucinates with high confidence on hard boundary cases, such as confidently contradicting the ground truth in GSM8K and falsely supporting structural distractors in ARC.
+2. **The Threshold Trap:** Further tuning of selector thresholds yields diminishing returns, merely shifting errors rather than resolving underlying structural ambiguity.
+3. **EQBSL Deployment Strategy:** EQBSL provides vastly superior epistemic transparency (tracking structural coalitions, base-rates, and belief/disbelief tension). However, its reliance on noisy external verification makes it brittle cross-domain compared to the robust `weighted_sum` baseline. EQBSL will remain experimental and domain-scoped.
 
 **Roadmap to Genuine Epistemic Synthesis:**
-- **Invoke Chain-of-Thought (CoT):** The ARC grid generators must be refactored to emit explicit reasoning logs *first*. Generating logic traces before raw matrices provides a semantic attack surface for the Tribunal to evaluate, rather than limiting criticism solely to synthetic outputs.
-- **Elicit True Plurality from the LLM:** The current LLM array still struggles with tie-breaks because the prompting variations remain highly correlated. To break this, we must force the LLM into orthogonal cognitive modes—for instance, having one LLM instance write and execute Python code to generate the grid, while another reasons visually. The goal is to extract entirely separate vectors of reasoning *from the LLMs themselves*, rather than defeating the purpose of the project by falling back on deterministic DSL solvers.
-- **Production Scale Migration:** Having built and evaluated the core internal architecture of the Epistemic Sovereign Agent, it is ready for distributed runtime scaling across the complete Kaggle ARC testing ensemble. 
+- **Upgrading the Trace Critic:** Migrate to a natively stronger reasoning model (e.g., DeepSeek Reasoner, OpenAI o1) with better intrinsic epistemic calibration to extract more accurate, less brittle opinions.
+- **Expanding the Candidate Pool:** Implement explicit model-backed generators with varied reasoning priors (e.g., explicit structured chain-of-thought, code-backed execution) to reduce homogenous failure modes.
+- **Transitioning to Live Memory (Strange Loop):** Evolve the current post-hoc, diagnostic failure ledger into a true **Strange Loop memory**. Prior structural failures should directly inject constraints into the generator bank *during* candidate production to explicitly avoid known failure classes before adjudication begins.
 
 ---
 
