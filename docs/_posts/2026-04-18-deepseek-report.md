@@ -156,10 +156,20 @@ This scatter plot reveals the decision landscape:
 
 ### 4.2 Performance by Cohort
 
-| Cohort | Abstention Rate | Wrong Picks | Selective Accuracy |
-|:---|:---|:---|:---|
-| Contested-Recoverable | 100% | 0 | N/A (never selected) |
-| Contested-Unrecoverable | 73.9% | 12 | 0.0% |
+<div class="cohort-grid">
+  <div class="cohort-card recoverable">
+    <div class="cohort-header">Contested-Recoverable</div>
+    <div class="cohort-stat"><span>Abstention Rate</span><span>100%</span></div>
+    <div class="cohort-stat"><span>Wrong Picks</span><span>0</span></div>
+    <div class="cohort-stat"><span>Selective Accuracy</span><span>N/A</span></div>
+  </div>
+  <div class="cohort-card unrecoverable">
+    <div class="cohort-header">Contested-Unrecoverable</div>
+    <div class="cohort-stat"><span>Abstention Rate</span><span>73.9%</span></div>
+    <div class="cohort-stat"><span>Wrong Picks</span><span>12</span></div>
+    <div class="cohort-stat"><span>Selective Accuracy</span><span>0.0%</span></div>
+  </div>
+</div>
 
 > [!CAUTION]
 > The tribunal abstained on **all 4 recoverable tasks** — meaning it had the right answer available but couldn't identify it. This is the critical failure mode: the adjudication pipeline lacks sufficient signal to distinguish correct from incorrect candidates when disagreement is high.

@@ -60,24 +60,89 @@ Four parallel validation arms were run, each exercising a different adjudication
 
 ### 3.1 Global Accuracy — All Arms, Budget 2048
 
-| Adjudication Arm | Tasks Run | Accuracy | Coverage | Resample Rate |
-|---|---|---|---|---|
-| Greedy | 50 | **0.0 %** | 100 % | 0 % |
-| Structural | 50 | **0.0 %** | 76 % | 24 % |
-| Lockout | 50 | **0.0 %** | 86 % | 14 % |
-| Path B | 50 | **0.0 %** | 86 % | 14 % |
+<div class="viz-container">
+  <h3 class="viz-title">Resample Rates & Coverage by Adjudication Arm</h3>
+  
+  <div class="stat-row">
+    <div class="stat-label">Greedy</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-red" style="width: 2%;">0% Resample</div>
+    </div>
+    <div class="stat-value">100% Cov</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">Structural</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-purple" style="width: 24%;">24% Resample</div>
+    </div>
+    <div class="stat-value">76% Cov</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">Lockout</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-purple" style="width: 14%;">14% Resample</div>
+    </div>
+    <div class="stat-value">86% Cov</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">Path B</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-purple" style="width: 14%;">14% Resample</div>
+    </div>
+    <div class="stat-value">86% Cov</div>
+  </div>
+</div>
 
 All arms returned 0.0% accuracy across all 50 tasks in the validation set.
 
 ### 3.2 Reasoning Budget Scaling
 
-| Reasoning Budget (tokens) | Accuracy | Malformed Grid Rate | Mean Confidence |
-|---|---|---|---|
-| 0 | 0.0 % | High | 0.42 |
-| 256 | 0.0 % | Declining | 0.55 |
-| 512 | 0.0 % | Near-zero | 0.65 |
-| 1024 | 0.0 % | Near-zero | 0.68 |
-| 2048 | 0.0 % | Near-zero | 0.70 |
+<div class="viz-container">
+  <h3 class="viz-title">Mean Confidence vs Reasoning Budget</h3>
+  
+  <div class="stat-row">
+    <div class="stat-label">0 Tokens</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-red" style="width: 42%;">42%</div>
+    </div>
+    <div class="stat-value">High Malform</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">256 Tokens</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill" style="width: 55%;">55%</div>
+    </div>
+    <div class="stat-value">Declining</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">512 Tokens</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill" style="width: 65%;">65%</div>
+    </div>
+    <div class="stat-value">Near-zero</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">1024 Tokens</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill" style="width: 68%;">68%</div>
+    </div>
+    <div class="stat-value">Near-zero</div>
+  </div>
+  
+  <div class="stat-row">
+    <div class="stat-label">2048 Tokens</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-purple" style="width: 70%;">70%</div>
+    </div>
+    <div class="stat-value">Near-zero</div>
+  </div>
+</div>
 
 Increasing the token budget improved *structural compliance* noticeably above 512 tokens but did not move accuracy by a single data point. The model learned to format its wrong answers better. It did not learn to reason correctly.
 
@@ -85,13 +150,45 @@ Increasing the token budget improved *structural compliance* noticeably above 51
 
 For 5 representative tasks covering all archetypal transform types, we computed the cellwise overlap between every generated candidate and ground truth.
 
-| Task Archetype | Best Pool Overlap | Tribunal Selected | Interpretation |
-|---|---|---|---|
-| **Identity** | **77.5 %** | 77.5 % | Generator partially succeeds; Tribunal picks best |
-| **Flip** | **0.0 %** | 0.0 % | Complete generator collapse |
-| **Fill** | **0.0 %** | 0.0 % | Complete generator collapse |
-| **Color Swap** | **0.0 %** | 0.0 % | Complete generator collapse |
-| **Messy / Complex** | **90.6 %** | 90.6 % | Near-miss; Tribunal selects best available |
+<div class="viz-container">
+  <h3 class="viz-title">Generator Floor (Cellwise Overlap)</h3>
+  
+  <div class="stat-row">
+    <div class="stat-label">Identity</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-purple" style="width: 77.5%;">77.5%</div>
+    </div>
+    <div class="stat-value">Selected</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Messy</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-purple" style="width: 90.6%;">90.6%</div>
+    </div>
+    <div class="stat-value">Selected</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Flip</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-red" style="width: 2%;">0.0%</div>
+    </div>
+    <div class="stat-value">Collapse</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Fill</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-red" style="width: 2%;">0.0%</div>
+    </div>
+    <div class="stat-value">Collapse</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-label">Color Swap</div>
+    <div class="stat-bar-wrapper">
+      <div class="stat-bar-fill fill-red" style="width: 2%;">0.0%</div>
+    </div>
+    <div class="stat-value">Collapse</div>
+  </div>
+</div>
 
 In both cases where the generator produced a non-trivial near-miss, the Tribunal correctly identified and selected the best candidate. The adjudication layer is not failing. The generator simply does not produce a correct answer for three of the five archetypes.
 
