@@ -1,10 +1,12 @@
 # Sovereign Epistemic Agent
 
-## Epistemic Tribunal
+## The Epistemic Tribunal
 
-This repository is the home of the **Sovereign Epistemic Agent** project. Its first concrete experimental subsystem is the **Epistemic Tribunal**: a metacognitive adjudication stack for ARC-like reasoning tasks.
+This repository houses the **Sovereign Epistemic Agent**—a project born of the rather bracing realisation that large language models are, by default, spectacularly confident somnambulists. Its first concrete experimental subsystem is the **Epistemic Tribunal**: a metacognitive adjudication stack designed to forcibly extract reason from the ether of ARC-like tasks.
 
-The system does not treat the first plausible answer as sovereign. It stages a contest between competing internal accounts of the task, scores those accounts against structural constraints and prior failure patterns, and then decides whether any candidate deserves selection. The central object here is not "the answer." It is the governed conflict between candidate hypotheses.
+It is a vanity, and a particularly modern one at that, to assume that the first plausible utterance of a machine ought to be treated as sovereign truth. This system operates on the more sober principle of governed conflict. It stages an unforgiving, dialectical contest between competing internal hypotheses, subjecting them to the ruthless cross-examination of structural constraints and the indelible memory of past failures. It then demands to know whether any candidate has actually earned the right to be selected. 
+
+The central object here is not the naive pursuit of "the answer." It is the rigorous, unsentimental adjudication of the hypotheses themselves.
 
 **Read our research blog:** [Sovereign Epistemic Agent Blog](docs/index.md)
 
@@ -88,9 +90,11 @@ Following the 8-cycle EQBSL (Evidential Quantum Belief State Logic) tuning campa
 
 ---
 
-## How it differs from greedy / single-pass solvers
+## The Poverty of the Single-Pass Solver
 
-| Aspect | Greedy / single-pass | Epistemic Tribunal |
+To rely on a greedy, single-pass solver is to surrender one's critical faculties to the very first impulse of an uncalibrated machine. The Tribunal, by contrast, demands evidence, coalition, and invariant proof. It is a necessary friction.
+
+| Aspect | The Credulous Single-Pass | The Epistemic Tribunal |
 |---|---|---|
 | **Candidate generation** | One answer | Multiple competing generator strategies |
 | **Invariant awareness** | None | Extracted from training pairs; used to penalise violations |
@@ -100,7 +104,7 @@ Following the 8-cycle EQBSL (Evidential Quantum Belief State Logic) tuning campa
 | **Abstention** | Never | Tribunal abstains or requests resample when confidence is low |
 | **Auditability** | Black-box | Full structured decision record in SQLite |
 
-The central object in this system is **not** a single output token or final answer string. It is **the competition between internal accounts of the task**, rendered explicit enough to inspect, criticise, and govern.
+The central object in this system is **not** a single output token or a hallucinated final answer string. It is **the competition between internal accounts of the task**, rendered explicit enough to inspect, criticise, and uncompromisingly govern.
 
 ---
 
