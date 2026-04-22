@@ -10,6 +10,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Callable
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 
 
@@ -29,9 +30,10 @@ class BaseGenerator(ABC):
 
     @abstractmethod
     def generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         """Produce one candidate reasoning trace for *task*.
 
@@ -42,6 +44,10 @@ class BaseGenerator(ABC):
         on_token:
             Optional callback for streaming tokens. Signature: (type, text).
             Types: 'reasoning', 'content'.
+        failure_constraints:
+            Optional pre-generation constraints from Strange Loop memory.
+            Contains bad-answer signatures to avoid and structural warnings.
+            Generators that do not support constraint injection may ignore this.
 
         Returns
         -------

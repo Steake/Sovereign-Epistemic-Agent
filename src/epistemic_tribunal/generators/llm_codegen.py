@@ -3,6 +3,7 @@ import multiprocessing
 import re
 from typing import Any, Optional, Callable
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.tasks.base import grid_shape
@@ -108,12 +109,13 @@ class CodeGenLLMGenerator(LLMGenerator):
         pass
 
     def generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         expected_shape = grid_shape(task.test_input)
-        prompt, schema = self._build_prompt(task, expected_shape)
+        prompt, schema = self._build_prompt(task, expected_shape, failure_constraints)
         
         response, finish_reason = self._complete(prompt, schema, on_token=on_token)
         self.last_finish_reason = finish_reason

@@ -13,6 +13,7 @@ from __future__ import annotations
 import random
 from typing import Optional, Callable
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.tasks.base import (
     colour_counts,
@@ -69,9 +70,10 @@ class RuleFirstGenerator(BaseGenerator):
     name = "rule_first"
 
     def generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         rng = random.Random(self.seed + 3)
 

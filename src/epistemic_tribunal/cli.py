@@ -358,6 +358,231 @@ def _print_forensic_results(runs: list[ExperimentRun], ledger_path: Optional[str
             console.print()
 
 
+# ---------------------------------------------------------------------------
+# tribunal replay-failed
+# ---------------------------------------------------------------------------
+
+@app.command("replay-failed")
+def replay_failed(
+    dataset_path: Path = typer.Argument(..., help="Directory of task JSON files."),
+    baseline_ledger: Path = typer.Option(..., "--from-ledger", help="Path to baseline ledger DB to identify failures."),
+    output_ledger: Path = typer.Option(..., "--ledger", help="Path to output ledger DB for the replay."),
+    mode: str = typer.Option("full_memory", "--mode", help="Strange Loop mode to inject: off, bad_answers_only, warnings_only, full_memory."),
+    config_path: Optional[Path] = typer.Option(None, "--config", "-c", help="Path to base YAML config file."),
+    json_output: bool = typer.Option(False, "--json", help="Output metrics as JSON."),
+) -> None:
+    """Replay tasks that failed in the baseline under a specific Strange Loop condition."""
+    import tempfile
+    import os
+
+    if not baseline_ledger.exists():
+        console.print(f"[red]Baseline ledger not found:[/red] {baseline_ledger}")
+        raise typer.Exit(1)
+
+    baseline_runs = _load_runs_from_ledger(str(baseline_ledger))
+    # Identify tasks that failed (wrong pick or bad abstention -> ground_truth_match is False or missing when there was a correct answer in pool)
+    # The prompt explicitly mentioned: "identify failed cohort". Let's use ground_truth_match is False.
+    failed_task_ids = set(
+        run.task_id for run in baseline_runs
+        if run.ground_truth_match is False or (run.decision == DecisionKind.ABSTAIN and run.metadata.get("any_correct") is True)
+    )
+
+    if not failed_task_ids:
+        console.print("[yellow]No failed tasks found in the baseline ledger. Nothing to replay.[/yellow]")
+        raise typer.Exit(0)
+
+    console.print(f"[bold cyan]Found {len(failed_task_ids)} failed tasks in baseline. Replaying under mode '{mode}'...[/bold cyan]")
+
+    # Create temporary manifest
+    fd, tmp_manifest = tempfile.mkstemp(suffix=".txt", text=True)
+    with os.fdopen(fd, "w") as f:
+        for tid in sorted(failed_task_ids):
+            f.write(f"{tid}\n")
+
+    try:
+        config = load_config(config_path)
+        config.ledger.path = str(output_ledger)
+        config.strange_loop.enabled = True
+        config.failure_memory.enabled = True
+        config.strange_loop.mode = mode
+        config.tribunal.ledger_warmup_tasks = 0
+        # Re-attach the baseline ledger path as the failure memory store path, since we want to read FROM the baseline's memory
+        # Wait, the failure memory store defaults to config.ledger.path. If we change ledger.path to output_ledger,
+        # it will look for failure memory in output_ledger (which is initially empty)!
+        # We need to tell the FailureMemoryStore to read from the baseline ledger.
+        # But wait, FailureMemoryStore only takes `path`. And Orchestrator passes `config.ledger.path` to it.
+        # So we need to monkeypatch it for this run or ensure the baseline ledger is copied to the output ledger first.
+        # The user says: "same ledger seed copied from baseline".
+        import shutil
+        if not output_ledger.exists():
+            console.print(f"Copying baseline ledger {baseline_ledger} to {output_ledger} to preserve seed memory...")
+            shutil.copy2(baseline_ledger, output_ledger)
+
+        # Also, to prevent it from re-loading "completed tasks" from the copied ledger, we must NOT use --resume.
+        # But wait, if we copy the ledger, the copied ledger already has `ExperimentRun` records for these task_ids.
+        # If we run without `--resume`, will it overwrite or append? The ledger writer appends.
+        # That means the ledger will have two runs for the same task. This is fine, but analysis scripts usually
+        # take the most recent one or group by run_id.
+        
+        runner = BenchmarkRunner(config=config, ledger_path=str(output_ledger))
+        runs = runner.run(dataset_path, manifest_path=Path(tmp_manifest), resume=False)
+        metrics = runner.report(runs)
+
+        if json_output:
+            print(json.dumps(metrics, indent=2, default=str))
+        else:
+            _print_metrics(metrics)
+
+    finally:
+        os.remove(tmp_manifest)
+
+
+# ---------------------------------------------------------------------------
+# tribunal compare-strange-loop
+# ---------------------------------------------------------------------------
+
+@app.command("compare-strange-loop")
+def compare_strange_loop(
+    baseline_ledger: Path = typer.Option(..., "--baseline", help="Baseline ledger DB."),
+    control_ledger: Path = typer.Option(..., "--control", help="Control replay ledger."),
+    bad_answers_ledger: Path = typer.Option(..., "--bad-answers", help="Bad answers only replay ledger."),
+    warnings_ledger: Path = typer.Option(..., "--warnings", help="Warnings only replay ledger."),
+    full_ledger: Path = typer.Option(..., "--full", help="Full memory replay ledger."),
+) -> None:
+    """Compare the results of the 4 Strange Loop experimental replay arms."""
+    if not baseline_ledger.exists():
+        console.print(f"[red]Baseline ledger not found:[/red] {baseline_ledger}")
+        raise typer.Exit(1)
+
+    baseline_runs = _load_runs_from_ledger(str(baseline_ledger))
+    
+    # We only care about runs that failed in the baseline
+    failed_baseline_runs = [
+        run for run in baseline_runs 
+        if run.ground_truth_match is False or (run.decision == DecisionKind.ABSTAIN and run.metadata.get("any_correct") is True)
+    ]
+    
+    if not failed_baseline_runs:
+        console.print("[yellow]No failed tasks found in the baseline ledger. Cannot compare.[/yellow]")
+        raise typer.Exit(0)
+        
+    baseline_signatures = {}
+    for run in failed_baseline_runs:
+        selected_sig = None
+        for outcome in run.metadata.get("generator_outcomes", []):
+            if outcome["trace_id"] == run.selected_trace_id:
+                selected_sig = outcome["answer_signature"]
+                break
+        if selected_sig:
+            baseline_signatures[run.task_id] = selected_sig
+
+    failed_task_ids = set(run.task_id for run in failed_baseline_runs)
+
+    def _analyze_arm(ledger_path: Path, arm_name: str) -> dict:
+        if not ledger_path.exists():
+            return {"name": arm_name, "missing": True}
+            
+        runs = _load_runs_from_ledger(str(ledger_path))
+        
+        # Group by task_id and take the latest run for tasks that failed in baseline
+        # Wait, since we copied the baseline ledger, the replay run is simply the run with the latest timestamp.
+        latest_runs_by_task = {}
+        for run in runs:
+            if run.task_id not in failed_task_ids:
+                continue
+            if run.task_id not in latest_runs_by_task or run.timestamp > latest_runs_by_task[run.task_id].timestamp:
+                latest_runs_by_task[run.task_id] = run
+                
+        replayed_runs = list(latest_runs_by_task.values())
+        if not replayed_runs:
+            return {"name": arm_name, "missing": True}
+
+        total = len(replayed_runs)
+        recoveries = 0
+        exact_recurrence = 0
+        bad_abstentions = 0
+        total_duration = 0.0
+        
+        for run in replayed_runs:
+            if run.ground_truth_match is True:
+                recoveries += 1
+                
+            if run.decision == DecisionKind.ABSTAIN and run.metadata.get("any_correct") is True:
+                bad_abstentions += 1
+                
+            total_duration += run.duration_seconds
+            
+            # Recurrence: did we pick the EXACT same wrong signature as baseline?
+            selected_sig = None
+            for outcome in run.metadata.get("generator_outcomes", []):
+                if outcome["trace_id"] == run.selected_trace_id:
+                    selected_sig = outcome["answer_signature"]
+                    break
+            
+            baseline_sig = baseline_signatures.get(run.task_id)
+            if selected_sig and baseline_sig and selected_sig == baseline_sig:
+                exact_recurrence += 1
+
+        return {
+            "name": arm_name,
+            "missing": False,
+            "n": total,
+            "recovery_rate": recoveries / total,
+            "exact_recurrence_rate": exact_recurrence / total,
+            "bad_abstention_rate": bad_abstentions / total,
+            "mean_duration": total_duration / total,
+        }
+
+    arms = [
+        _analyze_arm(control_ledger, "control_retry"),
+        _analyze_arm(bad_answers_ledger, "bad_answers_only"),
+        _analyze_arm(warnings_ledger, "warnings_only"),
+        _analyze_arm(full_ledger, "full_memory"),
+    ]
+    
+    control_arm = arms[0]
+    
+    table = Table(title="Strange Loop Efficacy (Replay of Failed Cohort)", show_header=True)
+    table.add_column("Condition", style="bold cyan")
+    table.add_column("N", justify="right")
+    table.add_column("Recovery Rate", justify="right", style="bold green")
+    table.add_column("Δ Recovery", justify="right")
+    table.add_column("Exact Recurrence", justify="right", style="red")
+    table.add_column("Bad Abstention", justify="right", style="yellow")
+    table.add_column("Mean Duration", justify="right")
+    
+    for arm in arms:
+        if arm.get("missing"):
+            table.add_row(arm["name"], "Missing ledger", "", "", "", "", "")
+            continue
+            
+        recovery_str = f"{arm['recovery_rate']*100:.1f}%"
+        recurrence_str = f"{arm['exact_recurrence_rate']*100:.1f}%"
+        abstention_str = f"{arm['bad_abstention_rate']*100:.1f}%"
+        duration_str = f"{arm['mean_duration']:.1f}s"
+        
+        delta_str = "—"
+        if arm["name"] != "control_retry" and not control_arm.get("missing"):
+            delta = arm['recovery_rate'] - control_arm['recovery_rate']
+            color = "green" if delta > 0 else "red" if delta < 0 else "white"
+            sign = "+" if delta > 0 else ""
+            delta_str = f"[{color}]{sign}{delta*100:.1f}%[/{color}]"
+            
+        table.add_row(
+            arm["name"],
+            str(arm["n"]),
+            recovery_str,
+            delta_str,
+            recurrence_str,
+            abstention_str,
+            duration_str,
+        )
+
+    console.print()
+    console.print(table)
+    console.print()
+
+
 def _load_runs_from_ledger(db_path: str) -> list[ExperimentRun]:
     store = LedgerStore(db_path)
     try:
