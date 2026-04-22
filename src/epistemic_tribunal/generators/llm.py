@@ -290,7 +290,12 @@ class LLMGenerator(BaseGenerator):
             self.api_base = "https://api.deepseek.com"
             
         from openai import OpenAI
-        self._pipeline = OpenAI(base_url=self.api_base, api_key=self.api_key or "sk-no-key-required")
+        import httpx
+        self._pipeline = OpenAI(
+            base_url=self.api_base,
+            api_key=self.api_key or "sk-no-key-required",
+            timeout=httpx.Timeout(120.0, connect=10.0),
+        )
         log.info("Initialized remote API client at %s", self.api_base)
             
         return self._pipeline
@@ -326,6 +331,10 @@ class LLMGenerator(BaseGenerator):
         
         for attempt in range(max_retries):
             try:
+                log.debug(
+                    "API call: model=%s, temp=%.2f, top_p=%.2f, max_tokens=%d",
+                    self.model_name, self.temperature, self.top_p, self.max_new_tokens
+                )
                 # If no callback, run non-streaming (faster for non-reasoning models)
                 if not on_token:
                     response = self._pipeline.chat.completions.create(
@@ -791,6 +800,48 @@ class LLMConciseGenerator(LLMGenerator):
                 "answer": {
                     "type": ["string", "number", "integer"]
                 }
+            },
+            "required": ["answer"],
+            "additionalProperties": False
+        }
+        return prompt, schema
+
+    def _build_prompt(
+        self, task: Task, expected_shape: tuple[int, int],
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
+        """Override for ARC grids to be extremely concise."""
+        H, W = expected_shape
+        train_examples = []
+        for idx, example in enumerate(task.train, start=1):
+            train_examples.append(
+                f"Ex{idx} In:{json.dumps(example.input)} Out:{json.dumps(example.output)}"
+            )
+
+        constraint_block = self._build_constraint_block(failure_constraints)
+
+        prompt = (
+            f"{constraint_block}"
+            f"ARC Task: {task.task_id}. Return ONLY JSON: "
+            '{"answer": [[int, ...], ...]} '
+            f"Shape: {H}x{W}.\n\n"
+            f"Examples:\n{'\n'.join(train_examples)}\n\n"
+            f"Test Input: {json.dumps(task.test_input)}\n\n"
+            "Answer:"
+        )
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "array",
+                    "minItems": H, "maxItems": H,
+                    "items": {
+                        "type": "array",
+                        "minItems": W, "maxItems": W,
+                        "items": {"type": "integer", "minimum": 0, "maximum": 9}
+                    }
+                },
             },
             "required": ["answer"],
             "additionalProperties": False

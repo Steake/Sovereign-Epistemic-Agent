@@ -73,9 +73,34 @@ class Orchestrator:
         # Build components
         generator_configs: dict[str, dict[str, Any]] = {}
 
-        # 1. Apply global LLM config block if LLM is enabled
-        if "llm" in self._config.generators.enabled:
-            generator_configs["llm"] = self._config.generators.llm.model_dump()
+        # 1. Apply global LLM config block to all LLM-backed generators.
+        #    Only propagate connection/infrastructure fields to non-"llm"
+        #    generators so subclass-specific defaults (e.g. LLMWarmGenerator's
+        #    temperature=0.7) are not silently overridden.
+        llm_backed_names = {
+            "llm", "llm_warm", "llm_concise", "llm_selfcheck",
+            "llm_verify", "llm_cot", "llm_codegen", "openai",
+        }
+        llm_config_dict = self._config.generators.llm.model_dump()
+        # Fields that define *how to connect* vs *how to generate*.
+        _connection_fields = {
+            "model_name", "api_base", "api_key", "max_new_tokens",
+            "use_json_schema", "trust_remote_code", "torch_dtype",
+            "attn_implementation", "device", "top_p",
+        }
+        llm_connection_only = {
+            k: v for k, v in llm_config_dict.items() if k in _connection_fields
+        }
+        for gen_name in self._config.generators.enabled:
+            if gen_name not in llm_backed_names or gen_name in generator_configs:
+                continue
+            if gen_name == "llm":
+                # The primary llm generator gets the full config block.
+                generator_configs[gen_name] = dict(llm_config_dict)
+            else:
+                # Subclass variants only get connection fields; their own
+                # __init__ sets generation params (temperature, etc.).
+                generator_configs[gen_name] = dict(llm_connection_only)
 
         # 2. Merge specific per-generator config overrides from YAML
         generator_configs.update(self._config.generators.configs)
@@ -194,11 +219,12 @@ class Orchestrator:
                 and self._constraint_builder is not None
                 and completed_runs_before >= warmup_threshold
             ):
-                failure_constraints = self._constraint_builder.build(task)
+                failure_constraints = self._constraint_builder.build(task, mode=self._config.strange_loop.mode)
                 if failure_constraints.has_constraints:
                     log.info(
-                        "Strange Loop: injecting constraints into generation "
+                        "Strange Loop (%s): injecting constraints into generation "
                         "(bad_answers=%d, warnings=%d, strength=%.3f)",
+                        self._config.strange_loop.mode,
                         len(failure_constraints.bad_answers),
                         len(failure_constraints.structural_warnings),
                         failure_constraints.constraint_strength,
@@ -373,12 +399,19 @@ class Orchestrator:
 
         # Attach Strange Loop metadata for observability
         if failure_constraints is not None and failure_constraints.has_constraints:
+            same_task_boost_applied = (
+                failure_constraints.metadata.get("same_task_matches", 0) > 0
+            )
             decision.metadata["strange_loop"] = {
                 "constraints_injected": True,
+                "mode": self._config.strange_loop.mode,
                 "n_bad_answers_injected": len(failure_constraints.bad_answers),
                 "n_structural_warnings_injected": len(failure_constraints.structural_warnings),
                 "constraint_strength": failure_constraints.constraint_strength,
                 "source_task_ids": failure_constraints.source_task_ids,
+                "same_task_boost_applied": same_task_boost_applied,
+                "injected_bad_answers": failure_constraints.bad_answers,
+                "injected_warnings": failure_constraints.structural_warnings,
                 "metadata": failure_constraints.metadata,
             }
 

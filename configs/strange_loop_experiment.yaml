@@ -1,0 +1,72 @@
+# Strange Loop v1 Experiment Config
+#
+# Uses ONLY LLM-backed generators so that failure memory injection
+# actually changes generation behavior. Heuristic generators are
+# deterministic and ignore constraints — they drown out the signal.
+#
+# max_new_tokens is kept low (1024) because ARC grid answers are small.
+# Higher budgets cause DeepSeek to timeout via CloudFront (504).
+
+tribunal:
+  weights:
+    uncertainty: 0.25
+    critic: 0.35
+    memory: 0.15
+    invariant: 0.25
+  selection_threshold: 0.40
+  resample_threshold: 0.20
+  max_resample_attempts: 2
+  diversity_floor: 0.90
+  ledger_warmup_tasks: 0
+
+generators:
+  enabled:
+    - llm             # standard, temp 0.1
+    - llm_warm        # higher temperature (0.7) for diversity
+    - llm_concise     # zero-reasoning variant
+  seed: 42
+  llm:
+    model_name: "deepseek-chat"
+    max_new_tokens: 1024
+    temperature: 0.1
+    top_p: 0.95
+    trust_remote_code: false
+    torch_dtype: "bfloat16"
+    attn_implementation: "auto"
+    use_json_schema: false
+
+invariants:
+  confidence_threshold: 0.5
+  enabled_checks:
+    - object_count_preserved
+    - colour_count_preserved
+    - symmetry_expected
+    - shape_transform_expected
+    - size_relation_preserved
+    - bounding_box_consistent
+    - grid_dimensions_consistent
+
+critic:
+  failure_similarity_weight: 0.20
+  consistency_weight: 0.30
+  rule_coherence_weight: 0.25
+  morphology_weight: 0.25
+
+uncertainty:
+  entropy_bins: 10
+  min_coalition_mass: 0.6
+
+ledger:
+  path: "data/sl_baseline.db"
+  always_record: false
+
+strange_loop:
+  enabled: true
+  max_bad_answers: 5
+  max_warnings: 3
+  min_similarity: 0.3
+  same_task_boost: 1.5
+
+logging:
+  level: "INFO"
+  format: "rich"

@@ -274,6 +274,46 @@ class TestConstraintBuilder:
         dupes = [a for a in constraints.bad_answers if a == "((1, 1), (1, 1))"]
         assert len(dupes) <= 1
 
+    def test_mode_bad_answers_only(self, builder, memory_store):
+        """Should return only bad answers."""
+        sig = _make_failure_signature(
+            task_id="test_task_001",
+            answer_signature="bad_answer",
+            false_majority=True,
+        )
+        memory_store.store(sig)
+        task = _make_task(task_id="test_task_001")
+        constraints = builder.build(task, mode="bad_answers_only")
+        assert len(constraints.bad_answers) > 0
+        assert len(constraints.structural_warnings) == 0
+
+    def test_mode_warnings_only(self, builder, memory_store):
+        """Should return only warnings."""
+        sig = _make_failure_signature(
+            task_id="test_task_001",
+            answer_signature="bad_answer",
+            false_majority=True,
+        )
+        memory_store.store(sig)
+        task = _make_task(task_id="test_task_001")
+        constraints = builder.build(task, mode="warnings_only")
+        assert len(constraints.bad_answers) == 0
+        assert len(constraints.structural_warnings) > 0
+
+    def test_mode_off(self, builder, memory_store):
+        """Should return no constraints."""
+        sig = _make_failure_signature(
+            task_id="test_task_001",
+            answer_signature="bad_answer",
+            false_majority=True,
+        )
+        memory_store.store(sig)
+        task = _make_task(task_id="test_task_001")
+        constraints = builder.build(task, mode="off")
+        assert not constraints.has_constraints
+        assert len(constraints.bad_answers) == 0
+        assert len(constraints.structural_warnings) == 0
+
 
 # ---------------------------------------------------------------------------
 # LLM prompt injection tests

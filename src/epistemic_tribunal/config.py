@@ -123,7 +123,7 @@ class TribunalConfig(BaseModel):
 
 class LLMGeneratorConfig(BaseModel):
     model_name: str = Field(
-        default="deepseek-reasoner"
+        default="deepseek-chat"
     )
     max_new_tokens: int = Field(default=8192, ge=1)
     temperature: float = Field(default=0.1, ge=0.0)
@@ -138,9 +138,9 @@ class LLMGeneratorConfig(BaseModel):
     attn_implementation: str = Field(default="auto")
     # Use full json_schema constrained decoding (if supported by remote API) or fall back
     # to json_object (DeepSeek, older OpenAI cloud APIs that lack schema support).
-    use_json_schema: bool = Field(default=True)
+    use_json_schema: bool = Field(default=False)
     api_base: Optional[str] = Field(default=None)
-    api_key: Optional[str] = Field(default=None)
+    api_key: Optional[str] = Field(default_factory=lambda: os.environ.get("DEEPSEEK_API_KEY"))
 
 
 class GeneratorsConfig(BaseModel):
@@ -211,6 +211,10 @@ class StrangeLoopConfig(BaseModel):
     enabled: bool = Field(
         default=False,
         description="Enable pre-generation failure constraint injection.",
+    )
+    mode: str = Field(
+        default="full_memory",
+        description="off | bad_answers_only | warnings_only | full_memory",
     )
     max_bad_answers: int = Field(
         default=5, ge=0,

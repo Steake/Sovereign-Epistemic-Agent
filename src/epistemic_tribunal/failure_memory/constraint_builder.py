@@ -56,7 +56,7 @@ class FailureConstraintBuilder:
         self._min_similarity = min_similarity
         self._same_task_boost = same_task_boost
 
-    def build(self, task: Task) -> FailureConstraints:
+    def build(self, task: Task, mode: str = "full_memory") -> FailureConstraints:
         """Query failure memory and produce constraints for generators.
 
         Parameters
@@ -64,6 +64,8 @@ class FailureConstraintBuilder:
         task:
             The task about to be solved.  Used to match against prior
             failure signatures by task_id and domain.
+        mode:
+            "off" | "bad_answers_only" | "warnings_only" | "full_memory"
 
         Returns
         -------
@@ -71,12 +73,21 @@ class FailureConstraintBuilder:
             Structured negative guidance.  Empty (``has_constraints == False``)
             if no relevant failures are found.
         """
+        if mode == "off":
+            return FailureConstraints()
+
         signatures = self._query_relevant_failures(task)
         if not signatures:
             return FailureConstraints()
 
         bad_answers = self._extract_bad_answers(signatures, task)
         warnings = self._extract_structural_warnings(signatures, task)
+        
+        if mode == "warnings_only":
+            bad_answers = []
+        elif mode == "bad_answers_only":
+            warnings = []
+
         source_task_ids = list({sig.task_id for _, sig in signatures})
 
         # Compute overall constraint strength from the best match quality
@@ -99,8 +110,9 @@ class FailureConstraintBuilder:
 
         if constraints.has_constraints:
             log.info(
-                "Strange Loop: injecting %d bad-answer(s) and %d warning(s) "
+                "Strange Loop (%s): injecting %d bad-answer(s) and %d warning(s) "
                 "for task %s (strength=%.3f, from %d prior failure(s))",
+                mode,
                 len(constraints.bad_answers),
                 len(constraints.structural_warnings),
                 task.task_id,
