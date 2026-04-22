@@ -1,9 +1,9 @@
-"""Programmatic ARC Solver using LLM-based code synthesis."""
 from __future__ import annotations
 
 import re
 from typing import Any, Optional, Callable
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task
 from epistemic_tribunal.utils.execution import execute_transformation, get_sandbox_docs
@@ -23,9 +23,10 @@ class ProgramSynthesisGenerator(LLMGenerator):
         super().__init__(**kwargs)
 
     def generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         """Synthesise a program, verify against train, and execute on test."""
         prompt, _ = self._build_synthesis_prompt(task)

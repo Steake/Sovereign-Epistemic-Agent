@@ -77,6 +77,16 @@ benchmark:
   # Write SQLite + run_progress checkpoints every N tasks (0 disables intermediate checkpoints).
   checkpoint_every_n_tasks: 0
 
+# Strange Loop memory v1 — pre-generation failure constraint injection
+# When enabled, queries failure memory *before* generators run and injects
+# negative guidance (bad answers to avoid, structural warnings) into prompts.
+strange_loop:
+  enabled: false
+  max_bad_answers: 5
+  max_warnings: 3
+  min_similarity: 0.3
+  same_task_boost: 1.5
+
 # Logging
 logging:
   level: "INFO"

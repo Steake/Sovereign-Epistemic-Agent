@@ -199,6 +199,37 @@ class FailureMemoryConfig(BaseModel):
     )
 
 
+class StrangeLoopConfig(BaseModel):
+    """Configuration for Strange Loop memory v1.
+
+    When enabled, failure memory is queried *before* generation and
+    structured constraints (bad-answer avoidance + structural warnings)
+    are injected into generator prompts.  This makes failure memory a
+    live participant during generation rather than only a post-hoc penalty.
+    """
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable pre-generation failure constraint injection.",
+    )
+    max_bad_answers: int = Field(
+        default=5, ge=0,
+        description="Maximum number of bad-answer signatures to inject.",
+    )
+    max_warnings: int = Field(
+        default=3, ge=0,
+        description="Maximum number of structural warnings to inject.",
+    )
+    min_similarity: float = Field(
+        default=0.3, ge=0.0, le=1.0,
+        description="Minimum match similarity to include a failure signature.",
+    )
+    same_task_boost: float = Field(
+        default=1.5, ge=1.0,
+        description="Similarity multiplier for exact task_id matches.",
+    )
+
+
 class LedgerConfig(BaseModel):
     path: str = Field(default="data/tribunal_ledger.db")
     always_record: bool = False
@@ -227,6 +258,7 @@ class TribunalSettings(BaseModel):
     critic: CriticConfig = Field(default_factory=CriticConfig)
     uncertainty: UncertaintyConfig = Field(default_factory=UncertaintyConfig)
     failure_memory: FailureMemoryConfig = Field(default_factory=FailureMemoryConfig)
+    strange_loop: StrangeLoopConfig = Field(default_factory=StrangeLoopConfig)
     eqbsl: EQBSLConfig = Field(default_factory=EQBSLConfig)
     ledger: LedgerConfig = Field(default_factory=LedgerConfig)
     benchmark: BenchmarkConfig = Field(default_factory=BenchmarkConfig)

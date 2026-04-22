@@ -11,6 +11,7 @@ from typing import Callable, Optional
 
 import random
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.generators.greedy import GreedyGenerator
 from epistemic_tribunal.tasks.base import (
@@ -28,9 +29,10 @@ class MinimalDescriptionGenerator(BaseGenerator):
     name = "minimal_description"
 
     def generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         rng = random.Random(self.seed + 4)
 

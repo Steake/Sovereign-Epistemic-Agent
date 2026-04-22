@@ -133,3 +133,44 @@ class FailureMatch(BaseModel):
     signature: FailureSignature
     similarity: float = Field(ge=0.0, le=1.0)
     matching_features: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Strange Loop constraints (injected into generators before production)
+# ---------------------------------------------------------------------------
+
+
+class FailureConstraints(BaseModel):
+    """Pre-generation constraints derived from failure memory.
+
+    Produced by :class:`FailureConstraintBuilder` and consumed by generators
+    (particularly LLM-backed ones) to inject negative guidance *during*
+    candidate production rather than only penalising traces post-hoc.
+
+    This is the v1 implementation of Strange Loop memory: failure memory
+    becomes a live participant in generation, not just a retrospective
+    penalty signal.
+    """
+
+    #: Serialised answer signatures that were previously wrong on this
+    #: or structurally similar tasks.  Generators should actively avoid these.
+    bad_answers: list[str] = Field(default_factory=list)
+
+    #: Natural-language warnings about structural failure patterns
+    #: (e.g. "false majority was a trap", "rationale-free candidate was wrong").
+    structural_warnings: list[str] = Field(default_factory=list)
+
+    #: Task IDs from which these constraints were derived (provenance).
+    source_task_ids: list[str] = Field(default_factory=list)
+
+    #: Overall confidence in the constraint set (0.0–1.0).
+    #: Derived from the quality and recency of the underlying failure matches.
+    constraint_strength: float = Field(default=0.0, ge=0.0, le=1.0)
+
+    #: Additional metadata for observability and debugging.
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def has_constraints(self) -> bool:
+        """True if there is any actionable guidance to inject."""
+        return bool(self.bad_answers or self.structural_warnings)

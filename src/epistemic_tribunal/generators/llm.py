@@ -8,6 +8,7 @@ import re
 import time
 from typing import Any, Optional, Callable
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.generators.base import BaseGenerator
 from epistemic_tribunal.tasks.base import grid_shape
 from epistemic_tribunal.tribunal_types import CandidateTrace, Task
@@ -66,9 +67,10 @@ class LLMGenerator(BaseGenerator):
         self._client: Optional[Any] = None
 
     def generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         from epistemic_tribunal.tribunal_types import TaskDomain
         
@@ -76,9 +78,9 @@ class LLMGenerator(BaseGenerator):
         expected_shape = grid_shape(task.test_input) if not is_math else None
         
         if is_math:
-            prompt, schema = self._build_math_prompt(task)
+            prompt, schema = self._build_math_prompt(task, failure_constraints)
         else:
-            prompt, schema = self._build_prompt(task, expected_shape)
+            prompt, schema = self._build_prompt(task, expected_shape, failure_constraints)
         
         response, finish_reason = self._complete(prompt, schema, on_token=on_token)
         self.last_finish_reason = finish_reason
@@ -148,7 +150,11 @@ class LLMGenerator(BaseGenerator):
             }
         )
 
-    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+    def _build_math_prompt(
+        self, task: Task,
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
+        constraint_block = self._build_constraint_block(failure_constraints)
         main_prompt = (
             "Solve the following math word problem. Show your reasoning, then provide the final scalar answer.\n"
             "Return ONLY a JSON object containing your final numerical answer.\n"
@@ -156,6 +162,7 @@ class LLMGenerator(BaseGenerator):
             "You may return it as a string, integer, or float, but it must be under the key 'answer'."
         )
         prompt = (
+            f"{constraint_block}"
             f"{main_prompt}\n\n"
             f"Question:\n{task.test_input}\n\n"
             "JSON answer:"
@@ -172,7 +179,10 @@ class LLMGenerator(BaseGenerator):
         }
         return prompt, schema
 
-    def _build_prompt(self, task: Task, expected_shape: tuple[int, int]) -> tuple[str, dict]:
+    def _build_prompt(
+        self, task: Task, expected_shape: tuple[int, int],
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
         H, W = expected_shape
         train_examples = []
         for idx, example in enumerate(task.train, start=1):
@@ -202,8 +212,11 @@ class LLMGenerator(BaseGenerator):
             f"• WRONG examples: fewer rows, more columns, flat list. RIGHT: {H}×{W} nested list."
         )
 
+        constraint_block = self._build_constraint_block(failure_constraints)
+
         train_block = "\n".join(train_examples) if train_examples else "None"
         prompt = (
+            f"{constraint_block}"
             f"{main_prompt}\n\n"
             f"Task: {task.task_id}\n"
             f"Train:\n{train_block}\n\n"
@@ -232,6 +245,40 @@ class LLMGenerator(BaseGenerator):
             "additionalProperties": False
         }
         return prompt, schema
+
+    @staticmethod
+    def _build_constraint_block(
+        constraints: Optional[FailureConstraints],
+    ) -> str:
+        """Format failure constraints as a prompt-injectable text block.
+
+        Returns an empty string when there are no constraints to inject,
+        so callers can unconditionally prepend the result.
+        """
+        if constraints is None or not constraints.has_constraints:
+            return ""
+
+        parts: list[str] = ["=== FAILURE MEMORY (AVOID THESE) ==="]
+
+        if constraints.bad_answers:
+            parts.append(
+                "The following answers have been tried on this or similar "
+                "tasks and were WRONG. Do NOT reproduce them:"
+            )
+            for ans in constraints.bad_answers:
+                parts.append(f"  ✗ {ans}")
+
+        if constraints.structural_warnings:
+            parts.append("")
+            parts.append("Structural warnings from prior failures:")
+            for warning in constraints.structural_warnings:
+                parts.append(f"  ⚠ {warning}")
+
+        parts.append(
+            "\nUse this information to avoid repeating known mistakes.\n"
+            "=== END FAILURE MEMORY ===\n\n"
+        )
+        return "\n".join(parts)
 
     def _load_pipeline(self) -> Any:
         """Loads the remote OpenAI-compatible client endpoint."""
@@ -721,7 +768,11 @@ class LLMConciseGenerator(LLMGenerator):
     """Generates a concise answer trace, demanding zero reasoning."""
     name = "llm_concise"
 
-    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+    def _build_math_prompt(
+        self, task: Task,
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
+        constraint_block = self._build_constraint_block(failure_constraints)
         main_prompt = (
             "Solve the following math word problem. DO NOT EXPLAIN. DO NOT SHOW REASONING.\n"
             "Return ONLY a JSON object containing your final numerical answer.\n"
@@ -729,6 +780,7 @@ class LLMConciseGenerator(LLMGenerator):
             "You may return it as a string, integer, or float, but it must be under the key 'answer'."
         )
         prompt = (
+            f"{constraint_block}"
             f"{main_prompt}\n\n"
             f"Question:\n{task.test_input}\n\n"
             "JSON answer:"
@@ -755,7 +807,11 @@ class LLMVerifyGenerator(LLMGenerator):
         kwargs["temperature"] = kwargs.get("temperature", 0.0)
         super().__init__(seed=seed, **kwargs)
 
-    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+    def _build_math_prompt(
+        self, task: Task,
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
+        constraint_block = self._build_constraint_block(failure_constraints)
         main_prompt = (
             "Solve the following math word problem.\n"
             "Use this exact workflow:\n"
@@ -763,10 +819,11 @@ class LLMVerifyGenerator(LLMGenerator):
             "2. Verify the arithmetic and units with a second pass.\n"
             "3. If the verification disagrees, revise the draft before finalising.\n"
             "4. After verification, emit ONE JSON markdown block with the final answer.\n"
-            'Schema: {"answer": 123}\n'
+            '{"answer": 123}\n'
             "Do not emit multiple candidate answers. The JSON block must be the final thing in the response."
         )
         prompt = (
+            f"{constraint_block}"
             f"{main_prompt}\n\n"
             f"Question:\n{task.test_input}\n\n"
             "Verified reasoning and JSON output:"
@@ -787,6 +844,7 @@ class LLMSelfCheckGenerator(LLMGenerator):
         self,
         task: Task,
         on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> CandidateTrace:
         from epistemic_tribunal.tribunal_types import TaskDomain
 

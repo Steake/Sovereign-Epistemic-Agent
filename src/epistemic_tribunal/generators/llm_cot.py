@@ -1,5 +1,7 @@
 import json
+from typing import Optional
 
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.generators.llm import LLMGenerator
 from epistemic_tribunal.tribunal_types import Task
 
@@ -13,7 +15,10 @@ class CoTLLMGenerator(LLMGenerator):
     
     name = "llm_cot"
 
-    def _build_prompt(self, task: Task, expected_shape: tuple[int, int]) -> tuple[str, dict]:
+    def _build_prompt(
+        self, task: Task, expected_shape: tuple[int, int],
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
         H, W = expected_shape
         train_examples = []
         for idx, example in enumerate(task.train, start=1):
@@ -44,8 +49,11 @@ class CoTLLMGenerator(LLMGenerator):
             "• Provide ONLY ONE JSON markdown block at the very end.\n"
         )
 
+        constraint_block = self._build_constraint_block(failure_constraints)
+
         train_block = "\n".join(train_examples) if train_examples else "None"
         prompt = (
+            f"{constraint_block}"
             f"{main_prompt}\n\n"
             f"Task: {task.task_id}\n"
             f"Train:\n{train_block}\n\n"
@@ -58,15 +66,20 @@ class CoTLLMGenerator(LLMGenerator):
         # We pass an empty schema dict which the base class respects by simply passing the prompt as-is.
         return prompt, {}
 
-    def _build_math_prompt(self, task: Task) -> tuple[str, dict]:
+    def _build_math_prompt(
+        self, task: Task,
+        failure_constraints: Optional[FailureConstraints] = None,
+    ) -> tuple[str, dict]:
+        constraint_block = self._build_constraint_block(failure_constraints)
         main_prompt = (
             "Solve the following math word problem.\n"
             "1. You MUST first reason explicitly step-by-step.\n"
             "2. After your reasoning, emit a JSON markdown block with your answer.\n"
-            'Schema: {"answer": 123}\n'
+            '{"answer": 123}\n'
             "Provide ONLY ONE JSON markdown block at the very end."
         )
         prompt = (
+            f"{constraint_block}"
             f"{main_prompt}\n\n"
             f"Question:\n{task.test_input}\n\n"
             "Reasoning and JSON output:"

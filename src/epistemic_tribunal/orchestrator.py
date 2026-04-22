@@ -21,7 +21,9 @@ from typing import Any, Callable, Optional
 
 from epistemic_tribunal.config import TribunalSettings, load_config
 from epistemic_tribunal.critics.trace_critic import TraceCritic
+from epistemic_tribunal.failure_memory.constraint_builder import FailureConstraintBuilder
 from epistemic_tribunal.failure_memory.extractor import FailureSignatureExtractor
+from epistemic_tribunal.failure_memory.models import FailureConstraints
 from epistemic_tribunal.failure_memory.query import FailureMemoryQuery
 from epistemic_tribunal.failure_memory.store import FailureMemoryStore
 from epistemic_tribunal.generators.base import build_generators
@@ -115,6 +117,21 @@ class Orchestrator:
         ) if fm_cfg.enabled else None
         self._failure_memory_enabled = fm_cfg.enabled
 
+        # Strange Loop memory v1 — pre-generation constraint injection
+        sl_cfg = self._config.strange_loop
+        self._strange_loop_enabled = sl_cfg.enabled and fm_cfg.enabled
+        self._constraint_builder: Optional[FailureConstraintBuilder] = None
+        if self._strange_loop_enabled:
+            self._constraint_builder = FailureConstraintBuilder(
+                store=self._failure_memory_store,
+                max_bad_answers=sl_cfg.max_bad_answers,
+                max_warnings=sl_cfg.max_warnings,
+                min_similarity=sl_cfg.min_similarity,
+                same_task_boost=sl_cfg.same_task_boost,
+            )
+            log.info("Strange Loop memory v1 enabled (max_bad=%d, max_warn=%d)",
+                     sl_cfg.max_bad_answers, sl_cfg.max_warnings)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -170,8 +187,27 @@ class Orchestrator:
                         g.temperature = temp
                 log.info("Resampling task %s (attempt %d) with temperature %.2f", task.task_id, attempt, temp)
                 
-            # 1. Generate candidates
-            new_traces = self._generate(task, on_token=on_token)
+            # 1. Generate candidates (with Strange Loop constraints if enabled)
+            failure_constraints: Optional[FailureConstraints] = None
+            if (
+                self._strange_loop_enabled
+                and self._constraint_builder is not None
+                and completed_runs_before >= warmup_threshold
+            ):
+                failure_constraints = self._constraint_builder.build(task)
+                if failure_constraints.has_constraints:
+                    log.info(
+                        "Strange Loop: injecting constraints into generation "
+                        "(bad_answers=%d, warnings=%d, strength=%.3f)",
+                        len(failure_constraints.bad_answers),
+                        len(failure_constraints.structural_warnings),
+                        failure_constraints.constraint_strength,
+                    )
+
+            new_traces = self._generate(
+                task, on_token=on_token,
+                failure_constraints=failure_constraints,
+            )
             
             # Inject explicit metadata
             for t in new_traces:
@@ -335,6 +371,17 @@ class Orchestrator:
         if fm_metadata:
             decision.metadata["failure_memory"] = fm_metadata
 
+        # Attach Strange Loop metadata for observability
+        if failure_constraints is not None and failure_constraints.has_constraints:
+            decision.metadata["strange_loop"] = {
+                "constraints_injected": True,
+                "n_bad_answers_injected": len(failure_constraints.bad_answers),
+                "n_structural_warnings_injected": len(failure_constraints.structural_warnings),
+                "constraint_strength": failure_constraints.constraint_strength,
+                "source_task_ids": failure_constraints.source_task_ids,
+                "metadata": failure_constraints.metadata,
+            }
+
         eqbsl_coalitions = decision.metadata.pop("_eqbsl_coalitions", [])
         if eqbsl_coalitions:
             self._writer.write_coalition_opinions(
@@ -456,9 +503,10 @@ class Orchestrator:
     # ------------------------------------------------------------------
 
     def _generate(
-        self, 
-        task: Task, 
-        on_token: Optional[Callable[[str, str], None]] = None
+        self,
+        task: Task,
+        on_token: Optional[Callable[[str, str], None]] = None,
+        failure_constraints: Optional[FailureConstraints] = None,
     ) -> list[CandidateTrace]:
         traces: list[CandidateTrace] = []
         self.last_generation_stats = {
@@ -473,7 +521,10 @@ class Orchestrator:
             try:
                 if on_token:
                     on_token("generator_start", gen.name)
-                trace = gen.generate(task, on_token=on_token)
+                trace = gen.generate(
+                    task, on_token=on_token,
+                    failure_constraints=failure_constraints,
+                )
                 traces.append(trace)
                 log.debug("Generator %r produced trace %s", gen.name, trace.trace_id[:8])
             except Exception as exc:
