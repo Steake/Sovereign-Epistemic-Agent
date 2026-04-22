@@ -11,6 +11,7 @@
   --accent-3: #8a2be2;
   --card-bg: rgba(255, 255, 255, 0.02);
   --card-hover: rgba(255, 255, 255, 0.05);
+  --dropdown-bg: rgba(6, 8, 13, 0.98);
   --mermaid-bg: #0a0e17;
   --shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
 
@@ -30,6 +31,7 @@
   --accent-3: #8b5cf6;
   --card-bg: rgba(255, 255, 255, 1);
   --card-hover: rgba(248, 250, 252, 1);
+  --dropdown-bg: rgba(255, 255, 255, 0.98);
   --mermaid-bg: #ffffff;
   --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
 }
@@ -434,7 +436,7 @@ pre code {
 }
 
 .mermaid::after {
-  content: 'Interactive';
+  content: 'Shift + Scroll to zoom';
   position: absolute;
   top: 1rem;
   right: 1rem;
@@ -537,7 +539,7 @@ pre code {
   top: 120%;
   right: 0;
   width: 350px;
-  background: var(--card-bg);
+  background: var(--dropdown-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-glass);

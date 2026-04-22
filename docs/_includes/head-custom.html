@@ -35,14 +35,27 @@
             svg.style.maxWidth = '100%';
             svg.style.height = 'auto';
             // Enable interactive pan and zoom
-            svgPanZoom(svg, {
+            const panZoom = svgPanZoom(svg, {
               zoomEnabled: true,
               controlIconsEnabled: true,
+              mouseWheelZoomEnabled: false, // Prevent scroll hijacking
               fit: true,
               center: true,
               minZoom: 0.5,
               maxZoom: 10
             });
+            
+            // Shift + Scroll for zoom
+            svg.parentElement.addEventListener('wheel', function(e) {
+              if (e.shiftKey) {
+                e.preventDefault();
+                if (e.deltaY > 0) {
+                  panZoom.zoomOut();
+                } else {
+                  panZoom.zoomIn();
+                }
+              }
+            }, { passive: false });
           }
         }
       });
