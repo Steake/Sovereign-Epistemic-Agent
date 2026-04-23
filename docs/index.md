@@ -163,6 +163,33 @@ FL -.->|"Future Penalisation"| TC
   </div>
 </section>
 
+<section id="document-corpus" class="section-block">
+  <div class="section-header flex-header">
+    <div>
+      <h2>Document Corpus</h2>
+      <p>Primary PDFs, companion manuscripts, and direct Zenodo records woven into the site as a first-class research layer.</p>
+    </div>
+    <a href="{{ '/library' | relative_url }}" class="view-all-link">Open Full Library →</a>
+  </div>
+
+  <div class="library-stat-grid">
+    <div class="library-stat-card">
+      <span class="library-stat-value">17</span>
+      <span class="library-stat-label">Curated PDFs</span>
+    </div>
+    <div class="library-stat-card">
+      <span class="library-stat-value">13</span>
+      <span class="library-stat-label">Zenodo Records</span>
+    </div>
+    <div class="library-stat-card">
+      <span class="library-stat-value">4</span>
+      <span class="library-stat-label">Research Tracks</span>
+    </div>
+  </div>
+
+  {% include document-list.html ids="godelos-overview, eqbsl, plenum" compact=true %}
+</section>
+
 <section id="latest-research" class="section-block">
   <div class="section-header flex-header">
     <h2>Latest Research</h2>

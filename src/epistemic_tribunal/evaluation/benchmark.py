@@ -111,11 +111,22 @@ class BenchmarkRunner:
         dataset_path = Path(dataset_path)
         
         # Determine task files and ordering
+        task_metadata_map = {}
         if manifest_path:
             manifest_path = Path(manifest_path)
             log.info("Loading tasks from authoritative manifest: %s", manifest_path)
-            with manifest_path.open("r") as f:
-                task_ids = [line.strip() for line in f if line.strip()]
+            
+            task_ids = []
+            if manifest_path.suffix == ".json":
+                with manifest_path.open("r") as f:
+                    manifest_data = json.load(f)
+                for entry in manifest_data:
+                    tid = entry["task_id"]
+                    task_ids.append(tid)
+                    task_metadata_map[tid] = entry
+            else:
+                with manifest_path.open("r") as f:
+                    task_ids = [line.strip() for line in f if line.strip()]
             
             # Map IDs to local files (preserving order)
             task_files = []
@@ -165,6 +176,10 @@ class BenchmarkRunner:
                     if task.task_id in completed_task_ids:
                         log.info("Skipping completed task %s due to resume state.", task.task_id)
                         continue
+                    
+                    if task.task_id in task_metadata_map:
+                        task.metadata.update(task_metadata_map[task.task_id])
+                        
                     log.info("Running tribunal on task %s", task.task_id)
                     run = self._orchestrator.run(task)
                     runs.append(run)

@@ -1,0 +1,52 @@
+{% assign doc = include.doc %}
+{% assign tag_limit = 6 %}
+{% if include.compact %}
+  {% assign tag_limit = 4 %}
+{% endif %}
+<article id="{{ doc.id }}" class="document-card{% if include.compact %} compact{% endif %}">
+  <div class="document-header">
+    <div class="document-chip-row">
+      <span class="document-chip">{{ doc.series }}</span>
+      {% if doc.zenodo_url %}
+        <span class="document-chip accent">Zenodo</span>
+      {% else %}
+        <span class="document-chip muted">Local PDF</span>
+      {% endif %}
+      <span class="document-chip muted">{{ doc.year }}</span>
+    </div>
+    <h3 class="document-title">{{ doc.title }}</h3>
+  </div>
+
+  <p class="document-abstract">
+    {% if include.compact %}
+      {{ doc.abstract | truncatewords: 24 }}
+    {% else %}
+      {{ doc.abstract }}
+    {% endif %}
+  </p>
+
+  <p class="document-citation">
+    {{ doc.authors | join: ", " }} · {{ doc.year }}
+    {% if doc.doi %}
+      · <span class="document-doi">{{ doc.doi }}</span>
+    {% endif %}
+  </p>
+
+  {% if doc.tags %}
+    <div class="document-tags">
+      {% for tag in doc.tags limit: tag_limit %}
+        <span class="document-tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="document-actions">
+    <a class="document-btn primary" href="{{ doc.pdf_path | relative_url }}" target="_blank" rel="noopener">Download PDF</a>
+    {% if doc.zenodo_url %}
+      <a class="document-btn" href="{{ doc.zenodo_url }}" target="_blank" rel="noopener">Zenodo</a>
+    {% endif %}
+    {% if doc.doi %}
+      <a class="document-btn" href="https://doi.org/{{ doc.doi }}" target="_blank" rel="noopener">DOI</a>
+    {% endif %}
+  </div>
+</article>

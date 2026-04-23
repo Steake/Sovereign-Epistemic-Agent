@@ -1,0 +1,177 @@
+[
+  {
+    "task_id": "control_tile_2x2_b",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_b509f69a",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_c15d81cb",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_5f6e3ff8",
+    "cohort": "same_task_recoverable",
+    "recoverability_status": "exact_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_401cfb85",
+    "cohort": "control_trivial",
+    "recoverability_status": "exact_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_afa80243",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "diversity_sensitive_crop_consensus_l",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_78fdae13",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "refinement_composition_rotate270_crop_e",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_ce8d25af",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "diversity_sensitive_crop_consensus_k",
+    "cohort": "control_trivial",
+    "recoverability_status": "exact_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "refinement_composition_rotate180_crop_g",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_d82f4f85",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_c7fd3acb",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_2387060f",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_selector_divergence_a7855b4f",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_53903c59",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_15cf3c10",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_bde7f3f1",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_4da2fe3a",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_9a2ca20c",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "diversity_sensitive_crop_consensus_b",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_control_aa6f2343",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_refinement_composition_86d51a6f",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  },
+  {
+    "task_id": "auto_diversity_sensitive_e7e7677b",
+    "cohort": "same_task_unrecoverable",
+    "recoverability_status": "no_viable_candidate_present",
+    "processing_confounded": false,
+    "annotation_notes": "auto-generated from baseline ledger pool stats"
+  }
+]

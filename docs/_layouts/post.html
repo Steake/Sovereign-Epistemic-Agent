@@ -17,6 +17,20 @@ layout: default
     </p>
   </header>
 
+  {% if page.document_refs %}
+    <section class="post-reference-strip">
+      <div class="post-reference-header">
+        <div>
+          <span class="post-reference-label">Referenced Documents</span>
+          <p class="post-reference-copy">Primary PDFs and Zenodo records connected to this write-up.</p>
+        </div>
+        <a href="{{ '/library' | relative_url }}" class="view-all-link">Browse Full Library →</a>
+      </div>
+      {% assign doc_id_string = page.document_refs | join: "," %}
+      {% include document-list.html ids=doc_id_string compact=true %}
+    </section>
+  {% endif %}
+
   <div class="post-content">
     {{ content }}
   </div>
