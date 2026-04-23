@@ -11,11 +11,11 @@ echo ""
 
 # The custom ARC dataset path (where the 25 contested tasks live)
 TASK_DIR="/Users/oli/Documents/Oli Works/arc_epistemic/Kaggle_Submission_Bundle/dataset"
-MANIFEST="data/deepseek_custom_25_manifest.txt"
+MANIFEST="data/strange_loop_manifest.json"
 CONFIG_PATH="configs/strange_loop_experiment.yaml"
 
 echo "Task Directory: $TASK_DIR"
-echo "Manifest: $MANIFEST ($(wc -l < "$MANIFEST" | tr -d ' ') tasks)"
+echo "Manifest: $MANIFEST"
 echo "Config: $CONFIG_PATH"
 echo ""
 

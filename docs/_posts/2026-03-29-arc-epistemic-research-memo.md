@@ -2,6 +2,8 @@
 layout: post
 title: "ARC-Epistemic: A Research Memo on Metacognitive Calibration"
 excerpt: "The 21-day journey from philosophical hypothesis to a 1,000-task benchmark proving metacognitive routing is a learnable skill."
+document_refs:
+  - arc-epistemic-memo
 ---
 
 *Oliver C. Hirst · Independent Researcher · March 29, 2026*

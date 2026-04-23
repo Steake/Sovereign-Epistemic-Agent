@@ -28,3 +28,6 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - README.md
+  - .bundle
+  - vendor
+  - vendor/bundle

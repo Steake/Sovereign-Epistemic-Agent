@@ -2,6 +2,8 @@
 layout: post
 title: "ARC-Epistemic: A Benchmark for Machine Metacognition"
 excerpt: "The precursor to the Epistemic Tribunal, establishing the foundational thesis of Diversity-Aware Consensus and empirical lift."
+document_refs:
+  - arc-epistemic-memo
 ---
 
 *This document serves as the foundational text for the precursor project, [ARC-Epistemic](https://github.com/Steake/ARC-Epistemic), which laid the theoretical and empirical groundwork for the Epistemic Tribunal.*

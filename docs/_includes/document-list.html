@@ -1,0 +1,11 @@
+{% assign docs = site.data.research_library %}
+{% assign ids = include.ids | split: "," %}
+<div class="document-grid{% if include.compact %} compact-grid{% endif %}">
+  {% for raw_id in ids %}
+    {% assign ref_id = raw_id | strip %}
+    {% assign doc = docs | where: "id", ref_id | first %}
+    {% if doc %}
+      {% include document-card.html doc=doc compact=include.compact %}
+    {% endif %}
+  {% endfor %}
+</div>

@@ -2,6 +2,10 @@
 layout: post
 title: "Future Directions"
 excerpt: "Strategic engineering path for the Epistemic Tribunal following the 8-cycle EQBSL tuning campaign."
+document_refs:
+  - eqbsl
+  - plenum
+  - gm7
 ---
 
 This document outlines the strategic engineering path for the Epistemic Tribunal following the 8-cycle EQBSL (Evidence Quantified Belief Subjective Logic) tuning campaign. 

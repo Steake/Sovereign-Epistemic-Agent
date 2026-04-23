@@ -23,6 +23,18 @@ title: Research Archive
 </section>
 {% endif %}
 
+<section class="reports-reference-band">
+  <div class="section-header flex-header">
+    <div>
+      <h2>Primary Documents</h2>
+      <p>Posts on this site now link into a shared PDF corpus with direct Zenodo and DOI paths.</p>
+    </div>
+    <a href="{{ '/library' | relative_url }}" class="view-all-link">Browse Library →</a>
+  </div>
+
+  {% include document-list.html ids="arc-epistemic-memo, gm7, eqbsl" compact=true %}
+</section>
+
 <section class="research-archive">
   <h2>Previous Reports</h2>
   <div class="archive-list">

@@ -2,6 +2,9 @@
 layout: post
 title: "DeepSeek-Chat Full Adjudication"
 excerpt: "First full-pipeline run of the Epistemic Tribunal adjudication system against a 50-task ARC validation subset using DeepSeek-Chat."
+document_refs:
+  - arc-epistemic-memo
+  - godelos-overview
 ---
 
 **Date:** 2026-04-18  

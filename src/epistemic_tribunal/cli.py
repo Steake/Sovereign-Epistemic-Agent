@@ -181,9 +181,10 @@ def _print_metrics(metrics: dict) -> None:
     cohort_table.add_column("Wrong Picks", justify="right", style="red")
 
     cohort_map = {
-        "control-trivial": "[dim white]control-trivial[/dim white]",
-        "contested-recoverable": "[bold green]contested-recoverable[/bold green]",
-        "contested-unrecoverable": "[bold yellow]contested-unrecoverable[/bold yellow]",
+        "control_trivial": "[dim white]control_trivial[/dim white]",
+        "same_task_recoverable": "[bold green]same_task_recoverable[/bold green]",
+        "same_task_unrecoverable": "[bold yellow]same_task_unrecoverable[/bold yellow]",
+        "processing_confounded": "[dim cyan]processing_confounded[/dim cyan]",
         "unknown": "[dim red]unknown[/dim red]"
     }
 
@@ -236,9 +237,19 @@ def _print_metrics(metrics: dict) -> None:
         usefulness_table.add_column("Description", style="dim italic")
 
         usefulness_table.add_row(
-            "Best Candidate in Pool",
+            "Best Candidate in Pool (Overall)",
             f"{usefulness['best_candidate_in_pool_accuracy']:.4f}",
             "P(Correct | Oracle Selection)"
+        )
+        usefulness_table.add_row(
+            "Best Candidate in Pool (Recoverable)",
+            f"[bold cyan]{usefulness['best_candidate_in_pool_accuracy_on_recoverable']:.4f}[/bold cyan]",
+            "P(Correct | Oracle Selection) on Recoverable Cohort"
+        )
+        usefulness_table.add_row(
+            "Tribunal Selected Acc (Recoverable)",
+            f"[bold green]{usefulness['tribunal_selected_accuracy_on_recoverable']:.4f}[/bold green]",
+            "Tribunal accuracy on Recoverable Cohort"
         )
         usefulness_table.add_row(
             "Greedy Accuracy",
@@ -246,13 +257,13 @@ def _print_metrics(metrics: dict) -> None:
             "Baseline LLM accuracy"
         )
         usefulness_table.add_row(
-            "Tribunal Lift",
+            "Tribunal Lift (Overall)",
             f"[bold green]{usefulness['tribunal_lift_over_greedy']:+.4f}[/bold green]",
             "Selective Acc - Greedy Acc"
         )
         usefulness_table.add_row(
-            "Lift on Contested-Recoverable",
-            f"[bold green]{usefulness['lift_on_contested_recoverable']:+.4f}[/bold green]",
+            "Lift on Recoverable",
+            f"[bold green]{usefulness['lift_on_recoverable']:+.4f}[/bold green]",
             "Tribunal value on hard-but-doable tasks"
         )
         console.print(usefulness_table)

@@ -165,7 +165,7 @@ def summary_report(
 
     # 2. Cohort Stratification
     cohort_stats = {}
-    for c_name in ["control-trivial", "contested-recoverable", "contested-unrecoverable", "unknown"]:
+    for c_name in ["same_task_recoverable", "same_task_unrecoverable", "control_trivial", "processing_confounded", "unknown"]:
         c_runs = [r for r in runs if r.metadata.get("cohort") == c_name]
         if not c_runs:
             continue
@@ -219,15 +219,18 @@ def summary_report(
     # 6. Tribunal Usefulness & Oracle Analysis
     bip_acc = best_in_pool_accuracy(runs)
     gre_acc = greedy_accuracy(runs)
-    cr_runs = [r for r in runs if r.metadata.get("cohort") == "contested-recoverable"]
+    cr_runs = [r for r in runs if r.metadata.get("cohort") == "same_task_recoverable"]
     
     if cr_runs:
         cr_sel = [r for r in cr_runs if r.decision == DecisionKind.SELECT]
         cr_tribunal_acc = sum(1 for r in cr_sel if r.ground_truth_match) / len(cr_sel) if cr_sel else 0.0
         cr_greedy_acc = greedy_accuracy(cr_runs)
         lift_cr = cr_tribunal_acc - cr_greedy_acc
+        cr_bip_acc = best_in_pool_accuracy(cr_runs)
     else:
+        cr_tribunal_acc = 0.0
         lift_cr = 0.0
+        cr_bip_acc = 0.0
 
     report["tribunal_usefulness"] = {
         "best_candidate_in_pool_accuracy": round(bip_acc, 4),
@@ -235,7 +238,9 @@ def summary_report(
         "good_abstention_rate": round(good_abstains / len(not_selected), 4) if not_selected else 0.0,
         "bad_abstention_rate": round(bad_abstains / len(not_selected), 4) if not_selected else 0.0,
         "tribunal_lift_over_greedy": round((resolved_accuracy(runs) - gre_acc), 4),
-        "lift_on_contested_recoverable": round(lift_cr, 4),
+        "best_candidate_in_pool_accuracy_on_recoverable": round(cr_bip_acc, 4),
+        "tribunal_selected_accuracy_on_recoverable": round(cr_tribunal_acc, 4),
+        "lift_on_recoverable": round(lift_cr, 4),
     }
 
     if coalition_rows:

@@ -2,6 +2,10 @@
 layout: post
 title: "Phase 1 Experiment Report"
 excerpt: "First complete end-to-end validation of the Epistemic Tribunal stack."
+document_refs:
+  - godelos-overview
+  - gm7
+  - plenum
 ---
 
 ## Epistemic Tribunal — ARC-AGI Scaling Study
